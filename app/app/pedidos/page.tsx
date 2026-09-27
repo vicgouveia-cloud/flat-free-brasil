@@ -1,7 +1,7 @@
 'use client'
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
-import { getOrders } from '@/lib/storage'
+import { getOrders, saveOrders } from '@/lib/storage'
 import { ozToLiters, ozToBucketsCeil, formatDoses } from '@/lib/dosage'
 import type { Order } from '@/lib/types'
 
@@ -19,6 +19,40 @@ export default function PedidosPage() {
   const [selected, setSelected] = useState<Order | null>(null)
 
   useEffect(() => { setOrders(getOrders()) }, [])
+
+  function confirmPendingDosage(index: number, doseUnitOz: number) {
+    if (!selected?.itensPendentes || !Number.isFinite(doseUnitOz) || doseUnitOz <= 0) return
+
+    const pending = selected.itensPendentes[index]
+    if (!pending) return
+
+    const totalOz = Number((doseUnitOz * pending.quantidade).toFixed(1))
+    const itens = [
+      ...selected.itens,
+      {
+        medida: pending.medida,
+        quantidade: pending.quantidade,
+        doseUnitOz,
+        totalOz,
+      },
+    ]
+    const itensPendentes = selected.itensPendentes.filter((_, i) => i !== index)
+    const quantidadeEstimadaProduto = Number(
+      itens.reduce((sum, item) => sum + item.totalOz, 0).toFixed(1)
+    )
+
+    const updatedOrder: Order = {
+      ...selected,
+      itens,
+      itensPendentes: itensPendentes.length > 0 ? itensPendentes : undefined,
+      quantidadeEstimadaProduto,
+    }
+
+    const updatedOrders = orders.map(order => order.id === updatedOrder.id ? updatedOrder : order)
+    saveOrders(updatedOrders)
+    setOrders(updatedOrders)
+    setSelected(updatedOrder)
+  }
 
   return (
     <div>
@@ -74,17 +108,50 @@ export default function PedidosPage() {
           )}
           {selected.itensPendentes && selected.itensPendentes.length > 0 && (
             <>
-              <h4 style={{ fontWeight: 700, marginTop: '1.25rem', marginBottom: '0.75rem' }}>
+              <h4 style={{ fontWeight: 700, marginTop: '1.25rem', marginBottom: '0.4rem' }}>
                 Itens pendentes de confirmação de dosagem
               </h4>
+              <p style={{ color: 'var(--text-secondary)', fontSize: '0.825rem', marginBottom: '0.75rem' }}>
+                Informe a dose somente após validação técnica. Ao confirmar, o item passa para a lista calculada e o total do pedido é atualizado.
+              </p>
               <table className="table">
-                <thead><tr><th>Medida</th><th>Qtd. Pneus</th><th>Status</th></tr></thead>
+                <thead><tr><th>Medida</th><th>Qtd. Pneus</th><th>Status</th><th>Dose por Pneu</th><th></th></tr></thead>
                 <tbody>
                   {selected.itensPendentes.map((item, i) => (
                     <tr key={i}>
                       <td>{item.medida}</td>
                       <td>{item.quantidade}</td>
                       <td><span className="badge badge-orange">Confirmação de dosagem</span></td>
+                      <td>
+                        <form
+                          id={`pending-dose-${i}`}
+                          onSubmit={e => {
+                            e.preventDefault()
+                            const data = new FormData(e.currentTarget)
+                            const dose = Number(data.get('doseUnitOz'))
+                            confirmPendingDosage(i, dose)
+                          }}
+                          style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}
+                        >
+                          <input
+                            name="doseUnitOz"
+                            type="number"
+                            min="0.1"
+                            step="0.1"
+                            required
+                            className="form-control"
+                            placeholder="Ex.: 18"
+                            aria-label={`Dose confirmada para ${item.medida}`}
+                            style={{ width: '110px', padding: '0.35rem 0.5rem' }}
+                          />
+                          <span style={{ color: 'var(--text-muted)', fontSize: '0.8rem' }}>doses</span>
+                        </form>
+                      </td>
+                      <td>
+                        <button type="submit" form={`pending-dose-${i}`} className="btn btn-primary btn-sm">
+                          Confirmar
+                        </button>
+                      </td>
                     </tr>
                   ))}
                 </tbody>
