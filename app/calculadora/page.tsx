@@ -88,6 +88,14 @@ export default function CalculadoraPage() {
   const unresolvedLines = evaluatedLines.filter(item => item.resolution.status === 'requires_review')
   const totalOz = resolvedLines.reduce((sum, item) => sum + item.lineTotalOz, 0)
   const hasUnresolved = unresolvedLines.length > 0
+  const hasEmpirical = resolvedLines.some(
+    item => item.resolution.status === 'resolved' && item.resolution.source === 'empirical_heavy_road'
+  )
+  const totalsTitle = hasUnresolved
+    ? 'Consumo Total Parcial'
+    : hasEmpirical
+    ? 'Consumo Total Estimado'
+    : 'Consumo Total Tabelado'
 
   // Cálculo da fórmula física ASI no modo técnico
   const techResult = calculateDoseFromFormula({
@@ -444,11 +452,9 @@ export default function CalculadoraPage() {
                 }}
               >
                 <div style={{ marginBottom: '0.75rem', fontWeight: 700, fontSize: '0.9rem' }}>
-                  {hasUnresolved ? (
-                    <span style={{ color: '#ea580c' }}>Consumo Total Parcial (apenas itens confirmados/calculados)</span>
-                  ) : (
-                    <span style={{ color: 'var(--color-safety-orange)' }}>Consumo Total Confirmado</span>
-                  )}
+                  <span style={{ color: hasUnresolved ? '#ea580c' : 'var(--color-safety-orange)' }}>
+                    {totalsTitle}
+                  </span>
                 </div>
 
                 <div
