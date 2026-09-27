@@ -125,6 +125,9 @@ export default function PneusPage() {
   }
 
   function handleSaveApplication() {
+    if (!selected) return
+    const existing = applications.filter(a => a.tireId === selected.id)
+    if (existing.length > 0) return
     if (!appForm.tireId || !appForm.quilometragemAplicacao || !appForm.sulcoInicial || !appForm.doseAplicada) return
     const newApp: FlatFreeApplication = { id: uuid(), ...appForm }
     const updated = [...applications, newApp]
@@ -144,6 +147,7 @@ export default function PneusPage() {
   const tireApplications = selected
     ? applications.filter(a => a.tireId === selected.id).sort((a, b) => b.data.localeCompare(a.data))
     : []
+  const hasApplication = tireApplications.length > 0
   const tirePosHistory = selected
     ? posHistory
         .filter(h => h.tireId === selected.id)
@@ -281,12 +285,24 @@ export default function PneusPage() {
           <div className="card" style={{ marginBottom: '1.5rem' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem' }}>
               <h4 style={{ fontWeight: 700 }}>Aplicação Flat Free</h4>
-              <button onClick={() => setShowAppForm(v => !v)} className="btn btn-outline btn-sm">
-                <i className="fas fa-plus" /> Registrar Aplicação
-              </button>
+              {hasApplication ? (
+                <span className="badge badge-green" style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem' }}>
+                  <i className="fas fa-circle-check" /> Aplicação já registrada
+                </span>
+              ) : (
+                <button onClick={() => setShowAppForm(v => !v)} className="btn btn-outline btn-sm">
+                  <i className="fas fa-plus" /> Registrar Aplicação
+                </button>
+              )}
             </div>
 
-            {showAppForm && (
+            {hasApplication && (
+              <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginBottom: '1rem' }}>
+                Aplicação única já realizada. O produto Flat Free é aplicado uma única vez durante a vida útil do pneu.
+              </p>
+            )}
+
+            {!hasApplication && showAppForm && (
               <div style={{ background: 'var(--bg-surface-elevated)', borderRadius: '10px', padding: '1.25rem', marginBottom: '1rem', border: '1px solid var(--border-color)' }}>
                 <h5 style={{ fontWeight: 700, marginBottom: '1rem' }}>Nova Aplicação Flat Free</h5>
                 {getDosageOz(selected.medida) !== null && (

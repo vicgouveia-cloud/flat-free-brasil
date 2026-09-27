@@ -254,7 +254,7 @@ export default function ComparativosPage() {
                     <td><strong>{diffPct(avgKmMmTreated, avgKmMmControl)}</strong></td>
                   </tr>
                   <tr>
-                    <td>Custo/km médio</td>
+                    <td>Custo do pneu / km observado</td>
                     <td>{fmtCost(avgCostTreated)}</td>
                     <td>{fmtCost(avgCostControl)}</td>
                     <td><strong>{diffPct(
@@ -271,7 +271,8 @@ export default function ComparativosPage() {
                 </tbody>
               </table>
               <div style={{ background: 'rgba(148,163,184,0.1)', borderRadius: '8px', padding: '0.75rem 1rem', fontSize: '0.8rem', color: 'var(--text-muted)', fontStyle: 'italic' }}>
-                ⚠️ Resultado observado neste projeto e nesta operação. Outros fatores operacionais podem influenciar o desgaste.
+                <div>⚠️ Resultado observado neste projeto e nesta operação. Outros fatores operacionais podem influenciar o desgaste.</div>
+                <div style={{ marginTop: '0.25rem' }}>* Custo do pneu / km observado: indicador parcial enquanto o pneu estiver em acompanhamento.</div>
               </div>
             </div>
           )}
@@ -283,7 +284,7 @@ export default function ComparativosPage() {
               <thead>
                 <tr>
                   <th>Pneu</th><th>Grupo</th><th>Km Rodados</th>
-                  <th>Sulco Consumido</th><th>Km/mm</th><th>Custo/km</th><th>Ocorr.</th><th>Status</th>
+                  <th>Sulco Consumido</th><th>Km/mm</th><th>Custo pneu / km obs.</th><th>Ocorr.</th><th>Status</th>
                 </tr>
               </thead>
               <tbody>
