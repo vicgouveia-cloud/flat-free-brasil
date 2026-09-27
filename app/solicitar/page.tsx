@@ -3,7 +3,7 @@ import { useState, useEffect, Suspense } from 'react'
 import { useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { getOrders, saveOrders, uuid } from '@/lib/storage'
-import { ozToLiters, ozToBucketsCeil } from '@/lib/dosage'
+import { ozToLiters, ozToBucketsCeil, formatDoses } from '@/lib/dosage'
 import type { Order, OrderItem } from '@/lib/types'
 import DemoBanner from '@/components/DemoBanner'
 
@@ -28,11 +28,36 @@ function SolicitarForm() {
   useEffect(() => {
     const calc = searchParams.get('calc')
     if (calc) {
-      try { setCalcItems(JSON.parse(decodeURIComponent(calc))) } catch {}
+      try {
+        const raw = JSON.parse(decodeURIComponent(calc))
+        const normalized: CalcItem[] = raw.map((item: any) => ({
+          medida: String(item.medida || ''),
+          quantidade: Number(item.quantidade) || 1,
+          doseUnitOz:
+            item.doseUnitOz !== undefined
+              ? item.doseUnitOz
+              : item.appliedDose !== undefined
+              ? item.appliedDose
+              : item.doseUnit !== undefined
+              ? item.doseUnit
+              : item.doses !== undefined
+              ? item.doses
+              : null,
+          totalOz:
+            item.totalOz !== undefined
+              ? Number(item.totalOz) || 0
+              : item.lineTotalDoses !== undefined
+              ? Number(item.lineTotalDoses) || 0
+              : item.totalDoses !== undefined
+              ? Number(item.totalDoses) || 0
+              : 0,
+        }))
+        setCalcItems(normalized)
+      } catch {}
     }
   }, [searchParams])
 
-  const totalOz = calcItems.reduce((s, i) => s + i.totalOz, 0)
+  const totalOz = calcItems.reduce((s, i) => s + (i.doseUnitOz !== null ? i.totalOz : 0), 0)
 
   function updateForm(field: string, value: string) {
     setForm(prev => ({ ...prev, [field]: value }))
@@ -101,15 +126,15 @@ function SolicitarForm() {
                 <tr key={i}>
                   <td>{item.medida}</td>
                   <td>{item.quantidade}</td>
-                  <td>{item.doseUnitOz !== null ? `${item.doseUnitOz} oz` : 'Consultar'}</td>
-                  <td>{item.totalOz > 0 ? `${item.totalOz} oz` : '—'}</td>
+                  <td>{item.doseUnitOz !== null ? formatDoses(item.doseUnitOz) : 'Consultar dosagem'}</td>
+                  <td>{item.doseUnitOz !== null && item.totalOz > 0 ? formatDoses(item.totalOz) : '—'}</td>
                 </tr>
               ))}
             </tbody>
           </table>
           {totalOz > 0 && (
             <p style={{ fontSize: '0.875rem', color: 'var(--text-secondary)' }}>
-              <strong>Total estimado:</strong> {totalOz} fl oz ≈ {ozToLiters(totalOz).toFixed(1)} L —
+              <strong>Total estimado:</strong> {formatDoses(totalOz)} ≈ {ozToLiters(totalOz).toFixed(1)} L —
               {' '}<strong>{ozToBucketsCeil(totalOz)} {ozToBucketsCeil(totalOz) === 1 ? 'balde' : 'baldes'}</strong> para pedido
             </p>
           )}

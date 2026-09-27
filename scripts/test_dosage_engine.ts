@@ -216,4 +216,72 @@ if (resCaseG.status === 'requires_review') {
   assert(resCaseG.isMetric === false, 'Caso G: isMetric is false')
 }
 
+console.log('--- Testing Calculator -> Solicitar Payload Integration (01-QUINQUIES) ---')
+
+// Helper simulating calculator serialization
+function buildCalcParams(lines: Array<{ medida: string; quantidade: number; usageClass?: string }>) {
+  return encodeURIComponent(
+    JSON.stringify(
+      lines.map(line => {
+        const res = resolveDosageForApplication(line.medida, line.usageClass)
+        const appliedDose = res.status === 'resolved' ? res.appliedDose : null
+        const lineTotalDoses = appliedDose !== null ? appliedDose * line.quantidade : 0
+        return {
+          medida: line.medida,
+          quantidade: line.quantidade,
+          doseUnitOz: appliedDose,
+          totalOz: lineTotalDoses,
+        }
+      })
+    )
+  )
+}
+
+// Helper simulating /solicitar parsing and total calculation
+function parseSolicitarParams(calc: string) {
+  const raw = JSON.parse(decodeURIComponent(calc))
+  const items = raw.map((item: any) => ({
+    medida: String(item.medida || ''),
+    quantidade: Number(item.quantidade) || 1,
+    doseUnitOz: item.doseUnitOz !== undefined ? item.doseUnitOz : null,
+    totalOz: item.totalOz !== undefined ? Number(item.totalOz) || 0 : 0,
+  }))
+  const totalOz = items.reduce((s: number, i: any) => s + (i.doseUnitOz !== null ? i.totalOz : 0), 0)
+  return { items, totalOz }
+}
+
+// Case A: 295/80 R22,5, 10 pneus -> 32 doses/pneu, 320 doses
+const calcA = buildCalcParams([{ medida: '295/80 R22,5', quantidade: 10 }])
+const solA = parseSolicitarParams(calcA)
+assert(solA.items[0].doseUnitOz === 32, 'Payload A: doseUnitOz is 32')
+assert(solA.items[0].totalOz === 320, 'Payload A: totalOz is 320')
+assert(formatDoses(solA.items[0].doseUnitOz) === '32 doses', 'Payload A UI: 32 doses')
+assert(formatDoses(solA.items[0].totalOz) === '320 doses', 'Payload A UI: 320 doses')
+assert(solA.totalOz === 320, 'Payload A total: 320')
+
+// Case B: 205/55 R16, 200 pneus -> 9 doses/pneu, 1800 doses
+const calcB = buildCalcParams([{ medida: '205/55 R16', quantidade: 200 }])
+const solB = parseSolicitarParams(calcB)
+assert(solB.items[0].doseUnitOz === 9, 'Payload B: doseUnitOz is 9')
+assert(solB.items[0].totalOz === 1800, 'Payload B: totalOz is 1800')
+assert(formatDoses(solB.items[0].doseUnitOz) === '9 doses', 'Payload B UI: 9 doses')
+assert(formatDoses(solB.items[0].totalOz) === '1800 doses', 'Payload B UI: 1800 doses')
+assert(solB.totalOz === 1800, 'Payload B total: 1800')
+
+// Case C: 385/80 R22,5, 1 pneu (heavy_road) -> 47 doses
+const calcC = buildCalcParams([{ medida: '385/80 R22,5', quantidade: 1, usageClass: 'heavy_road' }])
+const solC = parseSolicitarParams(calcC)
+assert(solC.items[0].doseUnitOz === 47, 'Payload C: doseUnitOz is 47')
+assert(solC.items[0].totalOz === 47, 'Payload C: totalOz is 47')
+assert(formatDoses(solC.items[0].doseUnitOz) === '47 doses', 'Payload C UI: 47 doses')
+assert(formatDoses(solC.items[0].totalOz) === '47 doses', 'Payload C UI: 47 doses')
+assert(solC.totalOz === 47, 'Payload C total: 47')
+
+// Case D: item não resolvido -> doseUnitOz = null, sem entrar no total
+const calcD = buildCalcParams([{ medida: '14-17.5', quantidade: 4 }])
+const solD = parseSolicitarParams(calcD)
+assert(solD.items[0].doseUnitOz === null, 'Payload D: doseUnitOz is null')
+assert(solD.items[0].totalOz === 0, 'Payload D: totalOz is 0')
+assert(solD.totalOz === 0, 'Payload D: unresolved not counted in totalOz')
+
 console.log('--- ALL UNIT AND ACCEPTANCE CHECKS PASSED ---')

@@ -121,9 +121,8 @@ export default function CalculadoraPage() {
       evaluatedLines.map(item => ({
         medida: item.line.medida,
         quantidade: item.line.quantidade,
-        doses: item.appliedDose,
-        doseUnit: item.appliedDose,
-        totalDoses: item.lineTotalDoses,
+        doseUnitOz: item.appliedDose,
+        totalOz: item.lineTotalDoses,
       }))
     )
   )
@@ -188,7 +187,7 @@ export default function CalculadoraPage() {
           <datalist id="catalog-measures">
             {DOSAGE_CATALOG.map(e => (
               <option key={e.canonicalMeasure} value={e.canonicalMeasure}>
-                {e.canonicalMeasure} — {e.status === 'confirmed' ? `${formatDoses(e.fluidOzPerTire)} (Referência)` : 'Sob consulta'}
+                {e.canonicalMeasure} — {e.status === 'confirmed' ? `${formatDoses(e.fluidOzPerTire)} — referência` : 'estimativa disponível'}
               </option>
             ))}
           </datalist>
