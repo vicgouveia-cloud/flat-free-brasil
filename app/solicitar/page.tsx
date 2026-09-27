@@ -134,7 +134,7 @@ function SolicitarForm() {
           </table>
           {totalOz > 0 && (
             <p style={{ fontSize: '0.875rem', color: 'var(--text-secondary)' }}>
-              <strong>Total estimado:</strong> {formatDoses(totalOz)} ≈ {ozToLiters(totalOz).toFixed(1)} L —
+              <strong>Total estimado:</strong> {formatDoses(totalOz)} ≈ {ozToLiters(totalOz).toFixed(1).replace('.', ',')} L —
               {' '}<strong>{ozToBucketsCeil(totalOz)} {ozToBucketsCeil(totalOz) === 1 ? 'balde' : 'baldes'}</strong> para pedido
             </p>
           )}
