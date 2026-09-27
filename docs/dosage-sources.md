@@ -69,13 +69,13 @@ A auditoria confrontou o cálculo teórico da fórmula com as dosagens reais das
 ### Resultado do Confronto:
 1. **Divergência entre Largura da Banda e Largura Nominal de Seção:**  
    O código do pneu (ex.: `295/80 R22.5`) informa a largura nominal de seção (295 mm da lateral à lateral). A largura nominal não fornece a largura real da banda de rodagem (*Tread Width*). Usá-la como aproximação é uma hipótese exploratória, não uma medição exigida pelo fabricante.
-2. **Incompatibilidade Grave com Veículos Comerciais Pesados:**  
-   Se aplicarmos a fórmula `/22` ao pneu comercial de caminhão `295/80 R22.5` usando dimensões nominais:
-   $$\text{Altura} \approx 41,08\text{ pol}, \quad \text{Largura} \approx 11,61\text{ pol}$$
+2. **Não Reprodução das Doses de Pesados com Largura Nominal de Seção:**  
+   O uso exploratório da fórmula `/22` com LARGURA NOMINAL DA SEÇÃO não reproduz as doses históricas dos quatro pneus pesados analisados. Se aplicada ao pneu `295/80 R22.5` usando dimensões nominais:
+   $$\text{Altura} \approx 41,08\text{ pol}, \quad \text{Largura Nominal} \approx 11,61\text{ pol}$$
    $$\text{Dose calculada} = \frac{41,08 \times 11,61}{22} \approx 21,69\text{ fl oz}$$
-   Isso resultaria em **~21,7 fl oz**, um valor **completamente defasado** em relação aos **32 fl oz** tabelados e confirmados pelo projeto.
+   Isso resultaria em **~21,7 fl oz**, contrastando com os **32 fl oz** registrados na tabela histórica auditada. Como a documentação ASI exige explicitamente o *WIDTH OF TREAD* (largura real da banda de rodagem) e o comparativo utilizou a largura nominal da seção como proxy, esse exercício **não invalida a fórmula ASI** quando aplicada com medição física direta da banda.
 3. **Decisão Arquitetural:**  
-   A fórmula foi implementada em `lib/dosage.ts` (`calculateDoseFromFormula`) como função isolada e testável com todos os parâmetros exigidos pelo fabricante. **Ela NÃO está conectada como fallback automático da interface pública**, prevenindo subdosagens perigosas em pneus que não constem do catálogo confirmado.
+   A fórmula foi implementada em `lib/dosage.ts` (`calculateDoseFromFormula`) como função isolada e testável com os parâmetros exigidos pelo fabricante. **Ela NÃO está conectada como fallback automático da interface pública**, garantindo que apenas doses documentadas e validadas sejam exibidas ao usuário final.
 
 ---
 

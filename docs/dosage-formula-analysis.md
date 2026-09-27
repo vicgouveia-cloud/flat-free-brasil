@@ -1,6 +1,6 @@
 # FLAT FREE BRASIL — ANÁLISE MATEMÁTICA E REGRA EMPÍRICA PARA PESADOS RODOVIÁRIOS (/15)
 
-**Lote:** LOTE DOSAGEM 01-TER  
+**Lote:** LOTE DOSAGEM 01-QUATER (Ajuste Semântico)  
 **Data:** 27 de setembro de 2026  
 **Repositório:** `vicgouveia-cloud/flat-free-brasil`  
 **Branch:** `feature/dosage-catalog-foundation`  
@@ -10,24 +10,26 @@
 
 ## 1. Contexto e Objetivo
 
-A fórmula documental original da *ASI Chemical Inc.* (`Tire Chart.pdf`), definida com divisor 22 para veículos rodoviários acima de 45 MPH, foi desenvolvida prioritariamente para veículos leves/passeio utilizando a largura real da banda de rodagem (*tread width*). 
+A fórmula documental original da *ASI Chemical Inc.* (`Tire Chart.pdf`), definida com divisor 22 para veículos rodoviários acima de 45 MPH, foi desenvolvida pelo fabricante utilizando a largura real da banda de rodagem (*Width of Tread*) e altura total real.
 
-Quando aplicada com dimensões nominais métricas a pneus de caminhões pesados, a fórmula `/22` subestima a dosagem em mais de 30% (resultaria em apenas ~21,7 fl oz para um pneu 295/80 R22,5, quando a tabela histórica e o projeto exigem 32–34 fl oz).
-
-Este documento formaliza e valida a **regra empírica derivada para pesados rodoviários (divisor 15)** a partir das dosagens históricas consagradas nos documentos oficiais da empresa.
+O uso exploratório da fórmula /22 com LARGURA NOMINAL DA SEÇÃO não reproduz as doses históricas dos quatro pneus pesados analisados (resultaria em apenas ~21,7 fl oz para um pneu 295/80 R22,5, quando a tabela histórica auditada registra 32 fl oz).
 
 > [!IMPORTANT]
-> A regra `/15` **NÃO substitui** a fórmula documental ASI `/22`. Ela é catalogada como uma **regra empírica derivada** para pesados rodoviários métricos de alta velocidade. A fórmula documental ASI permanece preservada integralmente (`/22` para >45 mph e `/10` para <45 mph).
+> **Esclarecimento Metodológico sobre a Fórmula ASI /22:**
+> - A documentação ASI exige explicitamente o *WIDTH OF TREAD* (largura real da banda de rodagem).
+> - O comparativo exploratório utilizou a largura nominal da seção (*nominal section width*) como proxy dimensional simplificado.
+> - Portanto, este comparativo **NÃO invalida a fórmula ASI** quando aplicada com o *tread width* real medido diretamente no pneu.
+> - A regra empírica `/15` **NÃO substitui** a fórmula documental ASI `/22`, que permanece integralmente catalogada e preservada (`/22` para >45 mph e `/10` para <45 mph).
 
 ---
 
-## 2. Base Matemática do Divisor 15
+## 2. Base Matemática da Regra Empírica /15
 
-A modelagem utiliza os quatro pneus pesados métricos documentados na *Tabela Resumida Veículos* (e validados na operação brasileira):
+A modelagem utiliza os quatro pneus pesados métricos documentados na *Tabela Resumida Veículos* (acervo histórico auditado):
 
 1. **`215/75 R17,5`** = 17,0 fl oz
 2. **`275/80 R22,5`** = 28,0 fl oz
-3. **`295/80 R22,5`** = 32,0 fl oz *(base histórica tabelada na Tabela Resumida)*
+3. **`295/80 R22,5`** = 32,0 fl oz *(dose histórica tabelada na Tabela Resumida)*
 4. **`305/70 R22,5`** = 32,0 fl oz
 
 ### Fórmulas Geométricas Nominais:
@@ -48,7 +50,7 @@ $$\text{Divisor Implícito} = \frac{\text{Produto Geométrico}}{\text{Dose Tabel
 Para determinar o melhor divisor conjunto $k$ que minimiza o erro quadrático das dosagens:
 $$k = \frac{\sum \text{Produto}_i^2}{\sum (\text{Dose}_i \times \text{Produto}_i)} \approx \mathbf{14,9966}$$
 
-O valor inteiro **15** possui aderência estatística quase perfeita aos dados históricos documentados.
+Trata-se de uma **regra empírica provisória com alta aderência aos quatro pontos históricos pesados métricos atualmente disponíveis**. Ressalta-se que a inclusão de novas evidências ou dados operacionais futuros poderá recalibrar o divisor.
 
 ---
 
@@ -67,13 +69,26 @@ A tabela abaixo compara o comportamento dos divisores contra as dosagens tabelad
 
 | Divisor | MAE (Erro Médio Absoluto) | MAPE (Erro Percentual Médio) | Avaliação Técnica |
 |---|---:|---:|---|
-| **/22 (ASI Original)** | **8,66 fl oz** | **31,71%** | Inaplicável com dimensões nominais de pesados (subdosagem crítica de ~1/3) |
-| **/17** | **3,19 fl oz** | **11,62%** | Aproximação intermediária ainda com subdosagem sistemática |
-| **/15 (Regra Empírica)** | **0,38 fl oz** | **1,29%** | **Altíssima aderência** ao acervo histórico dos veículos pesados |
+| **/22 (ASI Original)** | **8,66 fl oz** | **31,71%** | O uso exploratório da fórmula /22 com LARGURA NOMINAL DA SEÇÃO não reproduz as doses históricas dos quatro pneus pesados analisados. |
+| **/17** | **3,19 fl oz** | **11,62%** | Aproximação intermediária com resíduo sistemático em relação às doses históricas tabeladas. |
+| **/15 (Regra Empírica)** | **0,38 fl oz** | **1,29%** | Regra empírica provisória com alta aderência aos quatro pontos históricos pesados métricos atualmente disponíveis (MAPE ~1,29%). Sujeita a recalibração com novas evidências. |
 
 ---
 
-## 4. Implementação Isolada no Código
+## 4. Fórmula Documental ASI /10 (< 45 MPH)
+
+A fórmula com divisor 10 é **DOCUMENTALMENTE** a regra original da ASI Chemical Inc. para veículos que operam abaixo de 45 mph (maquinário industrial, tratores agrícolas e equipamentos fora de estrada).
+
+> [!NOTE]
+> Assim como a fórmula `/22`, a regra `/10` utiliza na especificação do fabricante:
+> - Altura total real do pneu;
+> - Largura real da banda de rodagem (*Width of Tread*).
+>
+> **Diretriz Técnica:** Não se deve afirmar ou assumir que qualquer medida nominal de trator ou maquinário pesado possa ser convertida automaticamente com `/10` sem validação equivalente e medição dimensional direta.
+
+---
+
+## 5. Implementação Isolada no Código
 
 A função foi implementada em `lib/dosage.ts`:
 
@@ -98,11 +113,11 @@ export function calculateHeavyRoadDoseEmpirical(params: HeavyRoadEmpiricalParams
 ### Isolamento de Segurança:
 - **NÃO conectada** à função pública `getDosageOz`.
 - **NÃO conectada** a nenhuma interface pública (`app/calculadora`, `app/solicitar`, `app/app/*`).
-- O catálogo e as tabelas oficiais continuam tendo prioridade absoluta sobre qualquer cálculo.
+- O catálogo e as tabelas históricas auditadas continuam tendo prioridade absoluta sobre qualquer cálculo.
 
 ---
 
-## 5. Caso Exploratório: Medida 385/80 R22,5
+## 6. Caso Exploratório: Medida 385/80 R22,5
 
 A medida `385/80 R22,5` (super single / semi-reboques e eixos direcionais pesados especiais):
 
@@ -115,32 +130,35 @@ A medida `385/80 R22,5` (super single / semi-reboques e eixos direcionais pesado
 
 > [!WARNING]
 > A medida `385/80 R22,5` **NÃO foi incluída no catálogo oficial**.
-> - Classificação hierárquica: **Nível D** (Estimativa empírica não validada em tabela documental).
+> - Classificação hierárquica: **Nível E** (Cálculo empírico provisório não validado em tabela documental).
 > - Consultas a `getDosageOz('385/80 R22,5')` retornam estritamente `null`.
 > - Necessita de validação operacional prévia antes de qualquer recomendação ao cliente final.
 
 ---
 
-## 6. Hierarquia Documental da Dosagem Flat Free
+## 7. Hierarquia Documental da Dosagem Flat Free
 
-Para assegurar consistência e rastreabilidade técnica na plataforma, adota-se a seguinte taxonomia de confiabilidade:
+Para assegurar rigor técnico, consistência e rastreabilidade na plataforma, adota-se a seguinte taxonomia de confiabilidade documental:
 
 ```
-[NÍVEL A] Dose tabelada confirmada por fabricante / acervo oficial auditado
-      │   (ex.: 275/80 R22,5 = 28 fl oz, 295/80 R22,5 = 32 fl oz)
+[NÍVEL A] Fonte atual do fabricante
+      │   (validação direta contemporânea emitida pelo fabricante do produto, quando houver)
       ▼
-[NÍVEL B] Dose canônica de projeto deliberadamente resolvida
-      │   (decisão explícita documentada após auditoria técnica)
+[NÍVEL B] Tabela histórica auditada do acervo local
+      │   (documentos históricos da Revix / ASI Chemical; ex.: 275/80 R22,5 = 28 fl oz, 295/80 R22,5 = 32 fl oz)
       ▼
-[NÍVEL C] Fórmula documental ASI com tread width real medido
-      │   (Divisor 22 para >45 mph; Divisor 10 para <45 mph)
+[NÍVEL C] Decisão canônica do projeto
+      │   (resolução deliberada e formalizada após auditoria técnica de divergências documentais)
       ▼
-[NÍVEL D] Regra empírica derivada para pesados (/15)
-      │   (Estimativa matemática para pneus pesados rodoviários sem dose de tabela)
+[NÍVEL D] Cálculo documental ASI com dimensões reais medidas
+      │   (Fórmula ASI original com divisor 22 ou 10, utilizando medição real de Width of Tread e altura)
       ▼
-[NÍVEL E] Conflito documental / histórico pendente
-      │   (Status historical_conflict: retorna null na API pública)
+[NÍVEL E] Cálculo empírico provisório
+      │   (regra empírica provisória /15 para pesados métricos sem dose tabelada; ex.: 385/80 R22,5 ≈ 47,24 fl oz)
       ▼
-[NÍVEL F] Medida sem fonte ou cálculo não validado
-          (Retorna null — exige consulta com suporte técnico de engenharia)
+[NÍVEL F] Conflito documental / histórico pendente
+      │   (Status historical_conflict: divergência no acervo histórico; bloqueado, retorna null na API pública)
+      ▼
+[NÍVEL G] Medida sem fonte ou cálculo não validado
+          (Retorna null — exige levantamento dimensional direto e consulta com engenharia)
 ```

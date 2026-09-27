@@ -102,7 +102,7 @@ export function runFormulaAnalysis() {
   console.log('\n2. REGRESSÃO POR MÍNIMOS QUADRADOS:')
   console.log('--------------------------------------------------------------------------------')
   console.log(`Melhor divisor conjunto calculado (ótimos mínimos quadrados): ${optimalDivisor.toFixed(4)}`)
-  console.log(`Conclusão: O divisor 15 é rigorosamente coerente e representativo da base histórica.\n`)
+  console.log('Conclusão: Regra empírica provisória com alta aderência aos quatro pontos históricos pesados métricos atualmente disponíveis. Novas evidências podem recalibrar o divisor.\n')
 
   const testDivisors = [22, 17, 15]
   const statsList: DivisorStats[] = []

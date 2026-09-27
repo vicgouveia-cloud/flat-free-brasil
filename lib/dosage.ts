@@ -239,14 +239,17 @@ export interface HeavyRoadEmpiricalResult {
  *   dose estimada ≈ (diâmetro externo nominal em pol × largura nominal em pol) ÷ 15
  *
  * Base matemática:
- *   Derivada por regressão de mínimos quadrados (divisor ótimo ~14.9966) sobre os quatro pontos
- *   métricos pesados tabelados: 215/75 R17,5 (17 oz), 275/80 R22,5 (28 oz), 295/80 R22,5 (32 oz)
- *   e 305/70 R22,5 (32 oz), com erro percentual absoluto médio de apenas 1,29%.
+ *   Regra empírica provisória com alta aderência aos quatro pontos históricos pesados métricos
+ *   atualmente disponíveis: 215/75 R17,5 (17 oz), 275/80 R22,5 (28 oz), 295/80 R22,5 (32 oz)
+ *   e 305/70 R22,5 (32 oz). Divisor ótimo conjunto por mínimos quadrados ~14.9966 (MAPE ~1,29%).
+ *   Novas evidências ou dados operacionais futuros podem recalibrar o divisor.
  *
  * IMPORTANTE:
  * 1. Esta regra /15 NÃO substitui a fórmula documental ASI /22.
- * 2. Permanece estritamente isolada e NÃO está conectada ao getDosageOz nem à UI pública.
- * 3. Se uma medida possui dose tabelada no catálogo, a tabela deve prevalecer sempre.
+ * 2. O uso exploratório de fórmulas com largura nominal de seção não invalida a fórmula ASI /22,
+ *    que exige a medição real da largura da banda de rodagem (Width of Tread).
+ * 3. Permanece estritamente isolada e NÃO está conectada ao getDosageOz nem à UI pública.
+ * 4. Se uma medida possui dose tabelada no catálogo, a tabela deve prevalecer sempre.
  */
 export function calculateHeavyRoadDoseEmpirical(params: HeavyRoadEmpiricalParams): HeavyRoadEmpiricalResult {
   const sidewallMm = (params.nominalWidthMm * params.aspectRatio) / 100.0
