@@ -125,8 +125,9 @@ export interface PilotProject {
 
 export interface OrderItem {
   medida: string
-  quantidade: number
-  doses: number
+  quantidade: number          // number of tires
+  doseUnitOz: number          // fl oz per tire (canonical dosage)
+  totalOz: number             // doseUnitOz * quantidade
 }
 
 export type OrderStatus = 'solicitado' | 'em_analise' | 'aprovado' | 'enviado' | 'entregue' | 'cancelado'
@@ -136,7 +137,7 @@ export interface Order {
   companyId: string
   data: string
   itens: OrderItem[]
-  quantidadeEstimadaProduto: number
+  quantidadeEstimadaProduto: number  // total fl oz estimated
   enderecoEntrega: string
   cidade: string
   estado: string

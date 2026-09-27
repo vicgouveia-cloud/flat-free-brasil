@@ -1,25 +1,46 @@
-// Canonical dosage table - add new tire sizes here
-// Values are deliberate canonical doses - do not interpolate or invent
+// Canonical dosage table — add new tire sizes here.
+// Unit: US fluid ounces (fl oz) per tire.
+// Conversions: 1 US gallon = 128 fl oz | 1 bucket (5 US gal) = 640 fl oz ≈ 18.9 L
+// These values are deliberate canonical doses — do not interpolate or invent.
 export interface DosageEntry {
   measure: string
-  doses: number
+  fluidOzPerTire: number
 }
 
 export const DOSAGE_TABLE: DosageEntry[] = [
-  { measure: '275/80 R22,5', doses: 28 },
-  { measure: '295/80 R22,5', doses: 34 },
+  { measure: '275/80 R22,5', fluidOzPerTire: 28 },
+  { measure: '295/80 R22,5', fluidOzPerTire: 34 },
 ]
 
-// Bucket size in liters (US 5-gallon bucket)
-export const BUCKET_LITERS = 18.9
+/** US fl oz per US gallon */
+export const OZ_PER_GALLON = 128
+/** fl oz per 5-gallon bucket */
+export const OZ_PER_BUCKET = 640
+/** Liters per 5-gallon bucket (approximate) */
+export const LITERS_PER_BUCKET = 18.9
+/** fl oz per liter (approximate) */
+export const OZ_PER_LITER = 33.814
 
-export function getDosage(measure: string): number | null {
+/**
+ * Returns the canonical dose in fl oz for a given tire measure.
+ * Returns null if measure is not in the table (show "Consultar dosagem").
+ */
+export function getDosageOz(measure: string): number | null {
   const entry = DOSAGE_TABLE.find(e => e.measure === measure)
-  return entry ? entry.doses : null
+  return entry ? entry.fluidOzPerTire : null
 }
 
-export function calcBuckets(totalDoses: number): number {
-  // 1 dose = 1 liter (adjust if product changes)
-  const liters = totalDoses
-  return liters / BUCKET_LITERS
+/** Convert total fl oz to liters */
+export function ozToLiters(oz: number): number {
+  return oz / OZ_PER_LITER
+}
+
+/** How many 5-gal buckets needed, exact (may be fractional) */
+export function ozToBucketsFractional(oz: number): number {
+  return oz / OZ_PER_BUCKET
+}
+
+/** How many 5-gal buckets to ORDER (rounded up) */
+export function ozToBucketsCeil(oz: number): number {
+  return Math.ceil(oz / OZ_PER_BUCKET)
 }

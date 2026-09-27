@@ -4,8 +4,14 @@
 // without rewriting the UI components.
 // =============================================
 
-import type { Vehicle, Tire, TireReading, FlatFreeApplication, PilotProject, Order, Occurrence } from './types'
-import { DEMO_VEHICLES, DEMO_TIRES, DEMO_READINGS, DEMO_APPLICATIONS, DEMO_PROJECTS, DEMO_ORDERS } from './demo-data'
+import type {
+  Vehicle, Tire, TireReading, FlatFreeApplication,
+  PilotProject, Order, Occurrence, TirePositionHistory
+} from './types'
+import {
+  DEMO_VEHICLES, DEMO_TIRES, DEMO_READINGS, DEMO_APPLICATIONS,
+  DEMO_PROJECTS, DEMO_ORDERS, DEMO_POSITION_HISTORY
+} from './demo-data'
 
 const KEYS = {
   vehicles: 'ff_vehicles',
@@ -15,6 +21,7 @@ const KEYS = {
   projects: 'ff_projects',
   orders: 'ff_orders',
   occurrences: 'ff_occurrences',
+  positionHistory: 'ff_position_history',
 }
 
 function load<T>(key: string, fallback: T[]): T[] {
@@ -67,3 +74,57 @@ export function saveOrders(o: Order[]): void { save(KEYS.orders, o) }
 // Occurrences
 export function getOccurrences(): Occurrence[] { return load(KEYS.occurrences, []) }
 export function saveOccurrences(o: Occurrence[]): void { save(KEYS.occurrences, o) }
+
+// Position History
+export function getPositionHistory(): TirePositionHistory[] {
+  return load(KEYS.positionHistory, DEMO_POSITION_HISTORY)
+}
+export function savePositionHistory(h: TirePositionHistory[]): void {
+  save(KEYS.positionHistory, h)
+}
+
+/**
+ * Call this whenever a new reading is saved.
+ * Handles opening/closing position history entries automatically.
+ */
+export function updatePositionHistoryOnReading(
+  reading: TireReading,
+  allHistory: TirePositionHistory[]
+): TirePositionHistory[] {
+  const openEntry = allHistory.find(
+    h => h.tireId === reading.tireId && !h.dataFinal
+  )
+
+  if (!openEntry) {
+    // No history yet — create initial entry
+    const newEntry: TirePositionHistory = {
+      id: uuid(),
+      tireId: reading.tireId,
+      vehicleId: reading.vehicleId,
+      posicao: reading.posicaoAtual,
+      dataInicial: reading.data,
+    }
+    return [...allHistory, newEntry]
+  }
+
+  const sameVehicle = openEntry.vehicleId === reading.vehicleId
+  const samePosition = openEntry.posicao === reading.posicaoAtual
+
+  if (sameVehicle && samePosition) {
+    // No change — leave as is
+    return allHistory
+  }
+
+  // Position or vehicle changed — close old entry and open new one
+  const closed = allHistory.map(h =>
+    h.id === openEntry.id ? { ...h, dataFinal: reading.data } : h
+  )
+  const newEntry: TirePositionHistory = {
+    id: uuid(),
+    tireId: reading.tireId,
+    vehicleId: reading.vehicleId,
+    posicao: reading.posicaoAtual,
+    dataInicial: reading.data,
+  }
+  return [...closed, newEntry]
+}

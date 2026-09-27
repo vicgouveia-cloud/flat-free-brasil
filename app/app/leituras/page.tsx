@@ -1,6 +1,6 @@
 'use client'
 import { useEffect, useState } from 'react'
-import { getTires, getVehicles, getReadings, saveReadings, uuid } from '@/lib/storage'
+import { getTires, getVehicles, getReadings, saveReadings, getPositionHistory, savePositionHistory, updatePositionHistoryOnReading, uuid } from '@/lib/storage'
 import type { TireReading } from '@/lib/types'
 
 export default function LeiturasPage() {
@@ -37,12 +37,25 @@ export default function LeiturasPage() {
 
   function handleSave() {
     if (!form.tireId || !form.vehicleId || !form.posicaoAtual || !form.quilometragemVeiculo || !form.sulco) return
+
     const newReading: TireReading = { id: uuid(), ...form }
-    const updated = [newReading, ...readings]
-    saveReadings(updated)
-    setReadings(updated)
+
+    // Update readings
+    const updatedReadings = [newReading, ...readings]
+    saveReadings(updatedReadings)
+    setReadings(updatedReadings)
+
+    // Update position history
+    const currentHistory = getPositionHistory()
+    const updatedHistory = updatePositionHistoryOnReading(newReading, currentHistory)
+    savePositionHistory(updatedHistory)
+
     setShowForm(false)
-    setForm({ tireId: '', data: new Date().toISOString().split('T')[0], vehicleId: '', quilometragemVeiculo: 0, sulco: 0, pressao: undefined, posicaoAtual: '', observacoes: '' })
+    setForm({
+      tireId: '', data: new Date().toISOString().split('T')[0],
+      vehicleId: '', quilometragemVeiculo: 0, sulco: 0,
+      pressao: undefined, posicaoAtual: '', observacoes: '',
+    })
   }
 
   return (
@@ -58,7 +71,7 @@ export default function LeiturasPage() {
       {showForm && (
         <div className="card" style={{ marginBottom: '1.5rem' }}>
           <h3 style={{ fontWeight: 700, marginBottom: '1.25rem' }}>Nova Leitura</h3>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '1rem' }}>
             <div className="form-group">
               <label className="form-label">Pneu *</label>
               <select className="form-control" value={form.tireId} onChange={e => setForm(p => ({ ...p, tireId: e.target.value }))}>
@@ -86,7 +99,7 @@ export default function LeiturasPage() {
               <input type="number" step="0.1" className="form-control" value={form.sulco || ''} onChange={e => setForm(p => ({ ...p, sulco: +e.target.value }))} />
             </div>
             <div className="form-group">
-              <label className="form-label">Pressão (PSI) - opcional</label>
+              <label className="form-label">Pressão (PSI) — opcional</label>
               <input type="number" className="form-control" value={form.pressao || ''} onChange={e => setForm(p => ({ ...p, pressao: e.target.value ? +e.target.value : undefined }))} />
             </div>
             <div className="form-group">

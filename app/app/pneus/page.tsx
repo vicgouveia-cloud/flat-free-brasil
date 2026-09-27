@@ -1,8 +1,11 @@
 'use client'
 import { useEffect, useState } from 'react'
-import { getTires, saveTires, getApplications, getReadings, uuid } from '@/lib/storage'
-import type { Tire, TireCondition, TireStatus } from '@/lib/types'
-import { DOSAGE_TABLE } from '@/lib/dosage'
+import {
+  getTires, saveTires, getApplications, saveApplications,
+  getReadings, getPositionHistory, getVehicles, uuid
+} from '@/lib/storage'
+import type { Tire, TireCondition, TireStatus, FlatFreeApplication, TirePositionHistory } from '@/lib/types'
+import { DOSAGE_TABLE, getDosageOz } from '@/lib/dosage'
 
 const EMPTY_TIRE: Omit<Tire, 'id'> = {
   companyId: 'demo-company-1',
@@ -24,16 +27,41 @@ const statusLabels: Record<TireStatus, { label: string; cls: string }> = {
   recapagem: { label: 'Recapagem', cls: 'badge-orange' },
 }
 
+const today = new Date().toISOString().split('T')[0]
+
 export default function PneusPage() {
   const [tires, setTires] = useState<Tire[]>([])
   const [selected, setSelected] = useState<Tire | null>(null)
   const [form, setForm] = useState<Omit<Tire, 'id'>>(EMPTY_TIRE)
   const [showForm, setShowForm] = useState(false)
   const [editing, setEditing] = useState<Tire | null>(null)
+
+  // For detail view
   const [applications, setApplications] = useState(getApplications())
   const [readings, setReadings] = useState(getReadings())
+  const [posHistory, setPosHistory] = useState<TirePositionHistory[]>([])
+  const [vehicles, setVehicles] = useState(getVehicles())
 
-  useEffect(() => { setTires(getTires()) }, [])
+  // Application form
+  const [showAppForm, setShowAppForm] = useState(false)
+  const [appForm, setAppForm] = useState<Omit<FlatFreeApplication, 'id'>>(
+    {
+      tireId: '',
+      data: today,
+      doseAplicada: 0,
+      lote: '',
+      responsavel: '',
+      quilometragemAplicacao: 0,
+      pressaoInicial: undefined,
+      sulcoInicial: 0,
+      observacoes: '',
+    }
+  )
+
+  useEffect(() => {
+    setTires(getTires())
+    setVehicles(getVehicles())
+  }, [])
 
   function openNew() {
     setEditing(null)
@@ -44,7 +72,18 @@ export default function PneusPage() {
 
   function openEdit(t: Tire) {
     setEditing(t)
-    setForm({ companyId: t.companyId, identificacaoInterna: t.identificacaoInterna, numeroFogo: t.numeroFogo, fabricante: t.fabricante, modelo: t.modelo, medida: t.medida, condicao: t.condicao, custo: t.custo, dataEntradaOperacao: t.dataEntradaOperacao, status: t.status })
+    setForm({
+      companyId: t.companyId,
+      identificacaoInterna: t.identificacaoInterna,
+      numeroFogo: t.numeroFogo,
+      fabricante: t.fabricante,
+      modelo: t.modelo,
+      medida: t.medida,
+      condicao: t.condicao,
+      custo: t.custo,
+      dataEntradaOperacao: t.dataEntradaOperacao,
+      status: t.status,
+    })
     setShowForm(true)
     setSelected(null)
   }
@@ -62,8 +101,54 @@ export default function PneusPage() {
     setShowForm(false)
   }
 
-  const tireReadings = selected ? readings.filter(r => r.tireId === selected.id).sort((a, b) => b.data.localeCompare(a.data)) : []
-  const tireApplications = selected ? applications.filter(a => a.tireId === selected.id) : []
+  function openDetail(t: Tire) {
+    setSelected(t)
+    setShowForm(false)
+    setApplications(getApplications())
+    setReadings(getReadings())
+    setPosHistory(getPositionHistory())
+    setVehicles(getVehicles())
+    // Pre-fill app form for this tire
+    const suggestedOz = getDosageOz(t.medida) ?? 0
+    setAppForm({
+      tireId: t.id,
+      data: today,
+      doseAplicada: suggestedOz,
+      lote: '',
+      responsavel: '',
+      quilometragemAplicacao: 0,
+      pressaoInicial: undefined,
+      sulcoInicial: 0,
+      observacoes: '',
+    })
+    setShowAppForm(false)
+  }
+
+  function handleSaveApplication() {
+    if (!appForm.tireId || !appForm.quilometragemAplicacao || !appForm.sulcoInicial || !appForm.doseAplicada) return
+    const newApp: FlatFreeApplication = { id: uuid(), ...appForm }
+    const updated = [...applications, newApp]
+    saveApplications(updated)
+    setApplications(updated)
+    setShowAppForm(false)
+  }
+
+  function getVehicleName(id: string) {
+    const v = vehicles.find(v => v.id === id)
+    return v ? v.identificacaoInterna : id
+  }
+
+  const tireReadings = selected
+    ? readings.filter(r => r.tireId === selected.id).sort((a, b) => b.data.localeCompare(a.data))
+    : []
+  const tireApplications = selected
+    ? applications.filter(a => a.tireId === selected.id).sort((a, b) => b.data.localeCompare(a.data))
+    : []
+  const tirePosHistory = selected
+    ? posHistory
+        .filter(h => h.tireId === selected.id)
+        .sort((a, b) => a.dataInicial.localeCompare(b.dataInicial))
+    : []
 
   return (
     <div>
@@ -78,7 +163,7 @@ export default function PneusPage() {
       {showForm && (
         <div className="card" style={{ marginBottom: '1.5rem' }}>
           <h3 style={{ fontWeight: 700, marginBottom: '1.25rem' }}>{editing ? 'Editar Pneu' : 'Novo Pneu'}</h3>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '1rem' }}>
             <div className="form-group">
               <label className="form-label">Identificação Interna *</label>
               <input type="text" className="form-control" value={form.identificacaoInterna} onChange={e => setForm(p => ({ ...p, identificacaoInterna: e.target.value }))} />
@@ -135,42 +220,131 @@ export default function PneusPage() {
       )}
 
       {selected ? (
-        <div className="card">
-          <button onClick={() => setSelected(null)} className="btn btn-outline btn-sm" style={{ marginBottom: '1.25rem' }}><i className="fas fa-arrow-left" /> Voltar</button>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start', marginBottom: '1.5rem' }}>
-            <div>
-              <h2 style={{ fontWeight: 800 }}>{selected.identificacaoInterna}</h2>
-              <p style={{ color: 'var(--text-secondary)' }}>{selected.fabricante} {selected.modelo} — {selected.medida}</p>
+        <div>
+          <button onClick={() => setSelected(null)} className="btn btn-outline btn-sm" style={{ marginBottom: '1.25rem' }}>
+            <i className="fas fa-arrow-left" /> Voltar
+          </button>
+
+          <div className="card" style={{ marginBottom: '1.5rem' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start', marginBottom: '1.5rem' }}>
+              <div>
+                <h2 style={{ fontWeight: 800 }}>{selected.identificacaoInterna}</h2>
+                <p style={{ color: 'var(--text-secondary)' }}>{selected.fabricante} {selected.modelo} — {selected.medida}</p>
+              </div>
+              <div style={{ display: 'flex', gap: '0.5rem' }}>
+                <span className={`badge ${statusLabels[selected.status].cls}`}>{statusLabels[selected.status].label}</span>
+                <span className="badge badge-gray">{selected.condicao}</span>
+                <button onClick={() => openEdit(selected)} className="btn btn-outline btn-sm"><i className="fas fa-pen" /></button>
+              </div>
             </div>
-            <div style={{ display: 'flex', gap: '0.5rem' }}>
-              <span className={`badge ${statusLabels[selected.status].cls}`}>{statusLabels[selected.status].label}</span>
-              <span className="badge badge-gray">{selected.condicao}</span>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(140px, 1fr))', gap: '1rem' }}>
+              {[
+                ['Fabricante', selected.fabricante],
+                ['Modelo', selected.modelo],
+                ['Medida', selected.medida],
+                ['Condição', selected.condicao],
+                ['Custo', selected.custo ? `R$ ${selected.custo.toLocaleString('pt-BR')}` : '—'],
+                ['Entrada op.', selected.dataEntradaOperacao],
+                ['Nº Fogo', selected.numeroFogo || '—'],
+              ].map(([k, v]) => (
+                <div key={k}>
+                  <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)', fontWeight: 700, textTransform: 'uppercase', display: 'block' }}>{k}</span>
+                  <span style={{ fontWeight: 600 }}>{v}</span>
+                </div>
+              ))}
             </div>
-          </div>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '1rem', marginBottom: '2rem' }}>
-            {[
-              ['Fabricante', selected.fabricante],
-              ['Modelo', selected.modelo],
-              ['Medida', selected.medida],
-              ['Condição', selected.condicao],
-              ['Custo', selected.custo ? `R$ ${selected.custo.toLocaleString('pt-BR')}` : '—'],
-              ['Entrada op.', selected.dataEntradaOperacao],
-              ['Nº Fogo', selected.numeroFogo || '—'],
-            ].map(([k, v]) => (
-              <div key={k}><span style={{ fontSize: '0.7rem', color: 'var(--text-muted)', fontWeight: 700, textTransform: 'uppercase', display: 'block' }}>{k}</span><span style={{ fontWeight: 600 }}>{v}</span></div>
-            ))}
           </div>
 
-          {tireApplications.length > 0 && (
-            <>
-              <h4 style={{ fontWeight: 700, marginBottom: '0.75rem' }}>Aplicação Flat Free</h4>
-              <table className="table" style={{ marginBottom: '1.5rem' }}>
-                <thead><tr><th>Data</th><th>Doses</th><th>Km Aplicação</th><th>Sulco Inicial</th><th>Responsável</th></tr></thead>
+          {/* Position History */}
+          <div className="card" style={{ marginBottom: '1.5rem' }}>
+            <h4 style={{ fontWeight: 700, marginBottom: '0.75rem' }}>Histórico de Posições</h4>
+            {tirePosHistory.length === 0 ? (
+              <p style={{ color: 'var(--text-muted)', fontSize: '0.875rem' }}>Nenhuma posição registrada.</p>
+            ) : (
+              <table className="table">
+                <thead><tr><th>Veículo</th><th>Posição</th><th>Início</th><th>Fim</th></tr></thead>
+                <tbody>
+                  {tirePosHistory.map(h => (
+                    <tr key={h.id}>
+                      <td>{getVehicleName(h.vehicleId)}</td>
+                      <td>{h.posicao}</td>
+                      <td>{h.dataInicial}</td>
+                      <td>{h.dataFinal ?? <span className="badge badge-green">Atual</span>}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            )}
+          </div>
+
+          {/* Flat Free Applications */}
+          <div className="card" style={{ marginBottom: '1.5rem' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem' }}>
+              <h4 style={{ fontWeight: 700 }}>Aplicação Flat Free</h4>
+              <button onClick={() => setShowAppForm(v => !v)} className="btn btn-outline btn-sm">
+                <i className="fas fa-plus" /> Registrar Aplicação
+              </button>
+            </div>
+
+            {showAppForm && (
+              <div style={{ background: 'var(--bg-surface-elevated)', borderRadius: '10px', padding: '1.25rem', marginBottom: '1rem', border: '1px solid var(--border-color)' }}>
+                <h5 style={{ fontWeight: 700, marginBottom: '1rem' }}>Nova Aplicação Flat Free</h5>
+                {getDosageOz(selected.medida) !== null && (
+                  <div style={{ background: 'rgba(255,92,0,0.08)', border: '1px solid rgba(255,92,0,0.2)', borderRadius: '6px', padding: '0.5rem 0.75rem', marginBottom: '1rem', fontSize: '0.8rem', color: 'var(--color-safety-orange)' }}>
+                    <i className="fas fa-info-circle" /> Dosagem canônica para {selected.medida}: <strong>{getDosageOz(selected.medida)} fl oz</strong>. Ajuste se a quantidade real aplicada for diferente.
+                  </div>
+                )}
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem' }}>
+                  <div className="form-group">
+                    <label className="form-label">Data *</label>
+                    <input type="date" className="form-control" value={appForm.data} onChange={e => setAppForm(p => ({ ...p, data: e.target.value }))} />
+                  </div>
+                  <div className="form-group">
+                    <label className="form-label">Quantidade Aplicada (fl oz) *</label>
+                    <input type="number" step="0.5" className="form-control" value={appForm.doseAplicada || ''} onChange={e => setAppForm(p => ({ ...p, doseAplicada: +e.target.value }))} />
+                  </div>
+                  <div className="form-group">
+                    <label className="form-label">Quilometragem *</label>
+                    <input type="number" className="form-control" value={appForm.quilometragemAplicacao || ''} onChange={e => setAppForm(p => ({ ...p, quilometragemAplicacao: +e.target.value }))} />
+                  </div>
+                  <div className="form-group">
+                    <label className="form-label">Sulco Inicial (mm) *</label>
+                    <input type="number" step="0.1" className="form-control" value={appForm.sulcoInicial || ''} onChange={e => setAppForm(p => ({ ...p, sulcoInicial: +e.target.value }))} />
+                  </div>
+                  <div className="form-group">
+                    <label className="form-label">Pressão Inicial (PSI) — opcional</label>
+                    <input type="number" className="form-control" value={appForm.pressaoInicial || ''} onChange={e => setAppForm(p => ({ ...p, pressaoInicial: e.target.value ? +e.target.value : undefined }))} />
+                  </div>
+                  <div className="form-group">
+                    <label className="form-label">Lote — opcional</label>
+                    <input type="text" className="form-control" value={appForm.lote || ''} onChange={e => setAppForm(p => ({ ...p, lote: e.target.value }))} />
+                  </div>
+                  <div className="form-group">
+                    <label className="form-label">Responsável — opcional</label>
+                    <input type="text" className="form-control" value={appForm.responsavel || ''} onChange={e => setAppForm(p => ({ ...p, responsavel: e.target.value }))} />
+                  </div>
+                  <div className="form-group" style={{ gridColumn: '1 / -1' }}>
+                    <label className="form-label">Observações — opcional</label>
+                    <input type="text" className="form-control" value={appForm.observacoes || ''} onChange={e => setAppForm(p => ({ ...p, observacoes: e.target.value }))} />
+                  </div>
+                </div>
+                <div style={{ display: 'flex', gap: '0.75rem', marginTop: '0.75rem' }}>
+                  <button onClick={handleSaveApplication} className="btn btn-primary btn-sm"><i className="fas fa-check" /> Salvar Aplicação</button>
+                  <button onClick={() => setShowAppForm(false)} className="btn btn-outline btn-sm">Cancelar</button>
+                </div>
+              </div>
+            )}
+
+            {tireApplications.length === 0 ? (
+              <p style={{ color: 'var(--text-muted)', fontSize: '0.875rem' }}>Nenhuma aplicação registrada.</p>
+            ) : (
+              <table className="table">
+                <thead><tr><th>Data</th><th>Aplicado (oz)</th><th>Km Aplicação</th><th>Sulco Inicial</th><th>Responsável</th></tr></thead>
                 <tbody>
                   {tireApplications.map(a => (
                     <tr key={a.id}>
                       <td>{a.data}</td>
-                      <td>{a.doseAplicada}</td>
+                      <td><strong>{a.doseAplicada} oz</strong></td>
                       <td>{a.quilometragemAplicacao.toLocaleString('pt-BR')}</td>
                       <td>{a.sulcoInicial} mm</td>
                       <td>{a.responsavel || '—'}</td>
@@ -178,28 +352,31 @@ export default function PneusPage() {
                   ))}
                 </tbody>
               </table>
-            </>
-          )}
+            )}
+          </div>
 
-          <h4 style={{ fontWeight: 700, marginBottom: '0.75rem' }}>Leituras ({tireReadings.length})</h4>
-          {tireReadings.length === 0 ? (
-            <p style={{ color: 'var(--text-muted)', fontSize: '0.875rem' }}>Nenhuma leitura registrada.</p>
-          ) : (
-            <table className="table">
-              <thead><tr><th>Data</th><th>Km Veículo</th><th>Sulco</th><th>Pressão</th><th>Posição</th></tr></thead>
-              <tbody>
-                {tireReadings.map(r => (
-                  <tr key={r.id}>
-                    <td>{r.data}</td>
-                    <td>{r.quilometragemVeiculo.toLocaleString('pt-BR')}</td>
-                    <td>{r.sulco} mm</td>
-                    <td>{r.pressao ? `${r.pressao} PSI` : '—'}</td>
-                    <td>{r.posicaoAtual}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          )}
+          {/* Readings */}
+          <div className="card">
+            <h4 style={{ fontWeight: 700, marginBottom: '0.75rem' }}>Leituras ({tireReadings.length})</h4>
+            {tireReadings.length === 0 ? (
+              <p style={{ color: 'var(--text-muted)', fontSize: '0.875rem' }}>Nenhuma leitura registrada.</p>
+            ) : (
+              <table className="table">
+                <thead><tr><th>Data</th><th>Km Veículo</th><th>Sulco</th><th>Pressão</th><th>Posição</th></tr></thead>
+                <tbody>
+                  {tireReadings.map(r => (
+                    <tr key={r.id}>
+                      <td>{r.data}</td>
+                      <td>{r.quilometragemVeiculo.toLocaleString('pt-BR')}</td>
+                      <td>{r.sulco} mm</td>
+                      <td>{r.pressao ? `${r.pressao} PSI` : '—'}</td>
+                      <td>{r.posicaoAtual}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            )}
+          </div>
         </div>
       ) : (
         <div className="card">
@@ -216,7 +393,7 @@ export default function PneusPage() {
                   <td>{t.condicao}</td>
                   <td><span className={`badge ${statusLabels[t.status].cls}`}>{statusLabels[t.status].label}</span></td>
                   <td style={{ display: 'flex', gap: '0.5rem' }}>
-                    <button onClick={() => setSelected(t)} className="btn btn-outline btn-sm">Detalhes</button>
+                    <button onClick={() => openDetail(t)} className="btn btn-outline btn-sm">Detalhes</button>
                     <button onClick={() => openEdit(t)} className="btn btn-outline btn-sm"><i className="fas fa-pen" /></button>
                   </td>
                 </tr>

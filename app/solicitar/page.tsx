@@ -3,13 +3,15 @@ import { useState, useEffect, Suspense } from 'react'
 import { useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { getOrders, saveOrders, uuid } from '@/lib/storage'
+import { ozToLiters, ozToBucketsCeil } from '@/lib/dosage'
 import type { Order, OrderItem } from '@/lib/types'
 import DemoBanner from '@/components/DemoBanner'
 
 interface CalcItem {
   medida: string
   quantidade: number
-  doses: number | null
+  doseUnitOz: number | null
+  totalOz: number
 }
 
 function SolicitarForm() {
@@ -30,8 +32,7 @@ function SolicitarForm() {
     }
   }, [searchParams])
 
-  const totalDoses = calcItems.reduce((s, i) => s + (i.doses ? i.doses * i.quantidade : 0), 0)
-  const totalBuckets = totalDoses / 18.9
+  const totalOz = calcItems.reduce((s, i) => s + i.totalOz, 0)
 
   function updateForm(field: string, value: string) {
     setForm(prev => ({ ...prev, [field]: value }))
@@ -39,16 +40,21 @@ function SolicitarForm() {
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
+    const itens: OrderItem[] = calcItems
+      .filter(i => i.doseUnitOz !== null)
+      .map(i => ({
+        medida: i.medida,
+        quantidade: i.quantidade,
+        doseUnitOz: i.doseUnitOz!,
+        totalOz: i.totalOz,
+      }))
+
     const order: Order = {
       id: uuid(),
       companyId: 'manual',
       data: new Date().toISOString().split('T')[0],
-      itens: calcItems.filter(i => i.doses).map(i => ({
-        medida: i.medida,
-        quantidade: i.quantidade,
-        doses: (i.doses || 0) * i.quantidade,
-      })) as OrderItem[],
-      quantidadeEstimadaProduto: totalDoses,
+      itens,
+      quantidadeEstimadaProduto: totalOz,
       enderecoEntrega: form.endereco,
       cidade: form.cidade,
       estado: form.estado,
@@ -88,29 +94,44 @@ function SolicitarForm() {
           <h3 style={{ fontWeight: 700, marginBottom: '1rem' }}><i className="fas fa-calculator" /> Itens da Calculadora</h3>
           <table className="table" style={{ marginBottom: '0.75rem' }}>
             <thead>
-              <tr><th>Medida</th><th>Qtd. Pneus</th><th>Consumo Total</th></tr>
+              <tr><th>Medida</th><th>Qtd. Pneus</th><th>Por Pneu</th><th>Total</th></tr>
             </thead>
             <tbody>
               {calcItems.map((item, i) => (
                 <tr key={i}>
                   <td>{item.medida}</td>
                   <td>{item.quantidade}</td>
-                  <td>{item.doses ? `${item.doses * item.quantidade} doses` : 'Consultar'}</td>
+                  <td>{item.doseUnitOz !== null ? `${item.doseUnitOz} oz` : 'Consultar'}</td>
+                  <td>{item.totalOz > 0 ? `${item.totalOz} oz` : '—'}</td>
                 </tr>
               ))}
             </tbody>
           </table>
-          {totalDoses > 0 && <p style={{ fontSize: '0.875rem', color: 'var(--text-secondary)' }}><strong>Total estimado:</strong> {totalDoses} doses ≈ {totalBuckets.toFixed(1)} baldes</p>}
+          {totalOz > 0 && (
+            <p style={{ fontSize: '0.875rem', color: 'var(--text-secondary)' }}>
+              <strong>Total estimado:</strong> {totalOz} fl oz ≈ {ozToLiters(totalOz).toFixed(1)} L —
+              {' '}<strong>{ozToBucketsCeil(totalOz)} {ozToBucketsCeil(totalOz) === 1 ? 'balde' : 'baldes'}</strong> para pedido
+            </p>
+          )}
         </div>
       )}
 
       <div className="card" style={{ marginBottom: '1.5rem' }}>
         <h3 style={{ fontWeight: 700, marginBottom: '1.25rem' }}>Dados da Empresa</h3>
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
-          {[['nomeEmpresa','Nome da Empresa *','text',true],['razaoSocial','Razão Social (opcional)','text',false],['cnpj','CNPJ (opcional)','text',false],['nomeResponsavel','Nome do Responsável *','text',true],['email','E-mail *','email',true],['telefone','Telefone *','tel',true]].map(([field, label, type, req]) => (
-            <div key={field as string} className="form-group">
-              <label className="form-label">{label as string}</label>
-              <input type={type as string} className="form-control" required={req as boolean} value={(form as Record<string, string>)[field as string]} onChange={e => updateForm(field as string, e.target.value)} />
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '1rem' }}>
+          {([
+            ['nomeEmpresa', 'Nome da Empresa *', 'text', true],
+            ['razaoSocial', 'Razão Social (opcional)', 'text', false],
+            ['cnpj', 'CNPJ (opcional)', 'text', false],
+            ['nomeResponsavel', 'Nome do Responsável *', 'text', true],
+            ['email', 'E-mail *', 'email', true],
+            ['telefone', 'Telefone *', 'tel', true],
+          ] as const).map(([field, label, type, req]) => (
+            <div key={field} className="form-group">
+              <label className="form-label">{label}</label>
+              <input type={type} className="form-control" required={req}
+                value={(form as Record<string, string>)[field]}
+                onChange={e => updateForm(field, e.target.value)} />
             </div>
           ))}
         </div>
@@ -118,7 +139,7 @@ function SolicitarForm() {
 
       <div className="card" style={{ marginBottom: '1.5rem' }}>
         <h3 style={{ fontWeight: 700, marginBottom: '1.25rem' }}>Endereço de Entrega</h3>
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '1rem' }}>
           <div className="form-group" style={{ gridColumn: '1 / -1' }}>
             <label className="form-label">Endereço *</label>
             <input type="text" className="form-control" required value={form.endereco} onChange={e => updateForm('endereco', e.target.value)} />
@@ -141,7 +162,9 @@ function SolicitarForm() {
       <div className="card" style={{ marginBottom: '1.5rem' }}>
         <div className="form-group">
           <label className="form-label">Observações</label>
-          <textarea className="form-control" rows={4} value={form.observacoes} onChange={e => updateForm('observacoes', e.target.value)} placeholder="Detalhes adicionais sobre o pedido..." />
+          <textarea className="form-control" rows={4} value={form.observacoes}
+            onChange={e => updateForm('observacoes', e.target.value)}
+            placeholder="Detalhes adicionais sobre o pedido..." />
         </div>
       </div>
 

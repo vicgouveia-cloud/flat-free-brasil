@@ -1,41 +1,126 @@
 'use client'
 import { useEffect, useState } from 'react'
-import { getProjects, getTires, getApplications, getReadings } from '@/lib/storage'
-import type { PilotProject, Tire, TireReading, FlatFreeApplication } from '@/lib/types'
+import { getProjects, getTires, getApplications, getReadings, getOccurrences } from '@/lib/storage'
+import type { PilotProject, Tire, TireReading, FlatFreeApplication, Occurrence } from '@/lib/types'
 
 interface TireStats {
   tire: Tire
   grupo: 'tratado' | 'controle'
-  initialReading: TireReading | null
-  lastReading: TireReading | null
-  application: FlatFreeApplication | null
-  kmRodados: number
-  sulcoConsumido: number
+  kmRodados: number | null
+  sulcoConsumido: number | null
   kmPerMm: number | null
+  custoPerKm: number | null
+  occurrenceCount: number
+  valid: boolean  // true only when a real interval (km > 0, sulco > 0) exists
 }
 
-function computeStats(project: PilotProject, tires: Tire[], applications: FlatFreeApplication[], readings: TireReading[]): TireStats[] {
-  return project.pneus.map(pt => {
-    const tire = tires.find(t => t.id === pt.tireId)
-    if (!tire) return null
-    const tireReadings = readings.filter(r => r.tireId === pt.tireId).sort((a, b) => a.data.localeCompare(b.data))
-    const app = applications.find(a => a.tireId === pt.tireId) || null
-    const initial = tireReadings[0] || null
-    const last = tireReadings[tireReadings.length - 1] || null
-    let kmRodados = 0
-    let sulcoConsumido = 0
-    let kmPerMm: number | null = null
-    if (initial && last && initial.id !== last.id) {
-      kmRodados = last.quilometragemVeiculo - initial.quilometragemVeiculo
-      sulcoConsumido = initial.sulco - last.sulco
-      if (sulcoConsumido > 0 && kmRodados > 0) kmPerMm = kmRodados / sulcoConsumido
-    } else if (app && last) {
-      kmRodados = last.quilometragemVeiculo - app.quilometragemAplicacao
-      sulcoConsumido = app.sulcoInicial - last.sulco
-      if (sulcoConsumido > 0 && kmRodados > 0) kmPerMm = kmRodados / sulcoConsumido
+/**
+ * Compute stats for a single tire.
+ * A valid interval requires:
+ *   - baseline km
+ *   - final km > baseline km
+ *   - baseline sulco > final sulco (sulcoConsumido > 0)
+ *
+ * For TREATED tires: try FlatFreeApplication as baseline first,
+ *   then fall back to first reading.
+ * For CONTROL tires: use first reading as baseline, last reading as final.
+ */
+function computeTireStats(
+  pt: { tireId: string; grupo: 'tratado' | 'controle' },
+  tires: Tire[],
+  applications: FlatFreeApplication[],
+  readings: TireReading[],
+  occurrences: Occurrence[]
+): TireStats | null {
+  const tire = tires.find(t => t.id === pt.tireId)
+  if (!tire) return null
+
+  const tireReadings = readings
+    .filter(r => r.tireId === pt.tireId)
+    .sort((a, b) => a.quilometragemVeiculo - b.quilometragemVeiculo || a.data.localeCompare(b.data))
+
+  const app = applications.find(a => a.tireId === pt.tireId) || null
+  const occurrenceCount = occurrences.filter(o => o.tireId === pt.tireId).length
+
+  let baseKm: number | null = null
+  let baseSulco: number | null = null
+  let finalKm: number | null = null
+  let finalSulco: number | null = null
+
+  if (pt.grupo === 'tratado' && app) {
+    // Use application as baseline
+    baseKm = app.quilometragemAplicacao
+    baseSulco = app.sulcoInicial
+    // Final = last reading after application
+    const posteriorReadings = tireReadings.filter(
+      r => r.quilometragemVeiculo > app.quilometragemAplicacao
+    )
+    if (posteriorReadings.length > 0) {
+      const last = posteriorReadings[posteriorReadings.length - 1]
+      finalKm = last.quilometragemVeiculo
+      finalSulco = last.sulco
     }
-    return { tire, grupo: pt.grupo, initialReading: initial, lastReading: last, application: app, kmRodados, sulcoConsumido, kmPerMm }
-  }).filter(Boolean) as TireStats[]
+  } else {
+    // Use first and last readings as interval
+    if (tireReadings.length >= 2) {
+      const first = tireReadings[0]
+      const last = tireReadings[tireReadings.length - 1]
+      baseKm = first.quilometragemVeiculo
+      baseSulco = first.sulco
+      finalKm = last.quilometragemVeiculo
+      finalSulco = last.sulco
+    } else if (tireReadings.length === 1 && app) {
+      // Treated tire fallback: app as baseline + single reading
+      baseKm = app.quilometragemAplicacao
+      baseSulco = app.sulcoInicial
+      finalKm = tireReadings[0].quilometragemVeiculo
+      finalSulco = tireReadings[0].sulco
+    }
+  }
+
+  // Validate interval
+  if (
+    baseKm === null || baseSulco === null ||
+    finalKm === null || finalSulco === null ||
+    finalKm <= baseKm ||
+    baseSulco <= finalSulco  // sulco should decrease
+  ) {
+    return {
+      tire, grupo: pt.grupo,
+      kmRodados: null, sulcoConsumido: null, kmPerMm: null,
+      custoPerKm: null, occurrenceCount, valid: false,
+    }
+  }
+
+  const kmRodados = finalKm - baseKm
+  const sulcoConsumido = baseSulco - finalSulco
+  const kmPerMm = sulcoConsumido > 0 ? kmRodados / sulcoConsumido : null
+
+  let custoPerKm: number | null = null
+  if (tire.custo && kmRodados > 0) {
+    custoPerKm = tire.custo / kmRodados
+  }
+
+  return {
+    tire, grupo: pt.grupo,
+    kmRodados, sulcoConsumido,
+    kmPerMm,
+    custoPerKm,
+    occurrenceCount,
+    valid: true,
+  }
+}
+
+function computeStats(
+  project: PilotProject,
+  tires: Tire[],
+  applications: FlatFreeApplication[],
+  readings: TireReading[],
+  occurrences: Occurrence[]
+): TireStats[] {
+  return project.pneus
+    .map(pt => computeTireStats(pt, tires, applications, readings, occurrences))
+    .filter((s): s is TireStats => s !== null)
 }
 
 export default function ComparativosPage() {
@@ -47,25 +132,42 @@ export default function ComparativosPage() {
 
   function selectProject(p: PilotProject) {
     setSelected(p)
-    const s = computeStats(p, getTires(), getApplications(), getReadings())
+    const s = computeStats(
+      p,
+      getTires(),
+      getApplications(),
+      getReadings(),
+      getOccurrences()
+    )
     setStats(s)
   }
 
-  const treated = stats.filter(s => s.grupo === 'tratado')
-  const control = stats.filter(s => s.grupo === 'controle')
+  // Only include VALID tires in averages
+  const validTreated = stats.filter(s => s.grupo === 'tratado' && s.valid)
+  const validControl = stats.filter(s => s.grupo === 'controle' && s.valid)
+  const allTreated = stats.filter(s => s.grupo === 'tratado')
+  const allControl = stats.filter(s => s.grupo === 'controle')
 
-  function avg(arr: TireStats[], field: keyof TireStats): number | null {
-    const vals = arr.map(s => s[field]).filter((v): v is number => typeof v === 'number' && !isNaN(v))
+  function avgNum(arr: TireStats[], fn: (s: TireStats) => number | null): number | null {
+    const vals = arr.map(fn).filter((v): v is number => v !== null && !isNaN(v))
     if (vals.length === 0) return null
     return vals.reduce((a, b) => a + b, 0) / vals.length
   }
 
-  const avgKmTreated = avg(treated, 'kmRodados')
-  const avgKmControl = avg(control, 'kmRodados')
-  const avgMmTreated = avg(treated, 'sulcoConsumido')
-  const avgMmControl = avg(control, 'sulcoConsumido')
-  const avgKmMmTreated = avg(treated.filter(s => s.kmPerMm !== null), 'kmPerMm')
-  const avgKmMmControl = avg(control.filter(s => s.kmPerMm !== null), 'kmPerMm')
+  function sumOccurrences(arr: TireStats[]): number {
+    return arr.reduce((s, t) => s + t.occurrenceCount, 0)
+  }
+
+  const avgKmTreated = avgNum(validTreated, s => s.kmRodados)
+  const avgKmControl = avgNum(validControl, s => s.kmRodados)
+  const avgMmTreated = avgNum(validTreated, s => s.sulcoConsumido)
+  const avgMmControl = avgNum(validControl, s => s.sulcoConsumido)
+  const avgKmMmTreated = avgNum(validTreated, s => s.kmPerMm)
+  const avgKmMmControl = avgNum(validControl, s => s.kmPerMm)
+  const avgCostTreated = avgNum(validTreated.filter(s => s.custoPerKm !== null), s => s.custoPerKm)
+  const avgCostControl = avgNum(validControl.filter(s => s.custoPerKm !== null), s => s.custoPerKm)
+  const occTreated = sumOccurrences(allTreated)
+  const occControl = sumOccurrences(allControl)
 
   function diffPct(a: number | null, b: number | null): string {
     if (a === null || b === null || b === 0) return 'N/A'
@@ -73,24 +175,34 @@ export default function ComparativosPage() {
     return `${diff >= 0 ? '+' : ''}${diff.toFixed(1)}%`
   }
 
-  const fmt = (n: number | null) => n !== null ? n.toLocaleString('pt-BR', { maximumFractionDigits: 1 }) : '—'
+  const fmt = (n: number | null, decimals = 1) =>
+    n !== null ? n.toLocaleString('pt-BR', { maximumFractionDigits: decimals }) : '—'
+
+  const fmtCost = (n: number | null) =>
+    n !== null ? `R$ ${n.toLocaleString('pt-BR', { minimumFractionDigits: 4, maximumFractionDigits: 4 })}` : '—'
 
   return (
     <div>
       <h1 style={{ fontSize: '1.5rem', fontWeight: 800, marginBottom: '0.25rem' }}>Comparativos</h1>
-      <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', marginBottom: '1.5rem' }}>Análise de desempenho por projeto piloto.</p>
+      <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', marginBottom: '1.5rem' }}>Análise de desempenho por projeto piloto. Apenas pneus com intervalo válido entram nas médias.</p>
 
       {!selected ? (
         <div className="card">
           <h3 style={{ fontWeight: 700, marginBottom: '1rem' }}>Selecionar Projeto</h3>
           {projects.length === 0 ? (
-            <p style={{ color: 'var(--text-muted)' }}>Nenhum projeto encontrado. Crie um projeto piloto primeiro.</p>
+            <p style={{ color: 'var(--text-muted)' }}>Nenhum projeto encontrado.</p>
           ) : (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
               {projects.map(p => (
-                <button key={p.id} onClick={() => selectProject(p)} style={{ textAlign: 'left', background: 'var(--bg-surface-elevated)', border: '1px solid var(--border-color)', borderRadius: '8px', padding: '1rem', cursor: 'pointer' }}>
+                <button
+                  key={p.id}
+                  onClick={() => selectProject(p)}
+                  style={{ textAlign: 'left', background: 'var(--bg-surface-elevated)', border: '1px solid var(--border-color)', borderRadius: '8px', padding: '1rem', cursor: 'pointer' }}
+                >
                   <div style={{ fontWeight: 700 }}>{p.nome}</div>
-                  <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>{p.pneus.filter(t => t.grupo === 'tratado').length} tratados · {p.pneus.filter(t => t.grupo === 'controle').length} controle · iniciado {p.dataInicio}</div>
+                  <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
+                    {p.pneus.filter(t => t.grupo === 'tratado').length} tratados · {p.pneus.filter(t => t.grupo === 'controle').length} controle · iniciado {p.dataInicio}
+                  </div>
                 </button>
               ))}
             </div>
@@ -98,11 +210,13 @@ export default function ComparativosPage() {
         </div>
       ) : (
         <>
-          <button onClick={() => setSelected(null)} className="btn btn-outline btn-sm" style={{ marginBottom: '1.25rem' }}><i className="fas fa-arrow-left" /> Voltar</button>
+          <button onClick={() => setSelected(null)} className="btn btn-outline btn-sm" style={{ marginBottom: '1.25rem' }}>
+            <i className="fas fa-arrow-left" /> Voltar
+          </button>
           <h2 style={{ fontWeight: 800, marginBottom: '0.25rem' }}>{selected.nome}</h2>
-          <p style={{ color: 'var(--text-secondary)', fontSize: '0.875rem', marginBottom: '1.5rem' }}>Dados calculados com base nas leituras registradas.</p>
+          <p style={{ color: 'var(--text-secondary)', fontSize: '0.875rem', marginBottom: '1.5rem' }}>Dados calculados com base nas leituras registradas. Apenas pneus com intervalo válido entram nas médias.</p>
 
-          {(treated.length > 0 || control.length > 0) && (
+          {(allTreated.length > 0 || allControl.length > 0) && (
             <div className="card" style={{ marginBottom: '1.5rem' }}>
               <h3 style={{ fontWeight: 700, marginBottom: '1.25rem' }}>Resumo por Grupo</h3>
               <table className="table" style={{ marginBottom: '1rem' }}>
@@ -116,15 +230,15 @@ export default function ComparativosPage() {
                 </thead>
                 <tbody>
                   <tr>
-                    <td>Pneus avaliados</td>
-                    <td>{treated.length}</td>
-                    <td>{control.length}</td>
+                    <td>Pneus no grupo</td>
+                    <td>{allTreated.length} ({validTreated.length} com dados)</td>
+                    <td>{allControl.length} ({validControl.length} com dados)</td>
                     <td>—</td>
                   </tr>
                   <tr>
                     <td>Km médios rodados</td>
-                    <td>{fmt(avgKmTreated)}</td>
-                    <td>{fmt(avgKmControl)}</td>
+                    <td>{fmt(avgKmTreated, 0)}</td>
+                    <td>{fmt(avgKmControl, 0)}</td>
                     <td><strong>{diffPct(avgKmTreated, avgKmControl)}</strong></td>
                   </tr>
                   <tr>
@@ -135,9 +249,24 @@ export default function ComparativosPage() {
                   </tr>
                   <tr>
                     <td>Km/mm médio</td>
-                    <td>{fmt(avgKmMmTreated)}</td>
-                    <td>{fmt(avgKmMmControl)}</td>
+                    <td>{fmt(avgKmMmTreated, 1)}</td>
+                    <td>{fmt(avgKmMmControl, 1)}</td>
                     <td><strong>{diffPct(avgKmMmTreated, avgKmMmControl)}</strong></td>
+                  </tr>
+                  <tr>
+                    <td>Custo/km médio</td>
+                    <td>{fmtCost(avgCostTreated)}</td>
+                    <td>{fmtCost(avgCostControl)}</td>
+                    <td><strong>{diffPct(
+                      avgCostTreated !== null ? -avgCostTreated : null,
+                      avgCostControl !== null ? -avgCostControl : null
+                    )}</strong></td>
+                  </tr>
+                  <tr>
+                    <td>Ocorrências no grupo</td>
+                    <td>{occTreated}</td>
+                    <td>{occControl}</td>
+                    <td>—</td>
                   </tr>
                 </tbody>
               </table>
@@ -152,25 +281,34 @@ export default function ComparativosPage() {
             <h3 style={{ fontWeight: 700, marginBottom: '1rem' }}>Detalhamento por Pneu</h3>
             <table className="table">
               <thead>
-                <tr><th>Pneu</th><th>Grupo</th><th>Km Rodados</th><th>Sulco Consumido</th><th>Km/mm</th><th>Status</th></tr>
+                <tr>
+                  <th>Pneu</th><th>Grupo</th><th>Km Rodados</th>
+                  <th>Sulco Consumido</th><th>Km/mm</th><th>Custo/km</th><th>Ocorr.</th><th>Status</th>
+                </tr>
               </thead>
               <tbody>
                 {stats.length === 0 ? (
-                  <tr><td colSpan={6} style={{ textAlign: 'center', color: 'var(--text-muted)', padding: '2rem' }}>Nenhum pneu com dados.</td></tr>
-                ) : stats.map(s => {
-                  const hasData = s.lastReading !== null
-                  const kmPerMmStr = s.kmPerMm !== null ? s.kmPerMm.toFixed(1) : '—'
-                  return (
-                    <tr key={s.tire.id}>
-                      <td style={{ fontWeight: 600 }}>{s.tire.identificacaoInterna}</td>
-                      <td><span className={`badge ${s.grupo === 'tratado' ? 'badge-orange' : 'badge-blue'}`}>{s.grupo === 'tratado' ? 'Tratado' : 'Controle'}</span></td>
-                      <td>{hasData ? s.kmRodados.toLocaleString('pt-BR') : '—'}</td>
-                      <td>{hasData && s.sulcoConsumido > 0 ? `${s.sulcoConsumido.toFixed(1)} mm` : '—'}</td>
-                      <td>{hasData ? kmPerMmStr : '—'}</td>
-                      <td>{!hasData ? <span className="badge badge-gray">Aguardando leituras</span> : s.sulcoConsumido <= 0 ? <span className="badge badge-orange">Dados insuficientes</span> : <span className="badge badge-green">OK</span>}</td>
-                    </tr>
-                  )
-                })}
+                  <tr><td colSpan={8} style={{ textAlign: 'center', color: 'var(--text-muted)', padding: '2rem' }}>Nenhum pneu com dados.</td></tr>
+                ) : stats.map(s => (
+                  <tr key={s.tire.id}>
+                    <td style={{ fontWeight: 600 }}>{s.tire.identificacaoInterna}</td>
+                    <td>
+                      <span className={`badge ${s.grupo === 'tratado' ? 'badge-orange' : 'badge-blue'}`}>
+                        {s.grupo === 'tratado' ? 'Tratado' : 'Controle'}
+                      </span>
+                    </td>
+                    <td>{s.kmRodados !== null ? s.kmRodados.toLocaleString('pt-BR') : '—'}</td>
+                    <td>{s.sulcoConsumido !== null && s.sulcoConsumido > 0 ? `${s.sulcoConsumido.toFixed(1)} mm` : '—'}</td>
+                    <td>{s.kmPerMm !== null ? s.kmPerMm.toFixed(1) : '—'}</td>
+                    <td>{fmtCost(s.custoPerKm)}</td>
+                    <td>{s.occurrenceCount}</td>
+                    <td>
+                      {!s.valid
+                        ? <span className="badge badge-gray">Dados insuficientes</span>
+                        : <span className="badge badge-green">OK</span>}
+                    </td>
+                  </tr>
+                ))}
               </tbody>
             </table>
           </div>

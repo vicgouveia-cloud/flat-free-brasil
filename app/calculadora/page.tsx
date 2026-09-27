@@ -1,7 +1,7 @@
 'use client'
 import { useState } from 'react'
 import Link from 'next/link'
-import { DOSAGE_TABLE, calcBuckets, getDosage, BUCKET_LITERS } from '@/lib/dosage'
+import { DOSAGE_TABLE, getDosageOz, ozToLiters, ozToBucketsFractional, ozToBucketsCeil } from '@/lib/dosage'
 
 interface CalcLine {
   id: number
@@ -12,12 +12,14 @@ interface CalcLine {
 interface CalcResult {
   medida: string
   quantidade: number
-  dosesUnitarias: number | null
-  totalDoses: number
+  ozPerTire: number | null
+  totalOz: number
 }
 
 export default function CalculadoraPage() {
-  const [lines, setLines] = useState<CalcLine[]>([{ id: 1, medida: '295/80 R22,5', quantidade: 10 }])
+  const [lines, setLines] = useState<CalcLine[]>([
+    { id: 1, medida: '295/80 R22,5', quantidade: 10 },
+  ])
 
   function addLine() {
     setLines(prev => [...prev, { id: Date.now(), medida: '295/80 R22,5', quantidade: 1 }])
@@ -33,24 +35,27 @@ export default function CalculadoraPage() {
   }
 
   const results: CalcResult[] = lines.map(line => {
-    const doses = getDosage(line.medida)
+    const oz = getDosageOz(line.medida)
     return {
       medida: line.medida,
       quantidade: line.quantidade,
-      dosesUnitarias: doses,
-      totalDoses: doses ? doses * line.quantidade : 0,
+      ozPerTire: oz,
+      totalOz: oz ? oz * line.quantidade : 0,
     }
   })
 
-  const totalDoses = results.reduce((sum, r) => sum + r.totalDoses, 0)
-  const totalBuckets = calcBuckets(totalDoses)
-  const hasUnknown = results.some(r => r.dosesUnitarias === null)
+  const totalOz = results.reduce((sum, r) => sum + r.totalOz, 0)
+  const hasUnknown = results.some(r => r.ozPerTire === null)
 
-  const calcParams = encodeURIComponent(JSON.stringify(lines.map(l => ({
-    medida: l.medida,
-    quantidade: l.quantidade,
-    doses: getDosage(l.medida),
-  }))))
+  // Encode calc items for /solicitar URL
+  const calcParams = encodeURIComponent(JSON.stringify(
+    lines.map(l => ({
+      medida: l.medida,
+      quantidade: l.quantidade,
+      doseUnitOz: getDosageOz(l.medida),
+      totalOz: (getDosageOz(l.medida) ?? 0) * l.quantidade,
+    }))
+  ))
 
   return (
     <>
@@ -63,6 +68,7 @@ export default function CalculadoraPage() {
           </nav>
         </div>
       </header>
+
       <main style={{ minHeight: '100vh', background: 'var(--bg-primary)', padding: '3rem 0' }}>
         <div className="container" style={{ maxWidth: '800px' }}>
           <div style={{ marginBottom: '2rem' }}>
@@ -104,7 +110,12 @@ export default function CalculadoraPage() {
                   <button
                     onClick={() => removeLine(line.id)}
                     disabled={lines.length === 1}
-                    style={{ background: 'none', border: 'none', cursor: lines.length > 1 ? 'pointer' : 'not-allowed', color: lines.length > 1 ? '#ef4444' : 'var(--text-muted)', padding: '0.5rem' }}
+                    style={{
+                      background: 'none', border: 'none',
+                      cursor: lines.length > 1 ? 'pointer' : 'not-allowed',
+                      color: lines.length > 1 ? '#ef4444' : 'var(--text-muted)',
+                      padding: '0.5rem',
+                    }}
                   >
                     <i className="fas fa-trash" />
                   </button>
@@ -121,8 +132,8 @@ export default function CalculadoraPage() {
                 <tr>
                   <th>Medida</th>
                   <th>Qtd. Pneus</th>
-                  <th>Dose Unitária</th>
-                  <th>Consumo Total</th>
+                  <th>Por Pneu</th>
+                  <th>Total</th>
                 </tr>
               </thead>
               <tbody>
@@ -131,34 +142,41 @@ export default function CalculadoraPage() {
                     <td style={{ fontWeight: 600 }}>{r.medida}</td>
                     <td>{r.quantidade}</td>
                     <td>
-                      {r.dosesUnitarias !== null
-                        ? <span className="badge badge-blue">{r.dosesUnitarias} doses</span>
+                      {r.ozPerTire !== null
+                        ? <span className="badge badge-blue">{r.ozPerTire} oz</span>
                         : <span className="badge badge-orange">Consultar dosagem</span>}
                     </td>
                     <td style={{ fontWeight: 700 }}>
-                      {r.dosesUnitarias !== null ? `${r.totalDoses} doses` : '—'}
+                      {r.ozPerTire !== null ? `${r.totalOz} oz` : '—'}
                     </td>
                   </tr>
                 ))}
               </tbody>
             </table>
 
-            {totalDoses > 0 && (
+            {totalOz > 0 && (
               <div style={{ background: 'rgba(255,92,0,0.05)', borderRadius: '10px', padding: '1.25rem', border: '1px solid rgba(255,92,0,0.15)' }}>
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '1rem' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '1rem' }}>
                   <div style={{ textAlign: 'center' }}>
-                    <div style={{ fontSize: '1.75rem', fontWeight: 900, fontFamily: 'Montserrat', color: 'var(--color-safety-orange)' }}>{totalDoses}</div>
-                    <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>Total de doses</div>
+                    <div style={{ fontSize: '1.5rem', fontWeight: 900, fontFamily: 'Montserrat', color: 'var(--color-safety-orange)' }}>{totalOz}</div>
+                    <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Total (fl oz)</div>
                   </div>
                   <div style={{ textAlign: 'center' }}>
-                    <div style={{ fontSize: '1.75rem', fontWeight: 900, fontFamily: 'Montserrat', color: 'var(--color-safety-orange)' }}>{totalDoses} L</div>
-                    <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>Volume estimado</div>
+                    <div style={{ fontSize: '1.5rem', fontWeight: 900, fontFamily: 'Montserrat', color: 'var(--color-safety-orange)' }}>{ozToLiters(totalOz).toFixed(1)} L</div>
+                    <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Equivalente litros</div>
                   </div>
                   <div style={{ textAlign: 'center' }}>
-                    <div style={{ fontSize: '1.75rem', fontWeight: 900, fontFamily: 'Montserrat', color: 'var(--color-safety-orange)' }}>≈ {totalBuckets.toFixed(1)}</div>
-                    <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>Baldes (~{BUCKET_LITERS}L cada)</div>
+                    <div style={{ fontSize: '1.5rem', fontWeight: 900, fontFamily: 'Montserrat', color: 'var(--color-safety-orange)' }}>≈ {ozToBucketsFractional(totalOz).toFixed(2)}</div>
+                    <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Baldes (exato)</div>
+                  </div>
+                  <div style={{ textAlign: 'center', background: 'rgba(255,92,0,0.1)', borderRadius: '8px', padding: '0.5rem' }}>
+                    <div style={{ fontSize: '1.5rem', fontWeight: 900, fontFamily: 'Montserrat', color: 'var(--color-safety-orange)' }}>{ozToBucketsCeil(totalOz)}</div>
+                    <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Baldes p/ pedir</div>
                   </div>
                 </div>
+                <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '0.75rem', textAlign: 'center' }}>
+                  Balde: 5 gal US (640 fl oz ≈ 18,9 L). Baldes para pedido arredondados para cima.
+                </p>
               </div>
             )}
 
