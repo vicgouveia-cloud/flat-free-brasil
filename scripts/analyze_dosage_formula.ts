@@ -189,7 +189,7 @@ export function runFormulaAnalysis() {
 
   console.log(`Dimensões: Flanco = ${sw385} mm | Diâmetro = ${od385.toFixed(4)}" | Largura = ${w385.toFixed(4)}"`)
   console.log(`Dose exploratória calculada (/15): ${dose385_15.toFixed(2)} fl oz (exato: ${dose385_15.toFixed(4)} fl oz)`)
-  console.log('Classificação hierárquica: NÍVEL D (Estimativa empírica não validada em tabela)')
+  console.log('Classificação hierárquica: NÍVEL E (Cálculo empírico provisório não validado em tabela documental)')
   console.log('Status no catálogo: AUSENTE (retorna null na interface pública getDosageOz)')
 
   return { optimalDivisor, statsList, dose385_15 }

@@ -140,7 +140,7 @@ As seguintes 9 medidas apresentaram variações entre diferentes documentos do a
 
 A categoria documental reconhecida precede heurísticas por medida no gerador. Em particular, `17,5 R25` pertence a `trator_maquinario`. As heurísticas são usadas somente quando a categoria da extração não é reconhecida. A extração histórica da Sheet2 ainda usa dose >50 para classificar suas linhas pesadas; isso é uma regra legada de extração, não uma classificação universal de pneus.
 
-O caminho original acima documenta a proveniência, mas não é fixado no código. Instale `openpyxl` e `xlrd`; execute `python -B scripts/generate_catalog_code.py --source-dir "CAMINHO_DO_ACERVO"`, ou defina `FLAT_FREE_SOURCE_DIR` e omita o argumento. `--source-dir` prevalece sobre a variável. O acervo é somente lido.
+A referência acima identifica genericamente o acervo local auditado; o caminho absoluto local não é persistido no repositório. Instale `openpyxl` e `xlrd`; execute `python -B scripts/generate_catalog_code.py --source-dir "CAMINHO_DO_ACERVO"`, ou defina `FLAT_FREE_SOURCE_DIR` e omita o argumento. `--source-dir` prevalece sobre a variável. O acervo é somente lido.
 
 A análise reproduzível está em [dosage-formula-analysis.md](dosage-formula-analysis.md). Após `npm ci`, compile os scripts com `npx tsc scripts/test_dosage_engine.ts scripts/analyze_dosage_formula.ts --outDir dist/dosage-audit --module commonjs --target es2020 --esModuleInterop --skipLibCheck`. Na raiz do repositório, execute `node dist/dosage-audit/scripts/test_dosage_engine.js` e `node dist/dosage-audit/scripts/analyze_dosage_formula.js`.
 
