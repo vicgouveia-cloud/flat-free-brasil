@@ -205,3 +205,61 @@ export function calculateDoseFromFormula(params: FormulaCalculationParams): Form
     oldTireAdjustmentApplied: !!params.isOldOrExtremelyWorn,
   }
 }
+
+// ============================================================================
+// REGRA EMPÍRICA DERIVADA PARA PESADOS RODOVIÁRIOS (DIVISOR 15)
+// ============================================================================
+
+export interface HeavyRoadEmpiricalParams {
+  /** Largura nominal do pneu em milímetros (ex.: 295 para 295/80 R22.5) */
+  nominalWidthMm: number
+  /** Perfil/série em percentual (ex.: 80 para 295/80 R22.5) */
+  aspectRatio: number
+  /** Diâmetro nominal do aro em polegadas (ex.: 22.5 para 295/80 R22.5) */
+  rimInches: number
+}
+
+export interface HeavyRoadEmpiricalResult {
+  /** Diâmetro externo nominal calculado em polegadas */
+  outerDiameterInches: number
+  /** Largura nominal calculada em polegadas */
+  nominalWidthInches: number
+  /** Dose bruta estimada em US fl oz */
+  rawOunces: number
+  /** Divisor estatístico empírico aplicado (15) */
+  divisor: 15
+  /** Identificação do método */
+  method: 'empirical_heavy_road'
+}
+
+/**
+ * Cálculo empírico derivado das dosagens históricas de veículos pesados rodoviários (caminhões e ônibus).
+ *
+ * Fórmula empírica:
+ *   dose estimada ≈ (diâmetro externo nominal em pol × largura nominal em pol) ÷ 15
+ *
+ * Base matemática:
+ *   Derivada por regressão de mínimos quadrados (divisor ótimo ~14.9966) sobre os quatro pontos
+ *   métricos pesados tabelados: 215/75 R17,5 (17 oz), 275/80 R22,5 (28 oz), 295/80 R22,5 (32 oz)
+ *   e 305/70 R22,5 (32 oz), com erro percentual absoluto médio de apenas 1,29%.
+ *
+ * IMPORTANTE:
+ * 1. Esta regra /15 NÃO substitui a fórmula documental ASI /22.
+ * 2. Permanece estritamente isolada e NÃO está conectada ao getDosageOz nem à UI pública.
+ * 3. Se uma medida possui dose tabelada no catálogo, a tabela deve prevalecer sempre.
+ */
+export function calculateHeavyRoadDoseEmpirical(params: HeavyRoadEmpiricalParams): HeavyRoadEmpiricalResult {
+  const sidewallMm = (params.nominalWidthMm * params.aspectRatio) / 100.0
+  const outerDiameterInches = params.rimInches + (2.0 * sidewallMm) / 25.4
+  const nominalWidthInches = params.nominalWidthMm / 25.4
+  const rawOunces = (outerDiameterInches * nominalWidthInches) / 15.0
+
+  return {
+    outerDiameterInches,
+    nominalWidthInches,
+    rawOunces,
+    divisor: 15,
+    method: 'empirical_heavy_road',
+  }
+}
+

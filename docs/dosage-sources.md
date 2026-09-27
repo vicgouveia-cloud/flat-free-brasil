@@ -4,7 +4,7 @@
 **Data:** 27 de setembro de 2026  
 **Repositório:** `vicgouveia-cloud/flat-free-brasil`  
 **Branch:** `feature/dosage-catalog-foundation`  
-**Acervo local consultado:** `F:\Victor\TRABALHO\Flat Free`
+**Acervo local consultado:** Acervo local auditado
 
 ---
 
