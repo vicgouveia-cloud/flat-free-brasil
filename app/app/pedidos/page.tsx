@@ -68,7 +68,7 @@ export default function PedidosPage() {
               <p style={{ marginTop: '0.75rem', fontWeight: 700, color: 'var(--color-safety-orange)' }}>
                 Total: {formatDoses(selected.quantidadeEstimadaProduto)}
                 {' '}≈ {ozToLiters(selected.quantidadeEstimadaProduto).toFixed(1).replace('.', ',')} L
-                {' '}— {ozToBucketsCeil(selected.quantidadeEstimadaProduto)} baldes
+                {' '}— {ozToBucketsCeil(selected.quantidadeEstimadaProduto)} {ozToBucketsCeil(selected.quantidadeEstimadaProduto) === 1 ? 'balde' : 'baldes'}
               </p>
             </>
           )}
