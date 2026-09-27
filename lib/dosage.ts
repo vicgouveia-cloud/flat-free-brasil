@@ -207,8 +207,64 @@ export function calculateDoseFromFormula(params: FormulaCalculationParams): Form
 }
 
 // ============================================================================
-// REGRA EMPÍRICA DERIVADA PARA PESADOS RODOVIÁRIOS (DIVISOR 15)
+// ARREDONDAMENTO HALF-UP E REGRAS OPERACIONAIS POR CLASSE DE USO
 // ============================================================================
+
+/**
+ * Implementa o arredondamento half-up estrito para valores positivos:
+ * - parte decimal < 0,5 => arredonda para baixo (Math.floor)
+ * - parte decimal >= 0,5 => arredonda para cima (Math.ceil)
+ * Exemplos:
+ *   9.13 => 9 | 9.49 => 9 | 9.50 => 10 | 9.51 => 10 | 47.24 => 47 | 47.50 => 48
+ */
+export function roundHalfUp(val: number): number {
+  return Math.floor(val + 0.5)
+}
+
+export type VehicleUsageClass = 'light_road' | 'heavy_road' | 'slow_machinery'
+export type VehicleUsageType = VehicleUsageClass
+
+export const VEHICLE_USAGE_LABELS: Record<VehicleUsageClass, string> = {
+  light_road: 'Carro / SUV / van / utilitário leve',
+  heavy_road: 'Caminhão / ônibus rodoviário pesado',
+  slow_machinery: 'Trator / maquinário / veículo lento',
+}
+
+/** Formata número de doses preservando inteiros e uma casa decimal com vírgula para fracionários (ex.: 8,5 ou 32) */
+export function formatDoseValue(val: number): string {
+  return val % 1 === 0 ? val.toString() : val.toFixed(1).replace('.', ',')
+}
+
+/** Formata texto de dose com pluralização natural (ex.: "1 dose", "8,5 doses", "32 doses") */
+export function formatDoses(val: number): string {
+  const formatted = formatDoseValue(val)
+  const unit = val === 1 ? 'dose' : 'doses'
+  return `${formatted} ${unit}`
+}
+
+/** Mapeia a categoria documental do catálogo para a classe de uso operacional correspondente */
+export function mapTireCategoryToUsageClass(category: TireCategory): VehicleUsageClass {
+  switch (category) {
+    case 'passeio_leve':
+      return 'light_road'
+    case 'caminhao_onibus':
+      return 'heavy_road'
+    case 'trator_maquinario':
+      return 'slow_machinery'
+  }
+}
+
+export interface EmpiricalCalculationResult {
+  outerDiameterInches: number
+  nominalWidthInches: number
+  geometricProduct: number
+  rawCalculatedDose: number
+  rawOunces: number
+  appliedDose: number
+  divisor: number
+  usageClass: VehicleUsageClass
+  method: string
+}
 
 export interface HeavyRoadEmpiricalParams {
   /** Largura nominal do pneu em milímetros (ex.: 295 para 295/80 R22.5) */
@@ -220,57 +276,87 @@ export interface HeavyRoadEmpiricalParams {
 }
 
 export interface HeavyRoadEmpiricalResult {
-  /** Diâmetro externo nominal calculado em polegadas */
   outerDiameterInches: number
-  /** Largura nominal calculada em polegadas */
   nominalWidthInches: number
-  /** Dose bruta estimada em US fl oz */
   rawOunces: number
-  /** Divisor estatístico empírico aplicado (15) */
   divisor: 15
-  /** Identificação do método */
   method: 'empirical_heavy_road'
 }
 
 /**
- * Cálculo empírico derivado das dosagens históricas de veículos pesados rodoviários (caminhões e ônibus).
- *
- * Fórmula empírica:
- *   dose estimada ≈ (diâmetro externo nominal em pol × largura nominal em pol) ÷ 15
- *
- * Base matemática:
- *   Regra empírica provisória com alta aderência aos quatro pontos históricos pesados métricos
- *   atualmente disponíveis: 215/75 R17,5 (17 oz), 275/80 R22,5 (28 oz), 295/80 R22,5 (32 oz)
- *   e 305/70 R22,5 (32 oz). Divisor ótimo conjunto por mínimos quadrados ~14.9966 (MAPE ~1,29%).
- *   Novas evidências ou dados operacionais futuros podem recalibrar o divisor.
- *
- * IMPORTANTE:
- * 1. Esta regra /15 NÃO substitui a fórmula documental ASI /22.
- * 2. O uso exploratório de fórmulas com largura nominal de seção não invalida a fórmula ASI /22,
- *    que exige a medição real da largura da banda de rodagem (Width of Tread).
- * 3. Permanece estritamente isolada e NÃO está conectada ao getDosageOz nem à UI pública.
- * 4. Se uma medida possui dose tabelada no catálogo, a tabela deve prevalecer sempre.
+ * Cálculo operacional para veículos leves rodoviários (Carro / SUV / van / utilitário leve):
+ * Regra: (diâmetro externo nominal em pol × largura nominal em pol) ÷ 22
  */
-export function calculateHeavyRoadDoseEmpirical(params: HeavyRoadEmpiricalParams): HeavyRoadEmpiricalResult {
+export function calculateLightRoadDoseEmpirical(params: HeavyRoadEmpiricalParams): EmpiricalCalculationResult {
   const sidewallMm = (params.nominalWidthMm * params.aspectRatio) / 100.0
   const outerDiameterInches = params.rimInches + (2.0 * sidewallMm) / 25.4
   const nominalWidthInches = params.nominalWidthMm / 25.4
-  const rawOunces = (outerDiameterInches * nominalWidthInches) / 15.0
-
+  const geometricProduct = outerDiameterInches * nominalWidthInches
+  const rawCalculatedDose = geometricProduct / 22.0
   return {
     outerDiameterInches,
     nominalWidthInches,
-    rawOunces,
+    geometricProduct,
+    rawCalculatedDose,
+    rawOunces: rawCalculatedDose,
+    appliedDose: roundHalfUp(rawCalculatedDose),
+    divisor: 22,
+    usageClass: 'light_road',
+    method: 'empirical_light_road',
+  }
+}
+
+/**
+ * Cálculo operacional para veículos pesados rodoviários (Caminhão / ônibus rodoviário pesado):
+ * Regra: (diâmetro externo nominal em pol × largura nominal em pol) ÷ 15
+ */
+export function calculateHeavyRoadDoseEmpirical(
+  params: HeavyRoadEmpiricalParams
+): EmpiricalCalculationResult & HeavyRoadEmpiricalResult {
+  const sidewallMm = (params.nominalWidthMm * params.aspectRatio) / 100.0
+  const outerDiameterInches = params.rimInches + (2.0 * sidewallMm) / 25.4
+  const nominalWidthInches = params.nominalWidthMm / 25.4
+  const geometricProduct = outerDiameterInches * nominalWidthInches
+  const rawCalculatedDose = geometricProduct / 15.0
+  return {
+    outerDiameterInches,
+    nominalWidthInches,
+    geometricProduct,
+    rawCalculatedDose,
+    rawOunces: rawCalculatedDose,
+    appliedDose: roundHalfUp(rawCalculatedDose),
     divisor: 15,
+    usageClass: 'heavy_road',
     method: 'empirical_heavy_road',
   }
 }
 
-// ============================================================================
-// RESOLVER UNIVERSAL COMPARTILHADO DE DOSAGEM
-// ============================================================================
+/**
+ * Cálculo operacional para maquinário e tratores (Trator / maquinário / veículo lento):
+ * Regra: (diâmetro externo nominal em pol × largura nominal em pol) ÷ 10
+ */
+export function calculateSlowMachineryDoseEmpirical(params: HeavyRoadEmpiricalParams): EmpiricalCalculationResult {
+  const sidewallMm = (params.nominalWidthMm * params.aspectRatio) / 100.0
+  const outerDiameterInches = params.rimInches + (2.0 * sidewallMm) / 25.4
+  const nominalWidthInches = params.nominalWidthMm / 25.4
+  const geometricProduct = outerDiameterInches * nominalWidthInches
+  const rawCalculatedDose = geometricProduct / 10.0
+  return {
+    outerDiameterInches,
+    nominalWidthInches,
+    geometricProduct,
+    rawCalculatedDose,
+    rawOunces: rawCalculatedDose,
+    appliedDose: roundHalfUp(rawCalculatedDose),
+    divisor: 10,
+    usageClass: 'slow_machinery',
+    method: 'empirical_slow_machinery',
+  }
+}
 
-export type VehicleUsageType = 'caminhao_onibus_rodoviario' | 'outro_desconhecido'
+// ============================================================================
+// RESOLVER UNIVERSAL DE DOSAGEM POR CLASSE DE USO
+// ============================================================================
 
 export interface ParsedMetricMeasure {
   nominalWidthMm: number
@@ -283,7 +369,7 @@ export interface ParsedMetricMeasure {
  * Exemplos:
  *   '385/80 R22,5' -> { nominalWidthMm: 385, aspectRatio: 80, rimInches: 22.5 }
  *   '295/80 R22.5' -> { nominalWidthMm: 295, aspectRatio: 80, rimInches: 22.5 }
- *   '10.00 R20'    -> null (formato imperial/não-perfil)
+ *   '10.00 R20'    -> null (formato imperial/sem perfil explícito)
  */
 export function parseMetricMeasure(measure: string): ParsedMetricMeasure | null {
   if (!measure) return null
@@ -298,53 +384,58 @@ export function parseMetricMeasure(measure: string): ParsedMetricMeasure | null 
 }
 
 export type DosageResolutionStatus = 'resolved' | 'requires_review'
-export type DosageResolutionSource = 'table' | 'empirical_heavy_road'
-export type DosageReviewReason = 'historical_conflict' | 'needs_review' | 'unknown_measure' | 'unclassified_usage'
+export type DosageResolutionSource = 'table' | 'estimated'
 
 export interface ResolvedDosage {
   status: 'resolved'
   source: DosageResolutionSource
-  /** Dose bruta técnica calculada ou tabelada em US fl oz */
-  fluidOzPerTire: number
-  /** Rótulo obrigatório de interface */
-  label: 'Dose tabelada' | 'Estimativa calculada'
-  /** Aviso legal/técnico de aplicação quando calculada */
-  disclaimer?: string
+  usageClass?: VehicleUsageClass
+  /** Dose técnica bruta antes de arredondamentos (presente quando calculada) */
+  rawCalculatedDose?: number
+  /** Dose aplicada por pneu: valor exato de tabela para referências, ou arredondada (half-up) para estimativas */
+  appliedDose: number
+  /** Rótulo público padronizado */
+  label: 'Dose de referência' | 'Dose estimada'
   /** Medida canônica resolvida */
   canonicalMeasure: string
   /** Entrada original do catálogo quando procedente de tabela */
   catalogEntry?: DosageCatalogEntry
+  /** Compatibilidade técnica: dose por pneu em fl oz / doses */
+  fluidOzPerTire: number
 }
 
 export interface ReviewRequiredDosage {
   status: 'requires_review'
-  reason: DosageReviewReason
-  /** Rótulo obrigatório de interface */
+  reason: 'unknown_measure' | 'needs_usage_class' | 'insufficient_geometry'
+  /** Rótulo público padronizado */
   label: 'Consultar dosagem'
   canonicalMeasure?: string
   catalogEntry?: DosageCatalogEntry
   isMetric?: boolean
   parsedMetric?: ParsedMetricMeasure
+  allowedUsages?: VehicleUsageClass[]
 }
 
 export type DosageResolution = ResolvedDosage | ReviewRequiredDosage
 
 /**
- * Resolve a dosagem técnica aplicável a uma medida de pneu segundo a hierarquia canônica do projeto:
+ * Resolve a dosagem técnica aplicável a uma medida de pneu:
  *
- * 1. Medida existente no catálogo com status 'confirmed':
- *    -> SEMPRE utiliza fluidOzPerTire da tabela ('Dose tabelada'). Prevalece sobre qualquer fórmula.
- * 2. Medida existente no catálogo com status 'historical_conflict' ou 'needs_review':
- *    -> NÃO calcula /15 ou /22. Retorna requires_review com label 'Consultar dosagem'.
- * 3. Medida NÃO existente no catálogo:
- *    -> Se for medida métrica válida (LARGURA/PERFIL R ARO) E o usuário selecionar explicitamente
- *       'caminhao_onibus_rodoviario', aplica a regra empírica /15 (calculateHeavyRoadDoseEmpirical)
- *       rotulada como 'Estimativa calculada' com disclaimer discreto.
- *    -> Caso contrário (outros tipos ou sem classificação), retorna 'Consultar dosagem'.
+ * 1. Medida com dose confirmed no catálogo:
+ *    -> SEMPRE utiliza a dose de referência da tabela. Não recalcula. Rótulo: "Dose de referência".
+ * 2. Medida com histórico de conflito documental (historical_conflict):
+ *    -> Mantém o status histórico no catálogo (sem escolher dose antiga).
+ *    -> Se possuir classe documental confiável (ex.: passeio_leve para 205/55 R16),
+ *       calcula automaticamente na classe documental. Rótulo: "Dose estimada".
+ * 3. Medida fora do catálogo com geometria métrica completa:
+ *    -> Se a classe de uso foi fornecida (ou selecionada pelo usuário), calcula a dose estimada.
+ *    -> Se não fornecida, solicita a seleção entre as classes operacionais.
+ * 4. Medida sem geometria métrica e sem referência de tabela:
+ *    -> Retorna "Consultar dosagem".
  */
 export function resolveDosageForApplication(
   measure: string,
-  usageType?: VehicleUsageType | string
+  usageClass?: VehicleUsageClass | string
 ): DosageResolution {
   if (!measure || !measure.trim()) {
     return {
@@ -362,55 +453,92 @@ export function resolveDosageForApplication(
       return {
         status: 'resolved',
         source: 'table',
+        appliedDose: entry.fluidOzPerTire,
         fluidOzPerTire: entry.fluidOzPerTire,
-        label: 'Dose tabelada',
+        label: 'Dose de referência',
         canonicalMeasure: entry.canonicalMeasure,
         catalogEntry: entry,
+        usageClass: mapTireCategoryToUsageClass(entry.category),
       }
     }
-    return {
-      status: 'requires_review',
-      reason: entry.status === 'historical_conflict' ? 'historical_conflict' : 'needs_review',
-      label: 'Consultar dosagem',
-      canonicalMeasure: entry.canonicalMeasure,
-      catalogEntry: entry,
-      isMetric: parseMetricMeasure(entry.canonicalMeasure) !== null,
+
+    if (entry.status === 'historical_conflict') {
+      const parsed = parseMetricMeasure(entry.canonicalMeasure)
+      if (parsed) {
+        // Classificação documental automática confiável da medida
+        const autoUsage = mapTireCategoryToUsageClass(entry.category)
+        const calc =
+          autoUsage === 'light_road'
+            ? calculateLightRoadDoseEmpirical(parsed)
+            : autoUsage === 'heavy_road'
+            ? calculateHeavyRoadDoseEmpirical(parsed)
+            : calculateSlowMachineryDoseEmpirical(parsed)
+
+        return {
+          status: 'resolved',
+          source: 'estimated',
+          usageClass: autoUsage,
+          rawCalculatedDose: calc.rawCalculatedDose,
+          appliedDose: calc.appliedDose,
+          fluidOzPerTire: calc.appliedDose,
+          label: 'Dose estimada',
+          canonicalMeasure: entry.canonicalMeasure,
+          catalogEntry: entry,
+        }
+      }
+
+      return {
+        status: 'requires_review',
+        reason: 'insufficient_geometry',
+        label: 'Consultar dosagem',
+        canonicalMeasure: entry.canonicalMeasure,
+        catalogEntry: entry,
+        isMetric: false,
+      }
     }
   }
 
-  // 2. Medida não presente no catálogo: verificar se é formato métrico válido
+  // 2. Medida fora do catálogo: verificar se é formato métrico completo
   const normalized = normalizeMeasure(measure)
   const parsed = parseMetricMeasure(measure)
 
   if (parsed) {
-    if (usageType === 'caminhao_onibus_rodoviario') {
-      const empirical = calculateHeavyRoadDoseEmpirical({
-        nominalWidthMm: parsed.nominalWidthMm,
-        aspectRatio: parsed.aspectRatio,
-        rimInches: parsed.rimInches,
-      })
+    if (
+      usageClass === 'light_road' ||
+      usageClass === 'heavy_road' ||
+      usageClass === 'slow_machinery'
+    ) {
+      const calc =
+        usageClass === 'light_road'
+          ? calculateLightRoadDoseEmpirical(parsed)
+          : usageClass === 'heavy_road'
+          ? calculateHeavyRoadDoseEmpirical(parsed)
+          : calculateSlowMachineryDoseEmpirical(parsed)
+
       return {
         status: 'resolved',
-        source: 'empirical_heavy_road',
-        fluidOzPerTire: empirical.rawOunces, // Valor técnico bruto preservado
-        label: 'Estimativa calculada',
-        disclaimer:
-          'Estimativa baseada em regra empírica para pneus pesados rodoviários; quando houver dose tabelada, a tabela prevalece.',
+        source: 'estimated',
+        usageClass,
+        rawCalculatedDose: calc.rawCalculatedDose,
+        appliedDose: calc.appliedDose,
+        fluidOzPerTire: calc.appliedDose,
+        label: 'Dose estimada',
         canonicalMeasure: normalized,
       }
     }
 
     return {
       status: 'requires_review',
-      reason: 'unclassified_usage',
+      reason: 'needs_usage_class',
       label: 'Consultar dosagem',
       canonicalMeasure: normalized,
       isMetric: true,
       parsedMetric: parsed,
+      allowedUsages: ['light_road', 'heavy_road', 'slow_machinery'],
     }
   }
 
-  // 3. Medida não métrica e não catalogada
+  // 3. Medida sem geometria suficiente e sem referência
   return {
     status: 'requires_review',
     reason: 'unknown_measure',
@@ -419,4 +547,3 @@ export function resolveDosageForApplication(
     isMetric: false,
   }
 }
-

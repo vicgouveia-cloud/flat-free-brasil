@@ -4,19 +4,21 @@ import Link from 'next/link'
 import {
   DOSAGE_CATALOG,
   resolveDosageForApplication,
-  parseMetricMeasure,
   ozToLiters,
   ozToBucketsFractional,
   ozToBucketsCeil,
   calculateDoseFromFormula,
-  type VehicleUsageType,
+  formatDoseValue,
+  formatDoses,
+  VEHICLE_USAGE_LABELS,
+  type VehicleUsageClass,
 } from '@/lib/dosage'
 
 interface CalcLine {
   id: number
   medida: string
   quantidade: number
-  tipoUso?: VehicleUsageType
+  usageClass?: VehicleUsageClass
 }
 
 export default function CalculadoraPage() {
@@ -39,16 +41,21 @@ export default function CalculadoraPage() {
     setLines(prev => prev.filter(l => l.id !== id))
   }
 
-  function updateLine(id: number, field: keyof Omit<CalcLine, 'id'>, value: string | number | VehicleUsageType) {
+  function updateLine(
+    id: number,
+    field: keyof Omit<CalcLine, 'id'>,
+    value: string | number | VehicleUsageClass
+  ) {
     setLines(prev =>
       prev.map(l => {
         if (l.id !== id) return l
         const updated = { ...l, [field]: value }
-        // Se a medida mudou para algo que tem dose de tabela confirmada, limpa tipoUso
+        // Se a medida informada possui dose confirmada na tabela ou classificação automática segura,
+        // limpa a escolha manual de usageClass
         if (field === 'medida') {
           const res = resolveDosageForApplication(String(value))
-          if (res.status === 'resolved' && res.source === 'table') {
-            delete updated.tipoUso
+          if (res.status === 'resolved' && (res.source === 'table' || res.catalogEntry)) {
+            delete updated.usageClass
           }
         }
         return updated
@@ -58,44 +65,47 @@ export default function CalculadoraPage() {
 
   // Resolução linha a linha
   const evaluatedLines = lines.map(line => {
-    const resolution = resolveDosageForApplication(line.medida, line.tipoUso)
-    const isUnknownMetric =
-      resolution.status === 'requires_review' &&
-      resolution.reason === 'unclassified_usage' &&
-      parseMetricMeasure(line.medida) !== null
+    const resolution = resolveDosageForApplication(line.medida, line.usageClass)
 
-    const isEmpiricalResolved =
-      resolution.status === 'resolved' && resolution.source === 'empirical_heavy_road'
+    // O seletor de classe deve ser exibido quando:
+    // - a medida métrica precisa da seleção da classe de uso (needs_usage_class)
+    // - ou a medida métrica fora do catálogo já foi resolvida por seleção manual do usuário
+    const showUsageSelector =
+      (resolution.status === 'requires_review' && resolution.reason === 'needs_usage_class') ||
+      (resolution.status === 'resolved' && resolution.source === 'estimated' && !resolution.catalogEntry)
 
-    // O seletor de tipo de aplicação deve ser exibido quando:
-    // a medida é métrica e não está no catálogo confirmado nem com conflito histórico
-    const showUsageSelector = isUnknownMetric || isEmpiricalResolved
-
-    const ozPerTire = resolution.status === 'resolved' ? resolution.fluidOzPerTire : null
-    const lineTotalOz = ozPerTire !== null ? ozPerTire * line.quantidade : 0
+    const appliedDose = resolution.status === 'resolved' ? resolution.appliedDose : null
+    const lineTotalDoses = appliedDose !== null ? appliedDose * line.quantidade : 0
 
     return {
       line,
       resolution,
       showUsageSelector,
-      ozPerTire,
-      lineTotalOz,
+      appliedDose,
+      lineTotalDoses,
     }
   })
 
   // Totais
   const resolvedLines = evaluatedLines.filter(item => item.resolution.status === 'resolved')
   const unresolvedLines = evaluatedLines.filter(item => item.resolution.status === 'requires_review')
-  const totalOz = resolvedLines.reduce((sum, item) => sum + item.lineTotalOz, 0)
+  const totalDoses = resolvedLines.reduce((sum, item) => sum + item.lineTotalDoses, 0)
   const hasUnresolved = unresolvedLines.length > 0
   const hasEmpirical = resolvedLines.some(
-    item => item.resolution.status === 'resolved' && item.resolution.source === 'empirical_heavy_road'
+    item => item.resolution.status === 'resolved' && item.resolution.source === 'estimated'
   )
+
   const totalsTitle = hasUnresolved
     ? 'Consumo Total Parcial'
     : hasEmpirical
     ? 'Consumo Total Estimado'
     : 'Consumo Total Tabelado'
+
+  const unresolvedCount = unresolvedLines.length
+  const unresolvedMsg =
+    unresolvedCount === 1
+      ? '1 medida ainda precisa de confirmação técnica e não foi somada aos totais abaixo.'
+      : `${unresolvedCount} medidas ainda precisam de confirmação técnica e não foram somadas aos totais abaixo.`
 
   // Cálculo da fórmula física ASI no modo técnico
   const techResult = calculateDoseFromFormula({
@@ -111,8 +121,9 @@ export default function CalculadoraPage() {
       evaluatedLines.map(item => ({
         medida: item.line.medida,
         quantidade: item.line.quantidade,
-        doseUnitOz: item.ozPerTire !== null ? Number(item.ozPerTire.toFixed(2)) : null,
-        totalOz: Number(item.lineTotalOz.toFixed(2)),
+        doses: item.appliedDose,
+        doseUnit: item.appliedDose,
+        totalDoses: item.lineTotalDoses,
       }))
     )
   )
@@ -168,19 +179,16 @@ export default function CalculadoraPage() {
               Calculadora de Dosagem Universal
             </h1>
             <p style={{ color: 'var(--text-secondary)' }}>
-              Consulte doses canônicas de tabela para frotas e calcule estimativas técnicas para pneus
-              pesados rodoviários. Adicione quantas medidas precisar.
+              Consulte doses de referência de tabela ou obtenha estimativas por classe operacional do veículo.
+              Adicione quantas medidas precisar.
             </p>
           </div>
 
           {/* Datalist com sugestões do catálogo consolidado */}
           <datalist id="catalog-measures">
             {DOSAGE_CATALOG.map(e => (
-              <option
-                key={e.canonicalMeasure}
-                value={e.canonicalMeasure}
-              >
-                {e.canonicalMeasure} — {e.status === 'confirmed' ? `${e.fluidOzPerTire} fl oz (Tabelado)` : 'Divergência / Consultar'}
+              <option key={e.canonicalMeasure} value={e.canonicalMeasure}>
+                {e.canonicalMeasure} — {e.status === 'confirmed' ? `${formatDoses(e.fluidOzPerTire)} (Referência)` : 'Sob consulta'}
               </option>
             ))}
           </datalist>
@@ -294,7 +302,7 @@ export default function CalculadoraPage() {
                     </button>
                   </div>
 
-                  {/* Seletor contextual: revelado SOMENTE quando medida for métrica sem dose tabelada */}
+                  {/* Seletor contextual de classe de uso: exibido apenas quando a medida métrica não possui classificação automática */}
                   {showUsageSelector && (
                     <div
                       style={{
@@ -308,50 +316,47 @@ export default function CalculadoraPage() {
                         gap: '0.4rem',
                       }}
                     >
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flexWrap: 'wrap' }}>
-                        <span style={{ fontSize: '0.825rem', fontWeight: 600, color: 'var(--text-secondary)' }}>
-                          <i className="fas fa-truck-moving" style={{ color: 'var(--color-safety-orange)' }} /> Tipo de aplicação do veículo:
+                      <div
+                        style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '0.75rem',
+                          flexWrap: 'wrap',
+                        }}
+                      >
+                        <span
+                          style={{
+                            fontSize: '0.825rem',
+                            fontWeight: 600,
+                            color: 'var(--text-secondary)',
+                          }}
+                        >
+                          <i
+                            className="fas fa-truck-moving"
+                            style={{ color: 'var(--color-safety-orange)' }}
+                          />{' '}
+                          Classe de uso do veículo:
                         </span>
                         <select
                           className="form-control"
                           style={{
                             width: 'auto',
                             flex: 1,
-                            minWidth: '220px',
+                            minWidth: '240px',
                             padding: '0.35rem 0.6rem',
                             fontSize: '0.85rem',
                           }}
-                          value={line.tipoUso || 'outro_desconhecido'}
-                          onChange={e => updateLine(line.id, 'tipoUso', e.target.value as VehicleUsageType)}
+                          value={line.usageClass || ''}
+                          onChange={e =>
+                            updateLine(line.id, 'usageClass', e.target.value as VehicleUsageClass)
+                          }
                         >
-                          <option value="outro_desconhecido">Outro / não sei (requer consulta)</option>
-                          <option value="caminhao_onibus_rodoviario">
-                            Caminhão / ônibus rodoviário (regra empírica /15)
-                          </option>
+                          <option value="">Selecione a classe de uso...</option>
+                          <option value="light_road">{VEHICLE_USAGE_LABELS.light_road}</option>
+                          <option value="heavy_road">{VEHICLE_USAGE_LABELS.heavy_road}</option>
+                          <option value="slow_machinery">{VEHICLE_USAGE_LABELS.slow_machinery}</option>
                         </select>
                       </div>
-
-                      {resolution.status === 'resolved' && resolution.source === 'empirical_heavy_road' && (
-                        <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', margin: 0 }}>
-                          <i className="fas fa-info-circle" /> {resolution.disclaimer}
-                        </p>
-                      )}
-                    </div>
-                  )}
-
-                  {/* Aviso de conflito histórico se aplicável */}
-                  {resolution.status === 'requires_review' && resolution.reason === 'historical_conflict' && (
-                    <div
-                      style={{
-                        marginTop: '0.5rem',
-                        fontSize: '0.78rem',
-                        color: '#ea580c',
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '0.4rem',
-                      }}
-                    >
-                      <i className="fas fa-triangle-exclamation" /> Esta medida possui registros divergentes no acervo histórico documental. Requer análise técnica direta.
                     </div>
                   )}
                 </div>
@@ -373,48 +378,39 @@ export default function CalculadoraPage() {
                 </tr>
               </thead>
               <tbody>
-                {evaluatedLines.map(({ line, resolution, ozPerTire, lineTotalOz }, i) => (
-                  <tr key={i}>
-                    <td style={{ fontWeight: 600 }}>{line.medida || '—'}</td>
-                    <td>{line.quantidade}</td>
-                    <td>
-                      {resolution.status === 'resolved' ? (
-                        resolution.source === 'table' ? (
-                          <span className="badge badge-blue">Dose tabelada</span>
+                {evaluatedLines.map(
+                  ({ line, resolution, appliedDose, lineTotalDoses }, i) => (
+                    <tr key={i}>
+                      <td style={{ fontWeight: 600 }}>{line.medida || '—'}</td>
+                      <td>{line.quantidade}</td>
+                      <td>
+                        {resolution.status === 'resolved' ? (
+                          resolution.source === 'table' ? (
+                            <span className="badge badge-blue">Dose de referência</span>
+                          ) : (
+                            <span className="badge badge-orange">Dose estimada</span>
+                          )
                         ) : (
-                          <span
-                            className="badge badge-orange"
-                            title="Estimativa baseada em regra empírica para pesados rodoviários"
-                          >
-                            Estimativa calculada
-                          </span>
-                        )
-                      ) : (
-                        <span className="badge badge-gray">Consultar dosagem</span>
-                      )}
-                    </td>
-                    <td>
-                      {resolution.status === 'resolved' ? (
-                        <span style={{ fontWeight: 600 }}>
-                          {resolution.source === 'table'
-                            ? `${ozPerTire} fl oz`
-                            : `${ozPerTire?.toFixed(2)} fl oz`}
-                        </span>
-                      ) : (
-                        <span style={{ color: 'var(--text-muted)' }}>—</span>
-                      )}
-                    </td>
-                    <td style={{ fontWeight: 700 }}>
-                      {resolution.status === 'resolved' ? (
-                        resolution.source === 'table'
-                          ? `${lineTotalOz} fl oz`
-                          : `${lineTotalOz.toFixed(2)} fl oz`
-                      ) : (
-                        <span style={{ color: 'var(--text-muted)' }}>—</span>
-                      )}
-                    </td>
-                  </tr>
-                ))}
+                          <span className="badge badge-gray">Consultar dosagem</span>
+                        )}
+                      </td>
+                      <td>
+                        {resolution.status === 'resolved' && appliedDose !== null ? (
+                          <span style={{ fontWeight: 600 }}>{formatDoses(appliedDose)}</span>
+                        ) : (
+                          <span style={{ color: 'var(--text-muted)' }}>—</span>
+                        )}
+                      </td>
+                      <td style={{ fontWeight: 700 }}>
+                        {resolution.status === 'resolved' && appliedDose !== null ? (
+                          formatDoses(lineTotalDoses)
+                        ) : (
+                          <span style={{ color: 'var(--text-muted)' }}>—</span>
+                        )}
+                      </td>
+                    </tr>
+                  )
+                )}
               </tbody>
             </table>
 
@@ -436,13 +432,13 @@ export default function CalculadoraPage() {
               >
                 <i className="fas fa-info-circle" />
                 <span>
-                  <strong>Atenção:</strong> {unresolvedLines.length} medida(s) ainda precisa(m) de confirmação de dosagem técnica e não foi(ram) somada(s) aos totais abaixo.
+                  <strong>Atenção:</strong> {unresolvedMsg}
                 </span>
               </div>
             )}
 
             {/* Painel de totais */}
-            {totalOz > 0 && (
+            {totalDoses > 0 && (
               <div
                 style={{
                   background: 'rgba(255,92,0,0.05)',
@@ -473,10 +469,10 @@ export default function CalculadoraPage() {
                         color: 'var(--color-safety-orange)',
                       }}
                     >
-                      {totalOz % 1 === 0 ? totalOz : totalOz.toFixed(2)}
+                      {formatDoses(totalDoses)}
                     </div>
                     <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
-                      Total (fl oz)
+                      Total de doses
                     </div>
                   </div>
                   <div style={{ textAlign: 'center' }}>
@@ -488,10 +484,10 @@ export default function CalculadoraPage() {
                         color: 'var(--color-safety-orange)',
                       }}
                     >
-                      {ozToLiters(totalOz).toFixed(1)} L
+                      {ozToLiters(totalDoses).toFixed(1).replace('.', ',')} L
                     </div>
                     <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
-                      Equivalente litros
+                      Volume equivalente
                     </div>
                   </div>
                   <div style={{ textAlign: 'center' }}>
@@ -503,7 +499,7 @@ export default function CalculadoraPage() {
                         color: 'var(--color-safety-orange)',
                       }}
                     >
-                      ≈ {ozToBucketsFractional(totalOz).toFixed(2)}
+                      ≈ {ozToBucketsFractional(totalDoses).toFixed(2).replace('.', ',')}
                     </div>
                     <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
                       Baldes (exato)
@@ -525,10 +521,10 @@ export default function CalculadoraPage() {
                         color: 'var(--color-safety-orange)',
                       }}
                     >
-                      {ozToBucketsCeil(totalOz)}
+                      {ozToBucketsCeil(totalDoses)}
                     </div>
                     <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
-                      Baldes p/ pedir
+                      Baldes para pedir
                     </div>
                   </div>
                 </div>
@@ -540,7 +536,8 @@ export default function CalculadoraPage() {
                     textAlign: 'center',
                   }}
                 >
-                  Balde industrial: 5 galões US (640 fl oz ≈ 18,9 litros). Baldes para pedido comercial são arredondados para cima (Math.ceil).
+                  1 dose corresponde a 1 onça fluida do produto (≈ 29,6 mL). Balde industrial: 5 galões US
+                  (640 doses ≈ 18,9 litros). Baldes para pedido comercial são arredondados para cima (Math.ceil).
                 </p>
               </div>
             )}
@@ -564,18 +561,38 @@ export default function CalculadoraPage() {
                 outline: 'none',
               }}
             >
-              <i className="fas fa-sliders" style={{ marginRight: '0.5rem', color: 'var(--color-safety-orange)' }} />
-              Modo técnico — Medidas reais do pneu (Fórmula ASI documental)
+              <i
+                className="fas fa-sliders"
+                style={{ marginRight: '0.5rem', color: 'var(--color-safety-orange)' }}
+              />
+              Modo técnico — Medidas físicas reais do pneu (Fórmula ASI documental)
             </summary>
 
-            <div style={{ marginTop: '1rem', paddingTop: '1rem', borderTop: '1px solid var(--border-color)' }}>
+            <div
+              style={{
+                marginTop: '1rem',
+                paddingTop: '1rem',
+                borderTop: '1px solid var(--border-color)',
+              }}
+            >
               <p style={{ fontSize: '0.825rem', color: 'var(--text-muted)', marginBottom: '1rem' }}>
-                A fórmula documental original da <em>ASI Chemical Inc.</em> exige a medição física real em polegadas da altura total montada e da largura da banda de rodagem (área de contato com o solo). Nunca utilize dimensões nominais de seção neste modo.
+                A fórmula documental original da <em>ASI Chemical Inc.</em> exige a medição física real em
+                polegadas da altura total montada e da largura da banda de rodagem (área de contato com o solo).
+                Nunca utilize dimensões nominais de seção neste modo.
               </p>
 
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '0.75rem', marginBottom: '1rem' }}>
+              <div
+                style={{
+                  display: 'grid',
+                  gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))',
+                  gap: '0.75rem',
+                  marginBottom: '1rem',
+                }}
+              >
                 <div>
-                  <label className="form-label" style={{ fontSize: '0.78rem' }}>Altura física real (pol):</label>
+                  <label className="form-label" style={{ fontSize: '0.78rem' }}>
+                    Altura física real (pol):
+                  </label>
                   <input
                     type="number"
                     step="0.1"
@@ -587,7 +604,9 @@ export default function CalculadoraPage() {
                   />
                 </div>
                 <div>
-                  <label className="form-label" style={{ fontSize: '0.78rem' }}>Largura real da banda (pol):</label>
+                  <label className="form-label" style={{ fontSize: '0.78rem' }}>
+                    Largura real da banda (pol):
+                  </label>
                   <input
                     type="number"
                     step="0.1"
@@ -599,7 +618,9 @@ export default function CalculadoraPage() {
                   />
                 </div>
                 <div>
-                  <label className="form-label" style={{ fontSize: '0.78rem' }}>Regime de velocidade:</label>
+                  <label className="form-label" style={{ fontSize: '0.78rem' }}>
+                    Regime de velocidade:
+                  </label>
                   <select
                     className="form-control"
                     value={techSpeed}
@@ -611,29 +632,55 @@ export default function CalculadoraPage() {
                 </div>
               </div>
 
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1rem' }}>
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '0.5rem',
+                  marginBottom: '1rem',
+                }}
+              >
                 <input
                   type="checkbox"
                   id="tech-worn-check"
                   checked={techWorn}
                   onChange={e => setTechWorn(e.target.checked)}
                 />
-                <label htmlFor="tech-worn-check" style={{ fontSize: '0.825rem', color: 'var(--text-secondary)', cursor: 'pointer' }}>
+                <label
+                  htmlFor="tech-worn-check"
+                  style={{ fontSize: '0.825rem', color: 'var(--text-secondary)', cursor: 'pointer' }}
+                >
                   Pneu antigo ou excessivamente desgastado (+10% conforme Tire Chart.pdf)
                 </label>
               </div>
 
-              <div style={{ background: 'var(--bg-surface-elevated)', borderRadius: '8px', padding: '0.85rem 1rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <div
+                style={{
+                  background: 'var(--bg-surface-elevated)',
+                  borderRadius: '8px',
+                  padding: '0.85rem 1rem',
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                }}
+              >
                 <div>
                   <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
                     Resultado pela fórmula ASI (Divisor {techResult.divisor})
                   </div>
-                  <div style={{ fontSize: '1.25rem', fontWeight: 800, color: 'var(--color-safety-orange)' }}>
-                    {techResult.recommendedOunces.toFixed(2)} fl oz / pneu
+                  <div
+                    style={{
+                      fontSize: '1.25rem',
+                      fontWeight: 800,
+                      color: 'var(--color-safety-orange)',
+                    }}
+                  >
+                    {formatDoseValue(techResult.recommendedOunces)} doses / pneu (≈{' '}
+                    {techResult.recommendedOunces.toFixed(2)} fl oz)
                   </div>
                 </div>
                 <div style={{ textAlign: 'right', fontSize: '0.8rem', color: 'var(--text-muted)' }}>
-                  ≈ {ozToLiters(techResult.recommendedOunces).toFixed(2)} L por pneu
+                  ≈ {ozToLiters(techResult.recommendedOunces).toFixed(2).replace('.', ',')} L por pneu
                 </div>
               </div>
             </div>
