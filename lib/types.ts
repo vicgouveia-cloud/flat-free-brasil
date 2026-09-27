@@ -130,6 +130,12 @@ export interface OrderItem {
   totalOz: number             // doseUnitOz * quantidade
 }
 
+export interface PendingOrderItem {
+  medida: string
+  quantidade: number
+  status: 'pendente_confirmacao_dosagem'
+}
+
 export type OrderStatus = 'solicitado' | 'em_analise' | 'aprovado' | 'enviado' | 'entregue' | 'cancelado'
 
 export interface Order {
@@ -137,6 +143,7 @@ export interface Order {
   companyId: string
   data: string
   itens: OrderItem[]
+  itensPendentes?: PendingOrderItem[]
   quantidadeEstimadaProduto: number  // total fl oz estimated
   enderecoEntrega: string
   cidade: string

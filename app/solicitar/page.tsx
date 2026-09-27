@@ -4,7 +4,7 @@ import { useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { getOrders, saveOrders, uuid } from '@/lib/storage'
 import { ozToLiters, ozToBucketsCeil, formatDoses } from '@/lib/dosage'
-import type { Order, OrderItem } from '@/lib/types'
+import type { Order, OrderItem, PendingOrderItem } from '@/lib/types'
 import DemoBanner from '@/components/DemoBanner'
 
 interface CalcItem {
@@ -74,11 +74,20 @@ function SolicitarForm() {
         totalOz: i.totalOz,
       }))
 
+    const itensPendentes: PendingOrderItem[] = calcItems
+      .filter(i => i.doseUnitOz === null)
+      .map(i => ({
+        medida: i.medida,
+        quantidade: i.quantidade,
+        status: 'pendente_confirmacao_dosagem',
+      }))
+
     const order: Order = {
       id: uuid(),
       companyId: 'manual',
       data: new Date().toISOString().split('T')[0],
       itens,
+      ...(itensPendentes.length > 0 ? { itensPendentes } : {}),
       quantidadeEstimadaProduto: totalOz,
       enderecoEntrega: form.endereco,
       cidade: form.cidade,

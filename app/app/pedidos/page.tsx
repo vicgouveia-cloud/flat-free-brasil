@@ -2,7 +2,7 @@
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { getOrders } from '@/lib/storage'
-import { ozToLiters, ozToBucketsCeil } from '@/lib/dosage'
+import { ozToLiters, ozToBucketsCeil, formatDoses } from '@/lib/dosage'
 import type { Order } from '@/lib/types'
 
 const statusLabels: Record<string, { label: string; cls: string }> = {
@@ -59,17 +59,36 @@ export default function PedidosPage() {
                     <tr key={i}>
                       <td>{item.medida}</td>
                       <td>{item.quantidade}</td>
-                      <td>{item.doseUnitOz} oz</td>
-                      <td>{item.totalOz} oz</td>
+                      <td>{formatDoses(item.doseUnitOz)}</td>
+                      <td>{formatDoses(item.totalOz)}</td>
                     </tr>
                   ))}
                 </tbody>
               </table>
               <p style={{ marginTop: '0.75rem', fontWeight: 700, color: 'var(--color-safety-orange)' }}>
-                Total: {selected.quantidadeEstimadaProduto} fl oz
-                {' '}≈ {ozToLiters(selected.quantidadeEstimadaProduto).toFixed(1)} L
+                Total: {formatDoses(selected.quantidadeEstimadaProduto)}
+                {' '}≈ {ozToLiters(selected.quantidadeEstimadaProduto).toFixed(1).replace('.', ',')} L
                 {' '}— {ozToBucketsCeil(selected.quantidadeEstimadaProduto)} baldes
               </p>
+            </>
+          )}
+          {selected.itensPendentes && selected.itensPendentes.length > 0 && (
+            <>
+              <h4 style={{ fontWeight: 700, marginTop: '1.25rem', marginBottom: '0.75rem' }}>
+                Itens pendentes de confirmação de dosagem
+              </h4>
+              <table className="table">
+                <thead><tr><th>Medida</th><th>Qtd. Pneus</th><th>Status</th></tr></thead>
+                <tbody>
+                  {selected.itensPendentes.map((item, i) => (
+                    <tr key={i}>
+                      <td>{item.medida}</td>
+                      <td>{item.quantidade}</td>
+                      <td><span className="badge badge-orange">Confirmação de dosagem</span></td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             </>
           )}
           {selected.observacoes && (
@@ -79,7 +98,7 @@ export default function PedidosPage() {
       ) : (
         <div className="card">
           <table className="table">
-            <thead><tr><th>Empresa</th><th>Data</th><th>Total (fl oz)</th><th>Status</th><th></th></tr></thead>
+            <thead><tr><th>Empresa</th><th>Data</th><th>Total (doses)</th><th>Status</th><th></th></tr></thead>
             <tbody>
               {orders.length === 0 ? (
                 <tr><td colSpan={5} style={{ textAlign: 'center', color: 'var(--text-muted)', padding: '2rem' }}>Nenhum pedido registrado.</td></tr>
@@ -87,7 +106,7 @@ export default function PedidosPage() {
                 <tr key={o.id}>
                   <td style={{ fontWeight: 600 }}>{o.nomeEmpresa}</td>
                   <td>{o.data}</td>
-                  <td>{o.quantidadeEstimadaProduto > 0 ? `${o.quantidadeEstimadaProduto} oz` : '—'}</td>
+                  <td>{o.quantidadeEstimadaProduto > 0 ? formatDoses(o.quantidadeEstimadaProduto) : '—'}</td>
                   <td><span className={`badge ${statusLabels[o.status]?.cls || 'badge-gray'}`}>{statusLabels[o.status]?.label || o.status}</span></td>
                   <td><button onClick={() => setSelected(o)} className="btn btn-outline btn-sm">Detalhes</button></td>
                 </tr>
