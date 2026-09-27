@@ -1,0 +1,127 @@
+'use client'
+import { useEffect, useState } from 'react'
+import { getVehicles, saveVehicles, uuid } from '@/lib/storage'
+import type { Vehicle, VehicleStatus } from '@/lib/types'
+
+const EMPTY_VEHICLE: Omit<Vehicle, 'id'> = {
+  companyId: 'demo-company-1',
+  identificacaoInterna: '',
+  placa: '',
+  tipo: 'Caminhão 6x4',
+  fabricanteModelo: '',
+  configuracaoEixos: '',
+  status: 'ativo',
+}
+
+const statusLabels: Record<VehicleStatus, { label: string; cls: string }> = {
+  ativo: { label: 'Ativo', cls: 'badge-green' },
+  inativo: { label: 'Inativo', cls: 'badge-gray' },
+  em_manutencao: { label: 'Em Manutenção', cls: 'badge-orange' },
+}
+
+export default function VeiculosPage() {
+  const [vehicles, setVehicles] = useState<Vehicle[]>([])
+  const [editing, setEditing] = useState<Vehicle | null>(null)
+  const [form, setForm] = useState(EMPTY_VEHICLE)
+  const [showForm, setShowForm] = useState(false)
+
+  useEffect(() => { setVehicles(getVehicles()) }, [])
+
+  function openNew() {
+    setEditing(null)
+    setForm(EMPTY_VEHICLE)
+    setShowForm(true)
+  }
+
+  function openEdit(v: Vehicle) {
+    setEditing(v)
+    setForm({ companyId: v.companyId, identificacaoInterna: v.identificacaoInterna, placa: v.placa || '', tipo: v.tipo, fabricanteModelo: v.fabricanteModelo || '', configuracaoEixos: v.configuracaoEixos || '', status: v.status })
+    setShowForm(true)
+  }
+
+  function handleSave() {
+    if (!form.identificacaoInterna) return
+    let updated: Vehicle[]
+    if (editing) {
+      updated = vehicles.map(v => v.id === editing.id ? { ...editing, ...form } : v)
+    } else {
+      updated = [...vehicles, { id: uuid(), ...form }]
+    }
+    saveVehicles(updated)
+    setVehicles(updated)
+    setShowForm(false)
+  }
+
+  function handleDeactivate(id: string) {
+    const updated = vehicles.map(v => v.id === id ? { ...v, status: 'inativo' as VehicleStatus } : v)
+    saveVehicles(updated)
+    setVehicles(updated)
+  }
+
+  return (
+    <div>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
+        <div>
+          <h1 style={{ fontSize: '1.5rem', fontWeight: 800, marginBottom: '0.25rem' }}>Veículos</h1>
+          <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem' }}>Cadastro e gestão de veículos da frota.</p>
+        </div>
+        <button onClick={openNew} className="btn btn-primary btn-sm"><i className="fas fa-plus" /> Cadastrar Veículo</button>
+      </div>
+
+      {showForm && (
+        <div className="card" style={{ marginBottom: '1.5rem' }}>
+          <h3 style={{ fontWeight: 700, marginBottom: '1.25rem' }}>{editing ? 'Editar Veículo' : 'Novo Veículo'}</h3>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+            {[
+              ['identificacaoInterna', 'Identificação Interna *', 'text'],
+              ['placa', 'Placa (opcional)', 'text'],
+              ['tipo', 'Tipo de Veículo', 'text'],
+              ['fabricanteModelo', 'Fabricante / Modelo', 'text'],
+              ['configuracaoEixos', 'Configuração de Eixos', 'text'],
+            ].map(([field, label]) => (
+              <div key={field} className="form-group">
+                <label className="form-label">{label}</label>
+                <input type="text" className="form-control" value={(form as Record<string, string>)[field]} onChange={e => setForm(p => ({ ...p, [field]: e.target.value }))} />
+              </div>
+            ))}
+            <div className="form-group">
+              <label className="form-label">Status</label>
+              <select className="form-control" value={form.status} onChange={e => setForm(p => ({ ...p, status: e.target.value as VehicleStatus }))}>
+                <option value="ativo">Ativo</option>
+                <option value="inativo">Inativo</option>
+                <option value="em_manutencao">Em Manutenção</option>
+              </select>
+            </div>
+          </div>
+          <div style={{ display: 'flex', gap: '0.75rem', marginTop: '1rem' }}>
+            <button onClick={handleSave} className="btn btn-primary"><i className="fas fa-check" /> Salvar</button>
+            <button onClick={() => setShowForm(false)} className="btn btn-outline">Cancelar</button>
+          </div>
+        </div>
+      )}
+
+      <div className="card">
+        <table className="table">
+          <thead><tr><th>ID Interno</th><th>Placa</th><th>Tipo</th><th>Modelo</th><th>Status</th><th>Ações</th></tr></thead>
+          <tbody>
+            {vehicles.length === 0 ? (
+              <tr><td colSpan={6} style={{ textAlign: 'center', color: 'var(--text-muted)', padding: '2rem' }}>Nenhum veículo cadastrado.</td></tr>
+            ) : vehicles.map(v => (
+              <tr key={v.id}>
+                <td style={{ fontWeight: 600 }}>{v.identificacaoInterna}</td>
+                <td>{v.placa || '—'}</td>
+                <td>{v.tipo}</td>
+                <td>{v.fabricanteModelo || '—'}</td>
+                <td><span className={`badge ${statusLabels[v.status].cls}`}>{statusLabels[v.status].label}</span></td>
+                <td style={{ display: 'flex', gap: '0.5rem' }}>
+                  <button onClick={() => openEdit(v)} className="btn btn-outline btn-sm"><i className="fas fa-pen" /></button>
+                  {v.status !== 'inativo' && <button onClick={() => handleDeactivate(v.id)} className="btn btn-sm" style={{ background: 'rgba(239,68,68,0.1)', color: '#dc2626', border: 'none' }}><i className="fas fa-ban" /></button>}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  )
+}
