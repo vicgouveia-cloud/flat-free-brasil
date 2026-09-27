@@ -12,6 +12,8 @@ import {
   ozToLiters,
   ozToBucketsFractional,
   ozToBucketsCeil,
+  resolveDosageForApplication,
+  parseMetricMeasure,
 } from '../lib/dosage'
 
 function assert(cond: boolean, msg: string) {
@@ -146,5 +148,59 @@ assert(getDosageOz('295/80 R22,5') === 32, 'Confirmed table dose 295/80 R22,5 pr
 
 // Confirm historical conflict continues returning null
 assert(getDosageOz('205/55 R16') === null, 'historical_conflict 205/55 R16 continues returning null')
+
+console.log('--- Testing Acceptance Cases A through E (Calculadora Universal 01) ---')
+
+// CASO A: 295/80 R22,5, qtd 10 -> Dose tabelada 32 fl oz, total 320 fl oz
+const resCaseA = resolveDosageForApplication('295/80 R22,5')
+assert(resCaseA.status === 'resolved', 'Caso A: 295/80 R22,5 resolves successfully')
+if (resCaseA.status === 'resolved') {
+  assert(resCaseA.source === 'table', 'Caso A: source is table')
+  assert(resCaseA.label === 'Dose tabelada', 'Caso A: label is Dose tabelada')
+  assert(resCaseA.fluidOzPerTire === 32, 'Caso A: dose is 32 fl oz/pneu')
+  const totalOzCaseA = resCaseA.fluidOzPerTire * 10
+  assert(totalOzCaseA === 320, 'Caso A: 10 tires total 320 fl oz')
+  assert(Math.abs(ozToLiters(totalOzCaseA) - (320 / 33.814)) < 0.05, 'Caso A: coherent liters conversion')
+  assert(ozToBucketsFractional(totalOzCaseA) === 0.5, 'Caso A: coherent fractional buckets (0.5)')
+  assert(ozToBucketsCeil(totalOzCaseA) === 1, 'Caso A: 1 bucket p/ pedir (ceil)')
+}
+
+// CASO B: 205/55 R16 -> historical_conflict -> Consultar dosagem. Não usar /15.
+const resCaseB = resolveDosageForApplication('205/55 R16', 'caminhao_onibus_rodoviario')
+assert(resCaseB.status === 'requires_review', 'Caso B: 205/55 R16 requires review')
+if (resCaseB.status === 'requires_review') {
+  assert(resCaseB.reason === 'historical_conflict', 'Caso B: reason is historical_conflict')
+  assert(resCaseB.label === 'Consultar dosagem', 'Caso B: label is Consultar dosagem')
+}
+
+// CASO C: 385/80 R22,5 + tipo caminhao_onibus_rodoviario -> Estimativa calculada ~47.24 fl oz
+const resCaseC = resolveDosageForApplication('385/80 R22,5', 'caminhao_onibus_rodoviario')
+assert(resCaseC.status === 'resolved', 'Caso C: 385/80 R22,5 resolves with heavy road usage')
+if (resCaseC.status === 'resolved') {
+  assert(resCaseC.source === 'empirical_heavy_road', 'Caso C: source is empirical_heavy_road')
+  assert(resCaseC.label === 'Estimativa calculada', 'Caso C: label is Estimativa calculada')
+  assert(Math.abs(resCaseC.fluidOzPerTire - 47.24) < 0.05, `Caso C: dose is approx 47.24 fl oz (${resCaseC.fluidOzPerTire.toFixed(4)})`)
+  assert(!!resCaseC.disclaimer, 'Caso C: disclaimer is present')
+}
+assert(getDosageOz('385/80 R22,5') === null, 'Caso C: getDosageOz continues returning null')
+
+// CASO D: Medida métrica ausente do catálogo, classificada como "outro_desconhecido" -> Consultar dosagem
+// 225/60 R14 ou 315/80 R22,5 (ambas ausentes do catálogo)
+assert(findCatalogEntry('315/80 R22,5') === undefined, '315/80 R22,5 is truly absent from catalog')
+const resCaseD = resolveDosageForApplication('315/80 R22,5', 'outro_desconhecido')
+assert(resCaseD.status === 'requires_review', 'Caso D: 315/80 R22,5 unclassified requires review')
+if (resCaseD.status === 'requires_review') {
+  assert(resCaseD.label === 'Consultar dosagem', 'Caso D: label is Consultar dosagem')
+  assert(resCaseD.isMetric === true, 'Caso D: recognized as metric')
+}
+
+// CASO E: 305/70 R22,5 -> Deve retornar obrigatoriamente Dose tabelada = 32 fl oz
+const resCaseE = resolveDosageForApplication('305/70 R22,5', 'caminhao_onibus_rodoviario')
+assert(resCaseE.status === 'resolved', 'Caso E: 305/70 R22,5 resolves successfully')
+if (resCaseE.status === 'resolved') {
+  assert(resCaseE.source === 'table', 'Caso E: source MUST be table (prevails over /15)')
+  assert(resCaseE.label === 'Dose tabelada', 'Caso E: label is Dose tabelada')
+  assert(resCaseE.fluidOzPerTire === 32, 'Caso E: dose is exactly 32 fl oz')
+}
 
 console.log('--- ALL UNIT CHECKS PASSED ---')

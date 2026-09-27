@@ -266,3 +266,157 @@ export function calculateHeavyRoadDoseEmpirical(params: HeavyRoadEmpiricalParams
   }
 }
 
+// ============================================================================
+// RESOLVER UNIVERSAL COMPARTILHADO DE DOSAGEM
+// ============================================================================
+
+export type VehicleUsageType = 'caminhao_onibus_rodoviario' | 'outro_desconhecido'
+
+export interface ParsedMetricMeasure {
+  nominalWidthMm: number
+  aspectRatio: number
+  rimInches: number
+}
+
+/**
+ * Analisa e extrai os parâmetros dimensionais nominais de medidas no formato métrico padrão (LARGURA/PERFIL R ARO).
+ * Exemplos:
+ *   '385/80 R22,5' -> { nominalWidthMm: 385, aspectRatio: 80, rimInches: 22.5 }
+ *   '295/80 R22.5' -> { nominalWidthMm: 295, aspectRatio: 80, rimInches: 22.5 }
+ *   '10.00 R20'    -> null (formato imperial/não-perfil)
+ */
+export function parseMetricMeasure(measure: string): ParsedMetricMeasure | null {
+  if (!measure) return null
+  const norm = normalizeMeasure(measure)
+  const match = norm.match(/^(\d{3})\/(\d{2})\s*R\s*(\d{2}(?:[.,]\d+)?)$/i)
+  if (!match) return null
+  const nominalWidthMm = Number(match[1])
+  const aspectRatio = Number(match[2])
+  const rimInches = Number(match[3].replace(',', '.'))
+  if (isNaN(nominalWidthMm) || isNaN(aspectRatio) || isNaN(rimInches)) return null
+  return { nominalWidthMm, aspectRatio, rimInches }
+}
+
+export type DosageResolutionStatus = 'resolved' | 'requires_review'
+export type DosageResolutionSource = 'table' | 'empirical_heavy_road'
+export type DosageReviewReason = 'historical_conflict' | 'needs_review' | 'unknown_measure' | 'unclassified_usage'
+
+export interface ResolvedDosage {
+  status: 'resolved'
+  source: DosageResolutionSource
+  /** Dose bruta técnica calculada ou tabelada em US fl oz */
+  fluidOzPerTire: number
+  /** Rótulo obrigatório de interface */
+  label: 'Dose tabelada' | 'Estimativa calculada'
+  /** Aviso legal/técnico de aplicação quando calculada */
+  disclaimer?: string
+  /** Medida canônica resolvida */
+  canonicalMeasure: string
+  /** Entrada original do catálogo quando procedente de tabela */
+  catalogEntry?: DosageCatalogEntry
+}
+
+export interface ReviewRequiredDosage {
+  status: 'requires_review'
+  reason: DosageReviewReason
+  /** Rótulo obrigatório de interface */
+  label: 'Consultar dosagem'
+  canonicalMeasure?: string
+  catalogEntry?: DosageCatalogEntry
+  isMetric?: boolean
+  parsedMetric?: ParsedMetricMeasure
+}
+
+export type DosageResolution = ResolvedDosage | ReviewRequiredDosage
+
+/**
+ * Resolve a dosagem técnica aplicável a uma medida de pneu segundo a hierarquia canônica do projeto:
+ *
+ * 1. Medida existente no catálogo com status 'confirmed':
+ *    -> SEMPRE utiliza fluidOzPerTire da tabela ('Dose tabelada'). Prevalece sobre qualquer fórmula.
+ * 2. Medida existente no catálogo com status 'historical_conflict' ou 'needs_review':
+ *    -> NÃO calcula /15 ou /22. Retorna requires_review com label 'Consultar dosagem'.
+ * 3. Medida NÃO existente no catálogo:
+ *    -> Se for medida métrica válida (LARGURA/PERFIL R ARO) E o usuário selecionar explicitamente
+ *       'caminhao_onibus_rodoviario', aplica a regra empírica /15 (calculateHeavyRoadDoseEmpirical)
+ *       rotulada como 'Estimativa calculada' com disclaimer discreto.
+ *    -> Caso contrário (outros tipos ou sem classificação), retorna 'Consultar dosagem'.
+ */
+export function resolveDosageForApplication(
+  measure: string,
+  usageType?: VehicleUsageType | string
+): DosageResolution {
+  if (!measure || !measure.trim()) {
+    return {
+      status: 'requires_review',
+      reason: 'unknown_measure',
+      label: 'Consultar dosagem',
+      isMetric: false,
+    }
+  }
+
+  // 1. Verificar catálogo oficial (medida informada ou normalizada)
+  const entry = findCatalogEntry(measure) || findCatalogEntry(normalizeMeasure(measure))
+  if (entry) {
+    if (entry.status === 'confirmed') {
+      return {
+        status: 'resolved',
+        source: 'table',
+        fluidOzPerTire: entry.fluidOzPerTire,
+        label: 'Dose tabelada',
+        canonicalMeasure: entry.canonicalMeasure,
+        catalogEntry: entry,
+      }
+    }
+    return {
+      status: 'requires_review',
+      reason: entry.status === 'historical_conflict' ? 'historical_conflict' : 'needs_review',
+      label: 'Consultar dosagem',
+      canonicalMeasure: entry.canonicalMeasure,
+      catalogEntry: entry,
+      isMetric: parseMetricMeasure(entry.canonicalMeasure) !== null,
+    }
+  }
+
+  // 2. Medida não presente no catálogo: verificar se é formato métrico válido
+  const normalized = normalizeMeasure(measure)
+  const parsed = parseMetricMeasure(measure)
+
+  if (parsed) {
+    if (usageType === 'caminhao_onibus_rodoviario') {
+      const empirical = calculateHeavyRoadDoseEmpirical({
+        nominalWidthMm: parsed.nominalWidthMm,
+        aspectRatio: parsed.aspectRatio,
+        rimInches: parsed.rimInches,
+      })
+      return {
+        status: 'resolved',
+        source: 'empirical_heavy_road',
+        fluidOzPerTire: empirical.rawOunces, // Valor técnico bruto preservado
+        label: 'Estimativa calculada',
+        disclaimer:
+          'Estimativa baseada em regra empírica para pneus pesados rodoviários; quando houver dose tabelada, a tabela prevalece.',
+        canonicalMeasure: normalized,
+      }
+    }
+
+    return {
+      status: 'requires_review',
+      reason: 'unclassified_usage',
+      label: 'Consultar dosagem',
+      canonicalMeasure: normalized,
+      isMetric: true,
+      parsedMetric: parsed,
+    }
+  }
+
+  // 3. Medida não métrica e não catalogada
+  return {
+    status: 'requires_review',
+    reason: 'unknown_measure',
+    label: 'Consultar dosagem',
+    canonicalMeasure: normalized,
+    isMetric: false,
+  }
+}
+
