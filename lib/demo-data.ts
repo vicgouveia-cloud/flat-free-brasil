@@ -104,7 +104,7 @@ export const DEMO_APPLICATIONS: FlatFreeApplication[] = [
     id: 'app-001',
     tireId: 'tire-001',
     data: '2026-01-20',
-    doseAplicada: 34,   // 34 fl oz — canonical for 295/80 R22,5
+    doseAplicada: 32,   // 32 fl oz — canonical for 295/80 R22,5
     responsavel: 'Carlos Silva',
     quilometragemAplicacao: 85000,
     sulcoInicial: 16.0,
@@ -227,10 +227,10 @@ export const DEMO_ORDERS: Order[] = [
     companyId: 'demo-company-1',
     data: '2026-01-10',
     itens: [
-      { medida: '295/80 R22,5', quantidade: 10, doseUnitOz: 34, totalOz: 340 },
+      { medida: '295/80 R22,5', quantidade: 10, doseUnitOz: 32, totalOz: 320 },
       { medida: '275/80 R22,5', quantidade: 8,  doseUnitOz: 28, totalOz: 224 },
     ],
-    quantidadeEstimadaProduto: 564,  // total fl oz
+    quantidadeEstimadaProduto: 544,  // total fl oz
     enderecoEntrega: 'Av. Industrial, 1000',
     cidade: 'São Paulo',
     estado: 'SP',

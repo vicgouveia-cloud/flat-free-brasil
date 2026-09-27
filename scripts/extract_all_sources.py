@@ -1,7 +1,16 @@
-import os, re, openpyxl, xlrd, pypdf
+import argparse, os, re, openpyxl, xlrd
+from pathlib import Path
 from collections import defaultdict
 
-base = r'F:\Victor\TRABALHO\Flat Free'
+parser = argparse.ArgumentParser(description='Extrai o acervo histórico de dosagem.')
+parser.add_argument('--source-dir', default=os.environ.get('FLAT_FREE_SOURCE_DIR'),
+                    help='Diretório do acervo (ou FLAT_FREE_SOURCE_DIR).')
+args = parser.parse_args()
+if not args.source_dir:
+    parser.error('Informe --source-dir ou FLAT_FREE_SOURCE_DIR.')
+base = Path(args.source_dir).expanduser().resolve()
+if not base.is_dir():
+    parser.error(f'Acervo não encontrado: {base}')
 
 def norm_measure(raw):
     if not raw: return None

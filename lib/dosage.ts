@@ -9,7 +9,7 @@
 //
 // Regras canônicas vigentes do projeto:
 //   275/80 R22,5 = 28 US fl oz por pneu
-//   295/80 R22,5 = 34 US fl oz por pneu
+//   295/80 R22,5 = 32 US fl oz por pneu
 // ============================================================================
 
 import {
@@ -41,7 +41,7 @@ export interface DosageEntry {
  */
 export const DOSAGE_TABLE: DosageEntry[] = [
   { measure: '275/80 R22,5', fluidOzPerTire: 28 },
-  { measure: '295/80 R22,5', fluidOzPerTire: 34 },
+  { measure: '295/80 R22,5', fluidOzPerTire: 32 },
 ]
 
 /** Onças fluidas americanas por galão US */
@@ -100,8 +100,8 @@ export function normalizeMeasure(raw: string): string {
  *
  * Regras:
  * 1. 275/80 R22,5 resolve para 28 fl oz (em qualquer alias suportado).
- * 2. 295/80 R22,5 resolve para 34 fl oz (em qualquer alias suportado).
- * 3. Medidas confirmadas com concordância unânime retornam a dose oficial.
+ * 2. 295/80 R22,5 resolve para 32 fl oz (em qualquer alias suportado).
+ * 3. Medidas sem divergência no acervo consultado retornam a dose catalogada.
  * 4. Medidas com histórico de conflito documental (historical_conflict) ou pendentes de
  *    revisão (needs_review) retornam null para exigir análise técnica e NÃO serem
  *    silenciosamente expostas com dose arbitrária.
@@ -189,7 +189,7 @@ export interface FormulaCalculationResult {
  * A fórmula requer a medição física em polegadas da LARGURA REAL DA BANDA DE RODAGEM (área de contato),
  * e NÃO a largura de seção nominal do código do pneu (ex.: os 295 mm de 295/80 R22.5).
  * Aplicar a fórmula /22 com largura nominal de seção resulta em valores incoerentes para caminhões pesados
- * (~21,7 fl oz vs os 34 fl oz canônicos).
+ * (~21,7 fl oz vs os 32 fl oz canônicos).
  * Por essa razão, esta função é mantida estritamente ISOLADA para fins de teste e auditoria técnica,
  * NÃO atuando como fallback automático para a interface pública do projeto.
  */

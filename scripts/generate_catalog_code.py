@@ -1,12 +1,18 @@
 import os, json, re
+from pathlib import Path
 from extract_all_sources import all_observations, norm_measure
 
 # Category mapping
 def map_category(cat_str, norm):
-    if 'Caminh' in cat_str or '22.5' in norm or '17.5' in norm or '20' in norm and ('10.00' in norm or '11.00' in norm):
-        return 'caminhao_onibus'
+    # Categorias documentais reconhecidas sempre precedem heurísticas da medida.
     if 'Trator' in cat_str or 'Maquin' in cat_str:
         return 'trator_maquinario'
+    if 'Caminh' in cat_str or 'Ônibus' in cat_str:
+        return 'caminhao_onibus'
+    if 'Passeio' in cat_str or 'Leve' in cat_str or 'Utilitário' in cat_str:
+        return 'passeio_leve'
+    if re.search(r'R(?:22\.5|17\.5)$', norm) or norm in ('10.00 R20', '11.00 R20'):
+        return 'caminhao_onibus'
     return 'passeio_leve'
 
 def generate_aliases(norm):
@@ -36,18 +42,7 @@ for norm in sorted(all_observations.keys()):
     cat = map_category(obs[0]['category'], norm)
     
     # Check canonical rules
-    if norm == '295/80 R22.5':
-        # Project canonical is 34, table was 32
-        entry = {
-            'canonicalMeasure': '295/80 R22,5',
-            'aliases': generate_aliases('295/80 R22.5'),
-            'category': 'caminhao_onibus',
-            'fluidOzPerTire': 34,
-            'source': 'Decisão Canônica do Projeto (auditoria Flat Free Brasil)',
-            'status': 'confirmed',
-            'divergenceNotes': 'Valor canônico definido em 34 fl oz pelo responsável do projeto. A Tabela Resumida Veículos registrava 32 fl oz historicamente.'
-        }
-    elif norm == '275/80 R22.5':
+    if norm == '275/80 R22.5':
         entry = {
             'canonicalMeasure': '275/80 R22,5',
             'aliases': generate_aliases('275/80 R22.5'),
@@ -92,7 +87,7 @@ print(f'Historical Conflict: {len(conflicts)}')
 print(f'Needs Review: {len(needs_rev)}')
 
 # Output TS code
-with open('lib/dosage-catalog.ts', 'w', encoding='utf-8') as f:
+with (Path(__file__).resolve().parents[1] / 'lib/dosage-catalog.ts').open('w', encoding='utf-8') as f:
     f.write('''// ============================================================================
 // FLAT FREE BRASIL — CATÁLOGO CANÔNICO DE DOSAGEM
 // Fonte: Acervo documental histórico (ASI Chemical Inc. / Revix Imp. Exp.)
@@ -121,7 +116,7 @@ export interface DosageCatalogEntry {
   fluidOzPerTire: number
   /** Fonte documental de procedência */
   source: string
-  /** Status técnico de auditoria */
+  /** confirmed: sem divergência no acervo consultado; não implica validação atual do fabricante. */
   status: TechnicalStatus
   /** Observações detalhadas sobre divergências ou contexto histórico */
   divergenceNotes?: string

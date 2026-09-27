@@ -19,3 +19,7 @@ node_modules/
 next-env.d.ts  
 .env.local  
 .env*.local 
+
+# Python generated files
+__pycache__/
+*.pyc

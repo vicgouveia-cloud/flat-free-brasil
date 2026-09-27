@@ -1,4 +1,5 @@
 import {
+  DOSAGE_CATALOG,
   getDosageOz,
   normalizeMeasure,
   calculateDoseFromFormula,
@@ -22,7 +23,7 @@ function assert(cond: boolean, msg: string) {
 
 console.log('--- Testing Canonical Dosages ---')
 assert(getDosageOz('275/80 R22,5') === 28, '275/80 R22,5 canonical returns 28 fl oz')
-assert(getDosageOz('295/80 R22,5') === 34, '295/80 R22,5 canonical returns 34 fl oz')
+assert(getDosageOz('295/80 R22,5') === 32, '295/80 R22,5 canonical returns 32 fl oz')
 
 console.log('--- Testing Aliases ---')
 const aliases295 = [
@@ -35,7 +36,7 @@ const aliases295 = [
   '295 / 80 R 22,5',
 ]
 for (const a of aliases295) {
-  assert(getDosageOz(a) === 34, `Alias "${a}" resolves to 34 fl oz`)
+  assert(getDosageOz(a) === 32, `Alias "${a}" resolves to 32 fl oz`)
 }
 
 const aliases275 = [
@@ -92,5 +93,18 @@ const resWorn = calculateDoseFromFormula({
   isOldOrExtremelyWorn: true,
 })
 assert(Math.abs(resWorn.recommendedOunces - (200 / 22) * 1.10) < 0.001, 'Old tire adjustment adds +10%')
+
+
+assert(getDosageOz('305/70 R22,5') === 32, '305/70 preserved at 32 fl oz')
+assert(findCatalogEntry('17,5 R25')?.category === 'trator_maquinario', '17,5 R25 uses documentary category')
+assert(getDosageOz('225/60 R14') === null, 'Unknown metric measure has no formula fallback')
+const expectedConflicts = ['165/70 R13', '175/65 R14', '175/70 R14', '195/55 R15', '195/60 R15', '205/55 R16', '225/55 R18', '225/65 R17', '265/70 R16']
+assert(JSON.stringify(DOSAGE_CATALOG.filter(e => e.status === 'historical_conflict').map(e => e.canonicalMeasure).sort()) === JSON.stringify(expectedConflicts), 'Exact nine historical conflicts')
+for (const measure of expectedConflicts) assert(getDosageOz(measure) === null, `${measure} blocks public dose`)
+assert(DOSAGE_CATALOG.length === 63 && DOSAGE_CATALOG.filter(e => e.status === 'confirmed').length === 54, '63 entries, 54 confirmed')
+for (const [category, count] of [['passeio_leve', 53], ['caminhao_onibus', 7], ['trator_maquinario', 3]] as const) {
+  assert(DOSAGE_CATALOG.filter(e => e.category === category).length === count, `${category}: ${count} entries`)
+}
+assert(DOSAGE_TABLE.every(e => getDosageOz(e.measure) === e.fluidOzPerTire), 'Public table agrees with catalog')
 
 console.log('--- ALL UNIT CHECKS PASSED ---')

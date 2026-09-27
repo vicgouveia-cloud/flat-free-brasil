@@ -26,7 +26,7 @@ export interface DosageCatalogEntry {
   fluidOzPerTire: number
   /** Fonte documental de procedência */
   source: string
-  /** Status técnico de auditoria */
+  /** confirmed: sem divergência no acervo consultado; não implica validação atual do fabricante. */
   status: TechnicalStatus
   /** Observações detalhadas sobre divergências ou contexto histórico */
   divergenceNotes?: string
@@ -158,7 +158,7 @@ export const DOSAGE_CATALOG: DosageCatalogEntry[] = [
       "17.5R25",
       "17.5r25"
     ],
-    "category": "caminhao_onibus",
+    "category": "trator_maquinario",
     "fluidOzPerTire": 200.0,
     "source": "Tabela Resumida Veículos (Pesados)",
     "status": "confirmed"
@@ -1053,10 +1053,9 @@ export const DOSAGE_CATALOG: DosageCatalogEntry[] = [
       "295/80r22.5"
     ],
     "category": "caminhao_onibus",
-    "fluidOzPerTire": 34,
-    "source": "Decisão Canônica do Projeto (auditoria Flat Free Brasil)",
-    "status": "confirmed",
-    "divergenceNotes": "Valor canônico definido em 34 fl oz pelo responsável do projeto. A Tabela Resumida Veículos registrava 32 fl oz historicamente."
+    "fluidOzPerTire": 32.0,
+    "source": "Tabela Resumida Veículos (Pesados)",
+    "status": "confirmed"
   },
   {
     "canonicalMeasure": "305/70 R22,5",
