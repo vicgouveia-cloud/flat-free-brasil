@@ -140,10 +140,18 @@ export interface OrderItem {
   technicalBasis?: TechnicalDosageBasis
 }
 
+export type PendingDosageReason =
+  | 'unknown_measure'
+  | 'needs_usage_class'
+  | 'insufficient_geometry'
+  | 'historical_conflict'
+  | 'needs_review'
+
 export interface PendingOrderItem {
   medida: string
   quantidade: number
   status: 'pendente_confirmacao_dosagem'
+  reason?: PendingDosageReason
 }
 
 export type OrderStatus = 'pendente_dosagem' | 'solicitado' | 'em_analise' | 'aprovado' | 'enviado' | 'entregue' | 'cancelado'

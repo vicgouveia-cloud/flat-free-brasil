@@ -230,6 +230,7 @@ function buildCalcParams(lines: Array<{ medida: string; quantidade: number; usag
           quantidade: line.quantidade,
           doseUnitOz: appliedDose,
           totalOz: lineTotalDoses,
+          pendingReason: res.status === 'requires_review' ? res.reason : undefined,
         }
       })
     )
@@ -244,6 +245,7 @@ function parseSolicitarParams(calc: string) {
     quantidade: Number(item.quantidade) || 1,
     doseUnitOz: item.doseUnitOz !== undefined ? item.doseUnitOz : null,
     totalOz: item.totalOz !== undefined ? Number(item.totalOz) || 0 : 0,
+    pendingReason: item.pendingReason,
   }))
   const totalOz = items.reduce((s: number, i: any) => s + (i.doseUnitOz !== null ? i.totalOz : 0), 0)
   return { items, totalOz }
@@ -263,6 +265,7 @@ const calcB = buildCalcParams([{ medida: '205/55 R16', quantidade: 200 }])
 const solB = parseSolicitarParams(calcB)
 assert(solB.items[0].doseUnitOz === null, 'Payload B: doseUnitOz is null for historical conflict')
 assert(solB.items[0].totalOz === 0, 'Payload B: totalOz is 0 for historical conflict')
+assert(solB.items[0].pendingReason === 'historical_conflict', 'Payload B: historical conflict reason is preserved')
 assert(solB.totalOz === 0, 'Payload B total: historical conflict is excluded')
 
 // Case C: 385/80 R22,5, 1 pneu (heavy_road) -> 47 doses
@@ -279,6 +282,7 @@ const calcD = buildCalcParams([{ medida: '14-17.5', quantidade: 4 }])
 const solD = parseSolicitarParams(calcD)
 assert(solD.items[0].doseUnitOz === null, 'Payload D: doseUnitOz is null')
 assert(solD.items[0].totalOz === 0, 'Payload D: totalOz is 0')
+assert(solD.items[0].pendingReason === 'unknown_measure', 'Payload D: unknown measure reason is preserved')
 assert(solD.totalOz === 0, 'Payload D: unresolved not counted in totalOz')
 
 console.log('--- ALL UNIT AND ACCEPTANCE CHECKS PASSED ---')

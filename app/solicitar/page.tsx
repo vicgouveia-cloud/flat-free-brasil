@@ -4,7 +4,7 @@ import { useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { getOrders, saveOrders, uuid } from '@/lib/storage'
 import { ozToLiters, ozToBucketsCeil, formatDoses } from '@/lib/dosage'
-import type { Order, OrderItem, PendingOrderItem } from '@/lib/types'
+import type { Order, OrderItem, PendingOrderItem, PendingDosageReason } from '@/lib/types'
 import DemoBanner from '@/components/DemoBanner'
 
 interface CalcItem {
@@ -12,6 +12,17 @@ interface CalcItem {
   quantidade: number
   doseUnitOz: number | null
   totalOz: number
+  pendingReason?: PendingDosageReason
+}
+
+function normalizePendingReason(value: unknown): PendingDosageReason | undefined {
+  return value === 'unknown_measure' ||
+    value === 'needs_usage_class' ||
+    value === 'insufficient_geometry' ||
+    value === 'historical_conflict' ||
+    value === 'needs_review'
+    ? value
+    : undefined
 }
 
 function SolicitarForm() {
@@ -51,6 +62,7 @@ function SolicitarForm() {
               : item.totalDoses !== undefined
               ? Number(item.totalDoses) || 0
               : 0,
+          pendingReason: normalizePendingReason(item.pendingReason),
         }))
         setCalcItems(normalized)
       } catch {}
@@ -80,6 +92,7 @@ function SolicitarForm() {
         medida: i.medida,
         quantidade: i.quantidade,
         status: 'pendente_confirmacao_dosagem',
+        ...(i.pendingReason ? { reason: i.pendingReason } : {}),
       }))
 
     const order: Order = {

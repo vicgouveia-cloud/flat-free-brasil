@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { getOrders, saveOrders } from '@/lib/storage'
 import { calculateDoseFromFormula, roundHalfUp, ozToLiters, ozToBucketsCeil, formatDoseValue, formatDoses } from '@/lib/dosage'
-import type { Order, OrderItem } from '@/lib/types'
+import type { Order, OrderItem, PendingOrderItem } from '@/lib/types'
 
 const statusLabels: Record<string, { label: string; cls: string }> = {
   pendente_dosagem: { label: 'Pendente de dosagem', cls: 'badge-orange' },
@@ -26,6 +26,23 @@ function getEffectiveOrderStatus(order: Order) {
   return order.itensPendentes && order.itensPendentes.length > 0
     ? 'pendente_dosagem'
     : order.status
+}
+
+function getPendingReasonText(item: PendingOrderItem) {
+  switch (item.reason) {
+    case 'historical_conflict':
+      return 'Referências históricas divergentes: a dose não foi calculada automaticamente.'
+    case 'needs_review':
+      return 'Esta medida está marcada para revisão técnica antes da confirmação da dose.'
+    case 'needs_usage_class':
+      return 'A classe de uso não foi definida na calculadora; confirme tecnicamente antes da aplicação.'
+    case 'insufficient_geometry':
+      return 'A medida não fornece geometria suficiente para resolver a dosagem automaticamente.'
+    case 'unknown_measure':
+      return 'A medida não possui referência automática de dosagem.'
+    default:
+      return 'O motivo original da pendência não foi registrado; confirme tecnicamente a dosagem.'
+  }
 }
 
 export default function PedidosPage() {
@@ -219,8 +236,8 @@ export default function PedidosPage() {
                 Itens pendentes de confirmação de dosagem
               </h4>
               <p style={{ color: 'var(--text-secondary)', fontSize: '0.825rem', marginBottom: '0.85rem' }}>
-                Para medidas sem geometria suficiente no código do pneu, a dosagem só pode ser calculada com
-                medidas físicas reais. Não use largura nominal da lateral nem informe uma dose manualmente.
+                Cada item mantém o motivo que impediu o cálculo automático. Para confirmar a dosagem neste fluxo,
+                use medidas físicas reais. Não use largura nominal da lateral nem informe uma dose manualmente.
               </p>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
                 {selected.itensPendentes.map((item, i) => {
@@ -260,8 +277,13 @@ export default function PedidosPage() {
                           <span style={{ marginLeft: '0.6rem', color: 'var(--text-muted)', fontSize: '0.8rem' }}>
                             {item.quantidade} {item.quantidade === 1 ? 'pneu' : 'pneus'}
                           </span>
+                          <div style={{ marginTop: '0.25rem', color: 'var(--text-muted)', fontSize: '0.76rem' }}>
+                            {getPendingReasonText(item)}
+                          </div>
                         </div>
-                        <span className="badge badge-orange">Aguardando dados técnicos</span>
+                        <span className="badge badge-orange">
+                          {item.reason === 'historical_conflict' ? 'Conflito histórico' : 'Aguardando dados técnicos'}
+                        </span>
                       </div>
 
                       <div

@@ -126,6 +126,8 @@ export default function CalculadoraPage() {
         quantidade: item.line.quantidade,
         doseUnitOz: item.appliedDose,
         totalOz: item.lineTotalDoses,
+        pendingReason:
+          item.resolution.status === 'requires_review' ? item.resolution.reason : undefined,
       }))
     )
   )
