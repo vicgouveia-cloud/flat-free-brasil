@@ -190,7 +190,7 @@ export default function CalculadoraPage() {
           <datalist id="catalog-measures">
             {DOSAGE_CATALOG.map(e => (
               <option key={e.canonicalMeasure} value={e.canonicalMeasure}>
-                {e.canonicalMeasure} — {e.status === 'confirmed' ? `${formatDoses(e.fluidOzPerTire)} — referência` : 'estimativa disponível'}
+                {e.canonicalMeasure} — {e.status === 'confirmed' ? `${formatDoses(e.fluidOzPerTire)} — referência` : 'consultar dosagem'}
               </option>
             ))}
           </datalist>

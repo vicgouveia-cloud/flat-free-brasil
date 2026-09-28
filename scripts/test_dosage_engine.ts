@@ -108,7 +108,11 @@ assert(findCatalogEntry('17,5 R25')?.category === 'trator_maquinario', '17,5 R25
 assert(getDosageOz('225/60 R14') === null, 'Unknown metric measure has no formula fallback in getDosageOz')
 const expectedConflicts = ['165/70 R13', '175/65 R14', '175/70 R14', '195/55 R15', '195/60 R15', '205/55 R16', '225/55 R18', '225/65 R17', '265/70 R16']
 assert(JSON.stringify(DOSAGE_CATALOG.filter(e => e.status === 'historical_conflict').map(e => e.canonicalMeasure).sort()) === JSON.stringify(expectedConflicts), 'Exact nine historical conflicts')
-for (const measure of expectedConflicts) assert(getDosageOz(measure) === null, `${measure} blocks public getDosageOz`)
+for (const measure of expectedConflicts) {
+  assert(getDosageOz(measure) === null, `${measure} blocks public getDosageOz`)
+  const resolvedConflict = resolveDosageForApplication(measure, 'heavy_road')
+  assert(resolvedConflict.status === 'requires_review', `${measure} blocks universal resolver`)
+}
 assert(DOSAGE_CATALOG.length === 63 && DOSAGE_CATALOG.filter(e => e.status === 'confirmed').length === 54, '63 entries, 54 confirmed')
 for (const [category, count] of [['passeio_leve', 53], ['caminhao_onibus', 7], ['trator_maquinario', 3]] as const) {
   assert(DOSAGE_CATALOG.filter(e => e.category === category).length === count, `${category}: ${count} entries`)
@@ -141,17 +145,12 @@ if (resCaseA.status === 'resolved') {
   assert(formatDoses(resCaseA.appliedDose) === '8,5 doses', 'Caso A: formatted dose is 8,5 doses')
 }
 
-// CASO B: 205/55 R16 -> historical_conflict no catálogo documental,
-// mas resolvido automaticamente como passeio_leve (light_road) -> dose bruta ≈ 9.13 -> dose aplicada = 9 doses -> Dose estimada
-const resCaseB = resolveDosageForApplication('205/55 R16')
-assert(resCaseB.status === 'resolved', 'Caso B: 205/55 R16 auto-resolves via documentary category')
-if (resCaseB.status === 'resolved') {
-  assert(resCaseB.source === 'estimated', 'Caso B: source is estimated')
-  assert(resCaseB.label === 'Dose estimada', 'Caso B: label is Dose estimada')
-  assert(resCaseB.usageClass === 'light_road', 'Caso B: usage class is light_road')
-  assert(resCaseB.rawCalculatedDose !== undefined, 'Caso B: rawCalculatedDose is defined')
-  assert(Math.abs((resCaseB.rawCalculatedDose || 0) - 9.126) < 0.01, 'Caso B: raw dose ≈ 9.13')
-  assert(resCaseB.appliedDose === 9, 'Caso B: appliedDose is 9 doses')
+// CASO B: 205/55 R16 -> historical_conflict -> Consultar dosagem e não entrar nos totais
+const resCaseB = resolveDosageForApplication('205/55 R16', 'heavy_road')
+assert(resCaseB.status === 'requires_review', 'Caso B: 205/55 R16 remains blocked despite usage class')
+if (resCaseB.status === 'requires_review') {
+  assert(resCaseB.reason === 'historical_conflict', 'Caso B: reason is historical_conflict')
+  assert(resCaseB.label === 'Consultar dosagem', 'Caso B: label is Consultar dosagem')
   assert(resCaseB.catalogEntry?.status === 'historical_conflict', 'Caso B: catalog status remains historical_conflict')
 }
 
@@ -259,14 +258,12 @@ assert(formatDoses(solA.items[0].doseUnitOz) === '32 doses', 'Payload A UI: 32 d
 assert(formatDoses(solA.items[0].totalOz) === '320 doses', 'Payload A UI: 320 doses')
 assert(solA.totalOz === 320, 'Payload A total: 320')
 
-// Case B: 205/55 R16, 200 pneus -> 9 doses/pneu, 1800 doses
+// Case B: 205/55 R16, 200 pneus -> conflito histórico, pendente, sem entrar no total
 const calcB = buildCalcParams([{ medida: '205/55 R16', quantidade: 200 }])
 const solB = parseSolicitarParams(calcB)
-assert(solB.items[0].doseUnitOz === 9, 'Payload B: doseUnitOz is 9')
-assert(solB.items[0].totalOz === 1800, 'Payload B: totalOz is 1800')
-assert(formatDoses(solB.items[0].doseUnitOz) === '9 doses', 'Payload B UI: 9 doses')
-assert(formatDoses(solB.items[0].totalOz) === '1800 doses', 'Payload B UI: 1800 doses')
-assert(solB.totalOz === 1800, 'Payload B total: 1800')
+assert(solB.items[0].doseUnitOz === null, 'Payload B: doseUnitOz is null for historical conflict')
+assert(solB.items[0].totalOz === 0, 'Payload B: totalOz is 0 for historical conflict')
+assert(solB.totalOz === 0, 'Payload B total: historical conflict is excluded')
 
 // Case C: 385/80 R22,5, 1 pneu (heavy_road) -> 47 doses
 const calcC = buildCalcParams([{ medida: '385/80 R22,5', quantidade: 1, usageClass: 'heavy_road' }])

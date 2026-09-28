@@ -406,7 +406,7 @@ export interface ResolvedDosage {
 
 export interface ReviewRequiredDosage {
   status: 'requires_review'
-  reason: 'unknown_measure' | 'needs_usage_class' | 'insufficient_geometry'
+  reason: 'unknown_measure' | 'needs_usage_class' | 'insufficient_geometry' | 'historical_conflict' | 'needs_review'
   /** Rótulo público padronizado */
   label: 'Consultar dosagem'
   canonicalMeasure?: string
@@ -423,10 +423,9 @@ export type DosageResolution = ResolvedDosage | ReviewRequiredDosage
  *
  * 1. Medida com dose confirmed no catálogo:
  *    -> SEMPRE utiliza a dose de referência da tabela. Não recalcula. Rótulo: "Dose de referência".
- * 2. Medida com histórico de conflito documental (historical_conflict):
- *    -> Mantém o status histórico no catálogo (sem escolher dose antiga).
- *    -> Se possuir classe documental confiável (ex.: passeio_leve para 205/55 R16),
- *       calcula automaticamente na classe documental. Rótulo: "Dose estimada".
+ * 2. Medida com status historical_conflict ou needs_review:
+ *    -> Retorna "Consultar dosagem" e NÃO aplica fórmula automática.
+ *    -> Permanece fora dos totais até confirmação técnica.
  * 3. Medida fora do catálogo com geometria métrica completa:
  *    -> Se a classe de uso foi fornecida (ou selecionada pelo usuário), calcula a dose estimada.
  *    -> Se não fornecida, solicita a seleção entre as classes operacionais.
@@ -462,39 +461,13 @@ export function resolveDosageForApplication(
       }
     }
 
-    if (entry.status === 'historical_conflict') {
-      const parsed = parseMetricMeasure(entry.canonicalMeasure)
-      if (parsed) {
-        // Classificação documental automática confiável da medida
-        const autoUsage = mapTireCategoryToUsageClass(entry.category)
-        const calc =
-          autoUsage === 'light_road'
-            ? calculateLightRoadDoseEmpirical(parsed)
-            : autoUsage === 'heavy_road'
-            ? calculateHeavyRoadDoseEmpirical(parsed)
-            : calculateSlowMachineryDoseEmpirical(parsed)
-
-        return {
-          status: 'resolved',
-          source: 'estimated',
-          usageClass: autoUsage,
-          rawCalculatedDose: calc.rawCalculatedDose,
-          appliedDose: calc.appliedDose,
-          fluidOzPerTire: calc.appliedDose,
-          label: 'Dose estimada',
-          canonicalMeasure: entry.canonicalMeasure,
-          catalogEntry: entry,
-        }
-      }
-
-      return {
-        status: 'requires_review',
-        reason: 'insufficient_geometry',
-        label: 'Consultar dosagem',
-        canonicalMeasure: entry.canonicalMeasure,
-        catalogEntry: entry,
-        isMetric: false,
-      }
+    return {
+      status: 'requires_review',
+      reason: entry.status === 'historical_conflict' ? 'historical_conflict' : 'needs_review',
+      label: 'Consultar dosagem',
+      canonicalMeasure: entry.canonicalMeasure,
+      catalogEntry: entry,
+      isMetric: parseMetricMeasure(entry.canonicalMeasure) !== null,
     }
   }
 
