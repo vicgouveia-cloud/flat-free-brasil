@@ -100,7 +100,7 @@ function SolicitarForm() {
       email: form.email,
       telefone: form.telefone,
       observacoes: form.observacoes || undefined,
-      status: 'solicitado',
+      status: itensPendentes.length > 0 ? 'pendente_dosagem' : 'solicitado',
     }
     const existing = getOrders()
     saveOrders([...existing, order])

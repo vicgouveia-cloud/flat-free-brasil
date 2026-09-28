@@ -6,6 +6,7 @@ import { calculateDoseFromFormula, roundHalfUp, ozToLiters, ozToBucketsCeil, for
 import type { Order, OrderItem } from '@/lib/types'
 
 const statusLabels: Record<string, { label: string; cls: string }> = {
+  pendente_dosagem: { label: 'Pendente de dosagem', cls: 'badge-orange' },
   solicitado: { label: 'Solicitado', cls: 'badge-blue' },
   em_analise: { label: 'Em Análise', cls: 'badge-orange' },
   aprovado: { label: 'Aprovado', cls: 'badge-green' },
@@ -19,6 +20,12 @@ interface PendingTechnicalInput {
   treadWidthInches: string
   speedRegime: '' | 'over_45_mph' | 'under_45_mph'
   isOldOrExtremelyWorn: boolean
+}
+
+function getEffectiveOrderStatus(order: Order) {
+  return order.itensPendentes && order.itensPendentes.length > 0
+    ? 'pendente_dosagem'
+    : order.status
 }
 
 export default function PedidosPage() {
@@ -104,6 +111,7 @@ export default function PedidosPage() {
       itens,
       ...(itensPendentes.length > 0 ? { itensPendentes } : {}),
       quantidadeEstimadaProduto,
+      status: itensPendentes.length > 0 ? 'pendente_dosagem' : 'solicitado',
     }
     const updatedOrders = orders.map(order => order.id === updatedOrder.id ? updatedOrder : order)
 
@@ -134,7 +142,7 @@ export default function PedidosPage() {
               ['Telefone', selected.telefone],
               ['Data', selected.data],
               ['Endereço', `${selected.enderecoEntrega}, ${selected.cidade}/${selected.estado} - ${selected.cep}`],
-              ['Status', selected.status],
+              ['Status', statusLabels[getEffectiveOrderStatus(selected)]?.label || getEffectiveOrderStatus(selected)],
             ].map(([k, v]) => (
               <div key={k}>
                 <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', display: 'block', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em' }}>{k}</span>
@@ -339,7 +347,12 @@ export default function PedidosPage() {
                   <td style={{ fontWeight: 600 }}>{o.nomeEmpresa}</td>
                   <td>{o.data}</td>
                   <td>{o.quantidadeEstimadaProduto > 0 ? formatDoses(o.quantidadeEstimadaProduto) : '—'}</td>
-                  <td><span className={`badge ${statusLabels[o.status]?.cls || 'badge-gray'}`}>{statusLabels[o.status]?.label || o.status}</span></td>
+                  <td>
+                    {(() => {
+                      const status = getEffectiveOrderStatus(o)
+                      return <span className={`badge ${statusLabels[status]?.cls || 'badge-gray'}`}>{statusLabels[status]?.label || status}</span>
+                    })()}
+                  </td>
                   <td><button onClick={() => setSelected(o)} className="btn btn-outline btn-sm">Detalhes</button></td>
                 </tr>
               ))}

@@ -146,7 +146,7 @@ export interface PendingOrderItem {
   status: 'pendente_confirmacao_dosagem'
 }
 
-export type OrderStatus = 'solicitado' | 'em_analise' | 'aprovado' | 'enviado' | 'entregue' | 'cancelado'
+export type OrderStatus = 'pendente_dosagem' | 'solicitado' | 'em_analise' | 'aprovado' | 'enviado' | 'entregue' | 'cancelado'
 
 export interface Order {
   id: string
