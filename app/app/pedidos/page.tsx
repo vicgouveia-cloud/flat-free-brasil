@@ -2,7 +2,17 @@
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { getOrders, saveOrders } from '@/lib/storage'
-import { calculateDoseFromFormula, roundHalfUp, ozToLiters, ozToBucketsCeil, formatDoseValue, formatDoses } from '@/lib/dosage'
+import {
+  calculateDoseFromFormula,
+  resolveDosageForApplication,
+  roundHalfUp,
+  ozToLiters,
+  ozToBucketsCeil,
+  formatDoseValue,
+  formatDoses,
+  VEHICLE_USAGE_LABELS,
+  type VehicleUsageClass,
+} from '@/lib/dosage'
 import type { Order, OrderItem, PendingOrderItem } from '@/lib/types'
 
 const statusLabels: Record<string, { label: string; cls: string }> = {
@@ -20,6 +30,10 @@ interface PendingTechnicalInput {
   treadWidthInches: string
   speedRegime: '' | 'over_45_mph' | 'under_45_mph'
   isOldOrExtremelyWorn: boolean
+}
+
+interface PendingUsageInput {
+  usageClass: '' | VehicleUsageClass
 }
 
 function getEffectiveOrderStatus(order: Order) {
@@ -49,6 +63,7 @@ export default function PedidosPage() {
   const [orders, setOrders] = useState<Order[]>([])
   const [selected, setSelected] = useState<Order | null>(null)
   const [pendingTechnicalInputs, setPendingTechnicalInputs] = useState<Record<number, PendingTechnicalInput>>({})
+  const [pendingUsageInputs, setPendingUsageInputs] = useState<Record<number, PendingUsageInput>>({})
 
   useEffect(() => { setOrders(getOrders()) }, [])
 
@@ -72,6 +87,60 @@ export default function PedidosPage() {
           [field]: value,
         },
       }
+    })
+  }
+
+  function updatePendingUsageInput(index: number, usageClass: PendingUsageInput['usageClass']) {
+    setPendingUsageInputs(prev => ({
+      ...prev,
+      [index]: { usageClass },
+    }))
+  }
+
+  function persistResolvedPending(index: number, resolvedItem: OrderItem) {
+    if (!selected?.itensPendentes) return
+
+    const itens: OrderItem[] = [...selected.itens, resolvedItem]
+    const itensPendentes = selected.itensPendentes.filter((_, i) => i !== index)
+    const quantidadeEstimadaProduto = itens.reduce((sum, item) => sum + item.totalOz, 0)
+    const { itensPendentes: _previousPendingItems, ...orderWithoutPendingItems } = selected
+
+    const updatedOrder: Order = {
+      ...orderWithoutPendingItems,
+      itens,
+      ...(itensPendentes.length > 0 ? { itensPendentes } : {}),
+      quantidadeEstimadaProduto,
+      status: itensPendentes.length > 0 ? 'pendente_dosagem' : 'solicitado',
+    }
+    const updatedOrders = orders.map(order => order.id === updatedOrder.id ? updatedOrder : order)
+
+    saveOrders(updatedOrders)
+    setOrders(updatedOrders)
+    setSelected(updatedOrder)
+    setPendingTechnicalInputs({})
+    setPendingUsageInputs({})
+  }
+
+  function resolvePendingWithUsageClass(index: number) {
+    if (!selected?.itensPendentes) return
+
+    const pending = selected.itensPendentes[index]
+    const usageClass = pendingUsageInputs[index]?.usageClass
+    if (!pending || pending.reason !== 'needs_usage_class' || !usageClass) return
+
+    const resolution = resolveDosageForApplication(pending.medida, usageClass)
+    if (resolution.status !== 'resolved' || resolution.source !== 'estimated') return
+
+    persistResolvedPending(index, {
+      medida: pending.medida,
+      quantidade: pending.quantidade,
+      doseUnitOz: resolution.appliedDose,
+      totalOz: resolution.appliedDose * pending.quantidade,
+      operationalBasis: {
+        method: 'operational_class',
+        usageClass,
+        calculatedDoseBeforeRounding: resolution.rawCalculatedDose,
+      },
     })
   }
 
@@ -177,6 +246,35 @@ export default function PedidosPage() {
                     <tr key={i}>
                       <td>
                         {item.medida}
+                        {item.operationalBasis && (
+                          <details style={{ marginTop: '0.25rem' }}>
+                            <summary
+                              style={{
+                                cursor: 'pointer',
+                                fontSize: '0.72rem',
+                                color: 'var(--text-muted)',
+                              }}
+                            >
+                              Base técnica por classe operacional
+                            </summary>
+                            <div
+                              style={{
+                                marginTop: '0.35rem',
+                                fontSize: '0.72rem',
+                                lineHeight: 1.5,
+                                color: 'var(--text-secondary)',
+                              }}
+                            >
+                              <div>Classe: {VEHICLE_USAGE_LABELS[item.operationalBasis.usageClass]}</div>
+                              {item.operationalBasis.calculatedDoseBeforeRounding !== undefined && (
+                                <div>
+                                  Resultado antes do arredondamento:{' '}
+                                  {formatDoseValue(item.operationalBasis.calculatedDoseBeforeRounding)} doses
+                                </div>
+                              )}
+                            </div>
+                          </details>
+                        )}
                         {item.technicalBasis && (
                           <details style={{ marginTop: '0.25rem' }}>
                             <summary
@@ -236,8 +334,9 @@ export default function PedidosPage() {
                 Itens pendentes de confirmação de dosagem
               </h4>
               <p style={{ color: 'var(--text-secondary)', fontSize: '0.825rem', marginBottom: '0.85rem' }}>
-                Cada item mantém o motivo que impediu o cálculo automático. Para confirmar a dosagem neste fluxo,
-                use medidas físicas reais. Não use largura nominal da lateral nem informe uma dose manualmente.
+                Cada item mantém o motivo que impediu o cálculo automático. Quando faltar apenas a classe de uso,
+                selecione a classe operacional. Nos demais casos, confirme pela medição física real da altura total
+                e da largura da banda de rodagem; não use a largura nominal da lateral.
               </p>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
                 {selected.itensPendentes.map((item, i) => {
@@ -248,12 +347,19 @@ export default function PedidosPage() {
                     isOldOrExtremelyWorn: false,
                   }
 
+                  const requiresUsageClass = item.reason === 'needs_usage_class'
+                  const usageInput = pendingUsageInputs[i] || { usageClass: '' }
+
                   return (
                     <form
                       key={i}
                       onSubmit={e => {
                         e.preventDefault()
-                        resolvePendingWithPhysicalMeasurements(i)
+                        if (requiresUsageClass) {
+                          resolvePendingWithUsageClass(i)
+                        } else {
+                          resolvePendingWithPhysicalMeasurements(i)
+                        }
                       }}
                       style={{
                         padding: '0.85rem',
@@ -282,104 +388,146 @@ export default function PedidosPage() {
                           </div>
                         </div>
                         <span className="badge badge-orange">
-                          {item.reason === 'historical_conflict' ? 'Conflito histórico' : 'Aguardando dados técnicos'}
+                          {item.reason === 'historical_conflict'
+                            ? 'Conflito histórico'
+                            : item.reason === 'needs_usage_class'
+                            ? 'Aguardando classe de uso'
+                            : 'Aguardando dados técnicos'}
                         </span>
                       </div>
 
-                      <div
-                        style={{
-                          display: 'grid',
-                          gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))',
-                          gap: '0.75rem',
-                          marginBottom: '0.75rem',
-                        }}
-                      >
-                        <div>
-                          <label className="form-label" style={{ fontSize: '0.78rem' }}>
-                            Altura física total (pol)
-                          </label>
-                          <input
-                            type="number"
-                            min="10"
-                            max="80"
-                            step="0.1"
-                            required
-                            className="form-control"
-                            value={input.tireHeightInches}
-                            onChange={e => updatePendingTechnicalInput(i, 'tireHeightInches', e.target.value)}
-                            placeholder="Medida real"
-                          />
-                        </div>
-                        <div>
-                          <label className="form-label" style={{ fontSize: '0.78rem' }}>
-                            Largura real da banda (pol)
-                          </label>
-                          <input
-                            type="number"
-                            min="2"
-                            max="40"
-                            step="0.1"
-                            required
-                            className="form-control"
-                            value={input.treadWidthInches}
-                            onChange={e => updatePendingTechnicalInput(i, 'treadWidthInches', e.target.value)}
-                            placeholder="Área de contato"
-                          />
-                        </div>
-                        <div>
-                          <label className="form-label" style={{ fontSize: '0.78rem' }}>
-                            Regime operacional
-                          </label>
-                          <select
-                            required
-                            className="form-control"
-                            value={input.speedRegime}
-                            onChange={e =>
-                              updatePendingTechnicalInput(
-                                i,
-                                'speedRegime',
-                                e.target.value as PendingTechnicalInput['speedRegime']
-                              )
-                            }
-                          >
-                            <option value="">Selecione...</option>
-                            <option value="over_45_mph">Acima de 72 km/h</option>
-                            <option value="under_45_mph">Até 72 km/h / veículo lento</option>
-                          </select>
-                        </div>
-                      </div>
-
-                      <div
-                        style={{
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'space-between',
-                          gap: '1rem',
-                          flexWrap: 'wrap',
-                        }}
-                      >
-                        <label
+                      {requiresUsageClass ? (
+                        <div
                           style={{
                             display: 'flex',
-                            alignItems: 'center',
-                            gap: '0.45rem',
-                            fontSize: '0.8rem',
-                            color: 'var(--text-secondary)',
+                            alignItems: 'end',
+                            gap: '0.75rem',
+                            flexWrap: 'wrap',
                           }}
                         >
-                          <input
-                            type="checkbox"
-                            checked={input.isOldOrExtremelyWorn}
-                            onChange={e =>
-                              updatePendingTechnicalInput(i, 'isOldOrExtremelyWorn', e.target.checked)
-                            }
-                          />
-                          Pneu antigo ou excessivamente desgastado
-                        </label>
-                        <button type="submit" className="btn btn-primary btn-sm">
-                          Calcular e confirmar dosagem
-                        </button>
-                      </div>
+                          <div style={{ flex: 1, minWidth: '260px' }}>
+                            <label className="form-label" style={{ fontSize: '0.78rem' }}>
+                              Classe de uso do veículo
+                            </label>
+                            <select
+                              required
+                              className="form-control"
+                              value={usageInput.usageClass}
+                              onChange={e =>
+                                updatePendingUsageInput(
+                                  i,
+                                  e.target.value as PendingUsageInput['usageClass']
+                                )
+                              }
+                            >
+                              <option value="">Selecione...</option>
+                              <option value="light_road">{VEHICLE_USAGE_LABELS.light_road}</option>
+                              <option value="heavy_road">{VEHICLE_USAGE_LABELS.heavy_road}</option>
+                              <option value="slow_machinery">{VEHICLE_USAGE_LABELS.slow_machinery}</option>
+                            </select>
+                          </div>
+                          <button type="submit" className="btn btn-primary btn-sm">
+                            Calcular e confirmar dosagem
+                          </button>
+                        </div>
+                      ) : (
+                        <>
+                          <div
+                            style={{
+                              display: 'grid',
+                              gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))',
+                              gap: '0.75rem',
+                              marginBottom: '0.75rem',
+                            }}
+                          >
+                            <div>
+                              <label className="form-label" style={{ fontSize: '0.78rem' }}>
+                                Altura física total (pol)
+                              </label>
+                              <input
+                                type="number"
+                                min="10"
+                                max="80"
+                                step="0.1"
+                                required
+                                className="form-control"
+                                value={input.tireHeightInches}
+                                onChange={e => updatePendingTechnicalInput(i, 'tireHeightInches', e.target.value)}
+                                placeholder="Medida real"
+                              />
+                            </div>
+                            <div>
+                              <label className="form-label" style={{ fontSize: '0.78rem' }}>
+                                Largura real da banda (pol)
+                              </label>
+                              <input
+                                type="number"
+                                min="2"
+                                max="40"
+                                step="0.1"
+                                required
+                                className="form-control"
+                                value={input.treadWidthInches}
+                                onChange={e => updatePendingTechnicalInput(i, 'treadWidthInches', e.target.value)}
+                                placeholder="Área de contato"
+                              />
+                            </div>
+                            <div>
+                              <label className="form-label" style={{ fontSize: '0.78rem' }}>
+                                Regime operacional
+                              </label>
+                              <select
+                                required
+                                className="form-control"
+                                value={input.speedRegime}
+                                onChange={e =>
+                                  updatePendingTechnicalInput(
+                                    i,
+                                    'speedRegime',
+                                    e.target.value as PendingTechnicalInput['speedRegime']
+                                  )
+                                }
+                              >
+                                <option value="">Selecione...</option>
+                                <option value="over_45_mph">Acima de 72 km/h</option>
+                                <option value="under_45_mph">Até 72 km/h / veículo lento</option>
+                              </select>
+                            </div>
+                          </div>
+
+                          <div
+                            style={{
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'space-between',
+                              gap: '1rem',
+                              flexWrap: 'wrap',
+                            }}
+                          >
+                            <label
+                              style={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '0.45rem',
+                                fontSize: '0.8rem',
+                                color: 'var(--text-secondary)',
+                              }}
+                            >
+                              <input
+                                type="checkbox"
+                                checked={input.isOldOrExtremelyWorn}
+                                onChange={e =>
+                                  updatePendingTechnicalInput(i, 'isOldOrExtremelyWorn', e.target.checked)
+                                }
+                              />
+                              Pneu antigo ou excessivamente desgastado
+                            </label>
+                            <button type="submit" className="btn btn-primary btn-sm">
+                              Calcular e confirmar dosagem
+                            </button>
+                          </div>
+                        </>
+                      )}
                     </form>
                   )
                 })}

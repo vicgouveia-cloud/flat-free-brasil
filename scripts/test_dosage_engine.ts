@@ -285,4 +285,19 @@ assert(solD.items[0].totalOz === 0, 'Payload D: totalOz is 0')
 assert(solD.items[0].pendingReason === 'unknown_measure', 'Payload D: unknown measure reason is preserved')
 assert(solD.totalOz === 0, 'Payload D: unresolved not counted in totalOz')
 
+
+console.log('--- Testing Pending Usage-Class Resolution ---')
+const pendingUsage = resolveDosageForApplication('385/80 R22,5')
+assert(
+  pendingUsage.status === 'requires_review' && pendingUsage.reason === 'needs_usage_class',
+  'Pending usage class: metric measure waits for operational class'
+)
+const resolvedPendingUsage = resolveDosageForApplication('385/80 R22,5', 'heavy_road')
+assert(
+  resolvedPendingUsage.status === 'resolved' &&
+    resolvedPendingUsage.source === 'estimated' &&
+    resolvedPendingUsage.appliedDose === 47,
+  'Pending usage class: heavy_road resolves through the universal resolver to 47 doses'
+)
+
 console.log('--- ALL UNIT AND ACCEPTANCE CHECKS PASSED ---')

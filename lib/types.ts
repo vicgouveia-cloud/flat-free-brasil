@@ -132,12 +132,19 @@ export interface TechnicalDosageBasis {
   calculatedDoseBeforeRounding: number
 }
 
+export interface OperationalDosageBasis {
+  method: 'operational_class'
+  usageClass: 'light_road' | 'heavy_road' | 'slow_machinery'
+  calculatedDoseBeforeRounding?: number
+}
+
 export interface OrderItem {
   medida: string
   quantidade: number          // number of tires
   doseUnitOz: number          // fl oz per tire (canonical dosage)
   totalOz: number             // doseUnitOz * quantidade
   technicalBasis?: TechnicalDosageBasis
+  operationalBasis?: OperationalDosageBasis
 }
 
 export type PendingDosageReason =
