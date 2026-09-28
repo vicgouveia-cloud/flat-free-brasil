@@ -2,7 +2,7 @@
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { getOrders, saveOrders } from '@/lib/storage'
-import { calculateDoseFromFormula, roundHalfUp, ozToLiters, ozToBucketsCeil, formatDoses } from '@/lib/dosage'
+import { calculateDoseFromFormula, roundHalfUp, ozToLiters, ozToBucketsCeil, formatDoseValue, formatDoses } from '@/lib/dosage'
 import type { Order, OrderItem } from '@/lib/types'
 
 const statusLabels: Record<string, { label: string; cls: string }> = {
@@ -161,9 +161,42 @@ export default function PedidosPage() {
                       <td>
                         {item.medida}
                         {item.technicalBasis && (
-                          <div style={{ marginTop: '0.2rem', fontSize: '0.72rem', color: 'var(--text-muted)' }}>
-                            Calculada por medidas físicas reais
-                          </div>
+                          <details style={{ marginTop: '0.25rem' }}>
+                            <summary
+                              style={{
+                                cursor: 'pointer',
+                                fontSize: '0.72rem',
+                                color: 'var(--text-muted)',
+                              }}
+                            >
+                              Base técnica por medidas físicas reais
+                            </summary>
+                            <div
+                              style={{
+                                marginTop: '0.35rem',
+                                fontSize: '0.72rem',
+                                lineHeight: 1.5,
+                                color: 'var(--text-secondary)',
+                              }}
+                            >
+                              <div>Altura física total: {item.technicalBasis.tireHeightInches.toString().replace('.', ',')} pol</div>
+                              <div>Largura real da banda: {item.technicalBasis.treadWidthInches.toString().replace('.', ',')} pol</div>
+                              <div>
+                                Regime operacional:{' '}
+                                {item.technicalBasis.speedRegime === 'over_45_mph'
+                                  ? 'acima de 72 km/h'
+                                  : 'até 72 km/h / veículo lento'}
+                              </div>
+                              <div>
+                                Ajuste por desgaste:{' '}
+                                {item.technicalBasis.isOldOrExtremelyWorn ? 'aplicado' : 'não aplicado'}
+                              </div>
+                              <div>
+                                Resultado antes do arredondamento:{' '}
+                                {formatDoseValue(item.technicalBasis.calculatedDoseBeforeRounding)} doses
+                              </div>
+                            </div>
+                          </details>
                         )}
                       </td>
                       <td>{item.quantidade}</td>
