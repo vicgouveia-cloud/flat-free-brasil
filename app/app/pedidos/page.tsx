@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { getOrders, saveOrders } from '@/lib/storage'
 import { calculateDoseFromFormula, roundHalfUp, ozToLiters, ozToBucketsCeil, formatDoseValue, formatDoses } from '@/lib/dosage'
-import type { Order, OrderItem } from '@/lib/types'
+import type { Order, OrderItem, OrderStatus } from '@/lib/types'
 
 const statusLabels: Record<string, { label: string; cls: string }> = {
   pendente_dosagem: { label: 'Pendente de dosagem', cls: 'badge-orange' },
@@ -22,10 +22,21 @@ interface PendingTechnicalInput {
   isOldOrExtremelyWorn: boolean
 }
 
-function getEffectiveOrderStatus(order: Order) {
+function getEffectiveOrderStatus(order: Order): OrderStatus {
   return order.itensPendentes && order.itensPendentes.length > 0
     ? 'pendente_dosagem'
     : order.status
+}
+
+const nextStatus: Partial<Record<OrderStatus, { status: OrderStatus; label: string }>> = {
+  solicitado: { status: 'em_analise', label: 'Mover para Em análise' },
+  em_analise: { status: 'aprovado', label: 'Aprovar pedido' },
+  aprovado: { status: 'enviado', label: 'Marcar como enviado' },
+  enviado: { status: 'entregue', label: 'Marcar como entregue' },
+}
+
+function canCancelOrder(status: OrderStatus) {
+  return status === 'solicitado' || status === 'em_analise' || status === 'aprovado'
 }
 
 export default function PedidosPage() {
@@ -56,6 +67,20 @@ export default function PedidosPage() {
         },
       }
     })
+  }
+
+  function updateOrderStatus(status: OrderStatus) {
+    if (!selected) return
+
+    const effectiveStatus = getEffectiveOrderStatus(selected)
+    if (effectiveStatus === 'pendente_dosagem') return
+
+    const updatedOrder: Order = { ...selected, status }
+    const updatedOrders = orders.map(order => order.id === updatedOrder.id ? updatedOrder : order)
+
+    saveOrders(updatedOrders)
+    setOrders(updatedOrders)
+    setSelected(updatedOrder)
   }
 
   function resolvePendingWithPhysicalMeasurements(index: number) {
@@ -150,6 +175,70 @@ export default function PedidosPage() {
               </div>
             ))}
           </div>
+
+          {(() => {
+            const effectiveStatus = getEffectiveOrderStatus(selected)
+            const next = nextStatus[effectiveStatus]
+
+            if (effectiveStatus === 'pendente_dosagem') {
+              return (
+                <div
+                  style={{
+                    marginBottom: '1.25rem',
+                    padding: '0.75rem 0.9rem',
+                    borderRadius: '8px',
+                    background: 'rgba(249,115,22,0.08)',
+                    border: '1px solid rgba(249,115,22,0.25)',
+                    color: 'var(--text-secondary)',
+                    fontSize: '0.825rem',
+                  }}
+                >
+                  O pedido só poderá avançar depois que todas as pendências de dosagem forem resolvidas.
+                </div>
+              )
+            }
+
+            if (!next && !canCancelOrder(effectiveStatus)) return null
+
+            return (
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '0.75rem',
+                  flexWrap: 'wrap',
+                  marginBottom: '1.25rem',
+                  padding: '0.85rem',
+                  border: '1px solid var(--border-color)',
+                  borderRadius: '8px',
+                  background: 'var(--bg-surface)',
+                }}
+              >
+                <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginRight: 'auto' }}>
+                  Atualizar andamento do pedido
+                </span>
+                {canCancelOrder(effectiveStatus) && (
+                  <button
+                    type="button"
+                    className="btn btn-outline btn-sm"
+                    onClick={() => updateOrderStatus('cancelado')}
+                  >
+                    Cancelar pedido
+                  </button>
+                )}
+                {next && (
+                  <button
+                    type="button"
+                    className="btn btn-primary btn-sm"
+                    onClick={() => updateOrderStatus(next.status)}
+                  >
+                    {next.label}
+                  </button>
+                )}
+              </div>
+            )
+          })()}
+
           {selected.itens.length > 0 && (
             <>
               <h4 style={{ fontWeight: 700, marginBottom: '0.75rem' }}>Itens</h4>
