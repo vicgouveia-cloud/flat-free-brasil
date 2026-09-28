@@ -136,6 +136,7 @@ export default function PedidosPage() {
       quantidade: pending.quantidade,
       doseUnitOz: resolution.appliedDose,
       totalOz: resolution.appliedDose * pending.quantidade,
+      dosageSource: 'estimated',
       operationalBasis: {
         method: 'operational_class',
         usageClass,
@@ -178,6 +179,7 @@ export default function PedidosPage() {
       quantidade: pending.quantidade,
       doseUnitOz: appliedDose,
       totalOz,
+      dosageSource: 'technical',
       technicalBasis: {
         method: 'asi_physical_measurements',
         tireHeightInches,
@@ -246,6 +248,24 @@ export default function PedidosPage() {
                     <tr key={i}>
                       <td>
                         {item.medida}
+                        {item.dosageSource && (
+                          <span
+                            className={`badge ${
+                              item.dosageSource === 'table'
+                                ? 'badge-blue'
+                                : item.dosageSource === 'estimated'
+                                ? 'badge-orange'
+                                : 'badge-gray'
+                            }`}
+                            style={{ marginLeft: '0.5rem' }}
+                          >
+                            {item.dosageSource === 'table'
+                              ? 'Dose de referência'
+                              : item.dosageSource === 'estimated'
+                              ? 'Dose estimada'
+                              : 'Dose técnica'}
+                          </span>
+                        )}
                         {item.operationalBasis && (
                           <details style={{ marginTop: '0.25rem' }}>
                             <summary

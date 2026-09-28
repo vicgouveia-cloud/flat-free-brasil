@@ -4,7 +4,13 @@ import { useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { getOrders, saveOrders, uuid } from '@/lib/storage'
 import { ozToLiters, ozToBucketsCeil, formatDoses } from '@/lib/dosage'
-import type { Order, OrderItem, PendingOrderItem, PendingDosageReason } from '@/lib/types'
+import type {
+  Order,
+  OrderItem,
+  PendingOrderItem,
+  PendingDosageReason,
+  OrderDosageSource,
+} from '@/lib/types'
 import DemoBanner from '@/components/DemoBanner'
 
 interface CalcItem {
@@ -13,6 +19,9 @@ interface CalcItem {
   doseUnitOz: number | null
   totalOz: number
   pendingReason?: PendingDosageReason
+  dosageSource?: OrderDosageSource
+  usageClass?: 'light_road' | 'heavy_road' | 'slow_machinery'
+  rawCalculatedDose?: number
 }
 
 function normalizePendingReason(value: unknown): PendingDosageReason | undefined {
@@ -21,6 +30,18 @@ function normalizePendingReason(value: unknown): PendingDosageReason | undefined
     value === 'insufficient_geometry' ||
     value === 'historical_conflict' ||
     value === 'needs_review'
+    ? value
+    : undefined
+}
+
+function normalizeDosageSource(value: unknown): OrderDosageSource | undefined {
+  return value === 'table' || value === 'estimated' || value === 'technical'
+    ? value
+    : undefined
+}
+
+function normalizeUsageClass(value: unknown): CalcItem['usageClass'] {
+  return value === 'light_road' || value === 'heavy_road' || value === 'slow_machinery'
     ? value
     : undefined
 }
@@ -63,6 +84,12 @@ function SolicitarForm() {
               ? Number(item.totalDoses) || 0
               : 0,
           pendingReason: normalizePendingReason(item.pendingReason),
+          dosageSource: normalizeDosageSource(item.dosageSource),
+          usageClass: normalizeUsageClass(item.usageClass),
+          rawCalculatedDose:
+            Number.isFinite(Number(item.rawCalculatedDose))
+              ? Number(item.rawCalculatedDose)
+              : undefined,
         }))
         setCalcItems(normalized)
       } catch {}
@@ -84,6 +111,18 @@ function SolicitarForm() {
         quantidade: i.quantidade,
         doseUnitOz: i.doseUnitOz!,
         totalOz: i.totalOz,
+        ...(i.dosageSource ? { dosageSource: i.dosageSource } : {}),
+        ...(i.dosageSource === 'estimated' && i.usageClass
+          ? {
+              operationalBasis: {
+                method: 'operational_class' as const,
+                usageClass: i.usageClass,
+                ...(i.rawCalculatedDose !== undefined
+                  ? { calculatedDoseBeforeRounding: i.rawCalculatedDose }
+                  : {}),
+              },
+            }
+          : {}),
       }))
 
     const itensPendentes: PendingOrderItem[] = calcItems

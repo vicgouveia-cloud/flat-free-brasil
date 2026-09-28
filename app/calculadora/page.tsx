@@ -128,6 +128,16 @@ export default function CalculadoraPage() {
         totalOz: item.lineTotalDoses,
         pendingReason:
           item.resolution.status === 'requires_review' ? item.resolution.reason : undefined,
+        dosageSource:
+          item.resolution.status === 'resolved' ? item.resolution.source : undefined,
+        usageClass:
+          item.resolution.status === 'resolved' && item.resolution.source === 'estimated'
+            ? item.resolution.usageClass
+            : undefined,
+        rawCalculatedDose:
+          item.resolution.status === 'resolved' && item.resolution.source === 'estimated'
+            ? item.resolution.rawCalculatedDose
+            : undefined,
       }))
     )
   )

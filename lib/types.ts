@@ -138,11 +138,14 @@ export interface OperationalDosageBasis {
   calculatedDoseBeforeRounding?: number
 }
 
+export type OrderDosageSource = 'table' | 'estimated' | 'technical'
+
 export interface OrderItem {
   medida: string
   quantidade: number          // number of tires
   doseUnitOz: number          // fl oz per tire (canonical dosage)
   totalOz: number             // doseUnitOz * quantidade
+  dosageSource?: OrderDosageSource
   technicalBasis?: TechnicalDosageBasis
   operationalBasis?: OperationalDosageBasis
 }

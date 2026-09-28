@@ -231,6 +231,13 @@ function buildCalcParams(lines: Array<{ medida: string; quantidade: number; usag
           doseUnitOz: appliedDose,
           totalOz: lineTotalDoses,
           pendingReason: res.status === 'requires_review' ? res.reason : undefined,
+          dosageSource: res.status === 'resolved' ? res.source : undefined,
+          usageClass:
+            res.status === 'resolved' && res.source === 'estimated' ? res.usageClass : undefined,
+          rawCalculatedDose:
+            res.status === 'resolved' && res.source === 'estimated'
+              ? res.rawCalculatedDose
+              : undefined,
         }
       })
     )
@@ -246,6 +253,9 @@ function parseSolicitarParams(calc: string) {
     doseUnitOz: item.doseUnitOz !== undefined ? item.doseUnitOz : null,
     totalOz: item.totalOz !== undefined ? Number(item.totalOz) || 0 : 0,
     pendingReason: item.pendingReason,
+    dosageSource: item.dosageSource,
+    usageClass: item.usageClass,
+    rawCalculatedDose: item.rawCalculatedDose,
   }))
   const totalOz = items.reduce((s: number, i: any) => s + (i.doseUnitOz !== null ? i.totalOz : 0), 0)
   return { items, totalOz }
@@ -256,6 +266,7 @@ const calcA = buildCalcParams([{ medida: '295/80 R22,5', quantidade: 10 }])
 const solA = parseSolicitarParams(calcA)
 assert(solA.items[0].doseUnitOz === 32, 'Payload A: doseUnitOz is 32')
 assert(solA.items[0].totalOz === 320, 'Payload A: totalOz is 320')
+assert(solA.items[0].dosageSource === 'table', 'Payload A: table source is preserved')
 assert(formatDoses(solA.items[0].doseUnitOz) === '32 doses', 'Payload A UI: 32 doses')
 assert(formatDoses(solA.items[0].totalOz) === '320 doses', 'Payload A UI: 320 doses')
 assert(solA.totalOz === 320, 'Payload A total: 320')
@@ -273,6 +284,12 @@ const calcC = buildCalcParams([{ medida: '385/80 R22,5', quantidade: 1, usageCla
 const solC = parseSolicitarParams(calcC)
 assert(solC.items[0].doseUnitOz === 47, 'Payload C: doseUnitOz is 47')
 assert(solC.items[0].totalOz === 47, 'Payload C: totalOz is 47')
+assert(solC.items[0].dosageSource === 'estimated', 'Payload C: estimated source is preserved')
+assert(solC.items[0].usageClass === 'heavy_road', 'Payload C: heavy_road class is preserved')
+assert(
+  Math.abs((solC.items[0].rawCalculatedDose || 0) - 47.24) < 0.05,
+  'Payload C: raw estimated dose is preserved'
+)
 assert(formatDoses(solC.items[0].doseUnitOz) === '47 doses', 'Payload C UI: 47 doses')
 assert(formatDoses(solC.items[0].totalOz) === '47 doses', 'Payload C UI: 47 doses')
 assert(solC.totalOz === 47, 'Payload C total: 47')
