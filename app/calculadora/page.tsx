@@ -27,8 +27,8 @@ export default function CalculadoraPage() {
   ])
 
   // Technical mode state (ASI physical formula)
-  const [techHeight, setTechHeight] = useState<number>(41)
-  const [techTread, setTechTread] = useState<number>(10)
+  const [techHeight, setTechHeight] = useState<number>(0)
+  const [techTread, setTechTread] = useState<number>(0)
   const [techSpeed, setTechSpeed] = useState<'over_45_mph' | 'under_45_mph'>('over_45_mph')
   const [techWorn, setTechWorn] = useState<boolean>(false)
 
@@ -108,12 +108,15 @@ export default function CalculadoraPage() {
       : `${unresolvedCount} medidas ainda precisam de confirmação técnica e não foram somadas aos totais abaixo.`
 
   // Cálculo da fórmula física ASI no modo técnico
-  const techResult = calculateDoseFromFormula({
-    tireHeightInches: techHeight,
-    treadWidthInches: techTread,
-    speedRegime: techSpeed,
-    isOldOrExtremelyWorn: techWorn,
-  })
+  const techResult =
+    techHeight > 0 && techTread > 0
+      ? calculateDoseFromFormula({
+          tireHeightInches: techHeight,
+          treadWidthInches: techTread,
+          speedRegime: techSpeed,
+          isOldOrExtremelyWorn: techWorn,
+        })
+      : null
 
   // Encode calc items para a rota /solicitar
   const calcParams = encodeURIComponent(
@@ -598,8 +601,9 @@ export default function CalculadoraPage() {
                     min="10"
                     max="80"
                     className="form-control"
-                    value={techHeight}
+                    value={techHeight || ''}
                     onChange={e => setTechHeight(Number(e.target.value) || 0)}
+                    placeholder="Informe a medida real"
                   />
                 </div>
                 <div>
@@ -612,8 +616,9 @@ export default function CalculadoraPage() {
                     min="2"
                     max="40"
                     className="form-control"
-                    value={techTread}
+                    value={techTread || ''}
                     onChange={e => setTechTread(Number(e.target.value) || 0)}
+                    placeholder="Informe a medida real"
                   />
                 </div>
                 <div>
@@ -653,35 +658,49 @@ export default function CalculadoraPage() {
                 </label>
               </div>
 
-              <div
-                style={{
-                  background: 'var(--bg-surface-elevated)',
-                  borderRadius: '8px',
-                  padding: '0.85rem 1rem',
-                  display: 'flex',
-                  justifyContent: 'space-between',
-                  alignItems: 'center',
-                }}
-              >
-                <div>
-                  <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
-                    Resultado pela fórmula ASI (Divisor {techResult.divisor})
+              {techResult ? (
+                <div
+                  style={{
+                    background: 'var(--bg-surface-elevated)',
+                    borderRadius: '8px',
+                    padding: '0.85rem 1rem',
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                  }}
+                >
+                  <div>
+                    <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
+                      Resultado pela fórmula ASI (Divisor {techResult.divisor})
+                    </div>
+                    <div
+                      style={{
+                        fontSize: '1.25rem',
+                        fontWeight: 800,
+                        color: 'var(--color-safety-orange)',
+                      }}
+                    >
+                      {formatDoseValue(techResult.recommendedOunces)} doses / pneu (≈{' '}
+                      {techResult.recommendedOunces.toFixed(2)} fl oz)
+                    </div>
                   </div>
-                  <div
-                    style={{
-                      fontSize: '1.25rem',
-                      fontWeight: 800,
-                      color: 'var(--color-safety-orange)',
-                    }}
-                  >
-                    {formatDoseValue(techResult.recommendedOunces)} doses / pneu (≈{' '}
-                    {techResult.recommendedOunces.toFixed(2)} fl oz)
+                  <div style={{ textAlign: 'right', fontSize: '0.8rem', color: 'var(--text-muted)' }}>
+                    ≈ {ozToLiters(techResult.recommendedOunces).toFixed(2).replace('.', ',')} L por pneu
                   </div>
                 </div>
-                <div style={{ textAlign: 'right', fontSize: '0.8rem', color: 'var(--text-muted)' }}>
-                  ≈ {ozToLiters(techResult.recommendedOunces).toFixed(2).replace('.', ',')} L por pneu
+              ) : (
+                <div
+                  style={{
+                    background: 'var(--bg-surface-elevated)',
+                    borderRadius: '8px',
+                    padding: '0.85rem 1rem',
+                    color: 'var(--text-muted)',
+                    fontSize: '0.825rem',
+                  }}
+                >
+                  Informe a altura física total e a largura real da banda de rodagem para calcular.
                 </div>
-              </div>
+              )}
             </div>
           </details>
 
