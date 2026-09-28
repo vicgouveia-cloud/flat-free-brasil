@@ -342,7 +342,8 @@ export default function PedidosPage() {
                 </tbody>
               </table>
               <p style={{ marginTop: '0.75rem', fontWeight: 700, color: 'var(--color-safety-orange)' }}>
-                Total: {formatDoses(selected.quantidadeEstimadaProduto)}
+                {selected.itensPendentes && selected.itensPendentes.length > 0 ? 'Total parcial' : 'Total'}:{' '}
+                {formatDoses(selected.quantidadeEstimadaProduto)}
                 {' '}≈ {ozToLiters(selected.quantidadeEstimadaProduto).toFixed(1).replace('.', ',')} L
                 {' '}— {ozToBucketsCeil(selected.quantidadeEstimadaProduto)} {ozToBucketsCeil(selected.quantidadeEstimadaProduto) === 1 ? 'balde' : 'baldes'}
               </p>
@@ -569,7 +570,18 @@ export default function PedidosPage() {
                 <tr key={o.id}>
                   <td style={{ fontWeight: 600 }}>{o.nomeEmpresa}</td>
                   <td>{o.data}</td>
-                  <td>{o.quantidadeEstimadaProduto > 0 ? formatDoses(o.quantidadeEstimadaProduto) : '—'}</td>
+                  <td>
+                    {o.quantidadeEstimadaProduto > 0 ? (
+                      <>
+                        {formatDoses(o.quantidadeEstimadaProduto)}
+                        {o.itensPendentes && o.itensPendentes.length > 0 && (
+                          <span style={{ marginLeft: '0.35rem', color: 'var(--text-muted)', fontSize: '0.75rem' }}>
+                            (parcial)
+                          </span>
+                        )}
+                      </>
+                    ) : '—'}
+                  </td>
                   <td>
                     {(() => {
                       const status = getEffectiveOrderStatus(o)

@@ -97,6 +97,13 @@ function SolicitarForm() {
   }, [searchParams])
 
   const totalOz = calcItems.reduce((s, i) => s + (i.doseUnitOz !== null ? i.totalOz : 0), 0)
+  const hasPendingDosage = calcItems.some(i => i.doseUnitOz === null)
+  const hasEstimatedDosage = calcItems.some(i => i.dosageSource === 'estimated')
+  const totalLabel = hasPendingDosage
+    ? 'Total parcial'
+    : hasEstimatedDosage
+    ? 'Total estimado'
+    : 'Total de referência'
 
   function updateForm(field: string, value: string) {
     setForm(prev => ({ ...prev, [field]: value }))
@@ -195,7 +202,7 @@ function SolicitarForm() {
           </table>
           {totalOz > 0 && (
             <p style={{ fontSize: '0.875rem', color: 'var(--text-secondary)' }}>
-              <strong>Total estimado:</strong> {formatDoses(totalOz)} ≈ {ozToLiters(totalOz).toFixed(1).replace('.', ',')} L —
+              <strong>{totalLabel}:</strong> {formatDoses(totalOz)} ≈ {ozToLiters(totalOz).toFixed(1).replace('.', ',')} L —
               {' '}<strong>{ozToBucketsCeil(totalOz)} {ozToBucketsCeil(totalOz) === 1 ? 'balde' : 'baldes'}</strong> para pedido
             </p>
           )}
