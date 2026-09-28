@@ -123,11 +123,21 @@ export interface PilotProject {
   pneus: PilotProjectTire[]
 }
 
+export interface TechnicalDosageBasis {
+  method: 'asi_physical_measurements'
+  tireHeightInches: number
+  treadWidthInches: number
+  speedRegime: 'over_45_mph' | 'under_45_mph'
+  isOldOrExtremelyWorn: boolean
+  calculatedDoseBeforeRounding: number
+}
+
 export interface OrderItem {
   medida: string
   quantidade: number          // number of tires
   doseUnitOz: number          // fl oz per tire (canonical dosage)
   totalOz: number             // doseUnitOz * quantidade
+  technicalBasis?: TechnicalDosageBasis
 }
 
 export interface PendingOrderItem {
