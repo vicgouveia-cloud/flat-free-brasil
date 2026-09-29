@@ -1,6 +1,14 @@
 'use client'
 import { useEffect, useState } from 'react'
-import { getTires, getVehicles, getReadings, saveReadings, getPositionHistory, savePositionHistory, updatePositionHistoryOnReading, uuid } from '@/lib/storage'
+import {
+  getPositionHistory,
+  getReadings,
+  getTirePositionAtDate,
+  getTires,
+  getVehicles,
+  saveReadings,
+  uuid,
+} from '@/lib/storage'
 import type { TireReading } from '@/lib/types'
 import {
   getSlotIdFromPosition,
@@ -13,6 +21,7 @@ export default function LeiturasPage() {
   const [tires, setTires] = useState(getTires())
   const [vehicles, setVehicles] = useState(getVehicles())
   const [showForm, setShowForm] = useState(false)
+  const [saveError, setSaveError] = useState('')
   const [form, setForm] = useState<Omit<TireReading, 'id'>>({
     tireId: '',
     data: new Date().toISOString().split('T')[0],
@@ -40,55 +49,68 @@ export default function LeiturasPage() {
     return v ? v.identificacaoInterna : id
   }
 
-  function handleTireChange(tireId: string) {
-    const currentPosition = getPositionHistory().find(
-      entry => entry.tireId === tireId && !entry.dataFinal
-    )
-    const slotId = currentPosition
-      ? currentPosition.slotId || getSlotIdFromPosition(currentPosition.posicao)
+  function getMountingForReading(tireId: string, date: string) {
+    const position = tireId
+      ? getTirePositionAtDate(tireId, date, getPositionHistory())
+      : null
+    const slotId = position
+      ? position.slotId || getSlotIdFromPosition(position.posicao)
       : null
 
+    return { position, slotId }
+  }
+
+  function syncMountingForReading(tireId: string, date: string) {
+    const { position, slotId } = getMountingForReading(tireId, date)
+
+    setSaveError('')
     setForm(prev => ({
       ...prev,
       tireId,
-      vehicleId: currentPosition?.vehicleId || '',
+      data: date,
+      vehicleId: position?.vehicleId || '',
       posicaoAtual: slotId || '',
     }))
   }
 
+  function handleTireChange(tireId: string) {
+    syncMountingForReading(tireId, form.data)
+  }
+
+  function handleDateChange(date: string) {
+    syncMountingForReading(form.tireId, date)
+  }
+
   const selectedVehicle = vehicles.find(vehicle => vehicle.id === form.vehicleId) || null
-  const occupiedSlotIds = new Set(
-    getPositionHistory()
-      .filter(
-        entry =>
-          !entry.dataFinal &&
-          entry.vehicleId === form.vehicleId &&
-          entry.tireId !== form.tireId
-      )
-      .map(entry => entry.slotId || getSlotIdFromPosition(entry.posicao))
-      .filter((slotId): slotId is string => Boolean(slotId))
-  )
-  const availableSlots = selectedVehicle
+  const selectedSlot = selectedVehicle && form.posicaoAtual
     ? getVehicleLayout(selectedVehicle).axles
         .flatMap(axle => axle.slots)
-        .filter(slot => !occupiedSlotIds.has(slot.id))
-    : []
+        .find(slot => slot.id === form.posicaoAtual) || null
+    : null
 
   function handleSave() {
-    if (!form.tireId || !form.vehicleId || !form.posicaoAtual || !form.quilometragemVeiculo || !form.sulco) return
+    if (!form.tireId || !form.data || !form.quilometragemVeiculo || !form.sulco) return
 
-    const newReading: TireReading = { id: uuid(), ...form }
+    const { position, slotId } = getMountingForReading(form.tireId, form.data)
+    if (!position || !slotId) {
+      setSaveError(
+        'Não existe uma montagem registrada para este pneu na data informada. Registre a montagem correta antes de lançar a leitura.'
+      )
+      return
+    }
 
-    // Update readings
+    const newReading: TireReading = {
+      id: uuid(),
+      ...form,
+      vehicleId: position.vehicleId,
+      posicaoAtual: slotId,
+    }
+
     const updatedReadings = [newReading, ...readings]
     saveReadings(updatedReadings)
     setReadings(updatedReadings)
 
-    // Update position history
-    const currentHistory = getPositionHistory()
-    const updatedHistory = updatePositionHistoryOnReading(newReading, currentHistory)
-    savePositionHistory(updatedHistory)
-
+    setSaveError('')
     setShowForm(false)
     setForm({
       tireId: '', data: new Date().toISOString().split('T')[0],
@@ -104,7 +126,15 @@ export default function LeiturasPage() {
           <h1 style={{ fontSize: '1.5rem', fontWeight: 800, marginBottom: '0.25rem' }}>Leituras</h1>
           <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem' }}>Registro histórico de medições de pneus.</p>
         </div>
-        <button onClick={() => setShowForm(true)} className="btn btn-primary btn-sm"><i className="fas fa-plus" /> Registrar Leitura</button>
+        <button
+          onClick={() => {
+            setSaveError('')
+            setShowForm(true)
+          }}
+          className="btn btn-primary btn-sm"
+        >
+          <i className="fas fa-plus" /> Registrar Leitura
+        </button>
       </div>
 
       {showForm && (
@@ -119,21 +149,22 @@ export default function LeiturasPage() {
               </select>
             </div>
             <div className="form-group">
-              <label className="form-label">Veículo *</label>
-              <select
+              <label className="form-label">Veículo da montagem</label>
+              <input
+                type="text"
                 className="form-control"
-                value={form.vehicleId}
-                onChange={e =>
-                  setForm(p => ({ ...p, vehicleId: e.target.value, posicaoAtual: '' }))
-                }
-              >
-                <option value="">Selecionar veículo</option>
-                {vehicles.map(v => <option key={v.id} value={v.id}>{v.identificacaoInterna}</option>)}
-              </select>
+                readOnly
+                value={selectedVehicle?.identificacaoInterna || 'Sem montagem nesta data'}
+              />
             </div>
             <div className="form-group">
               <label className="form-label">Data *</label>
-              <input type="date" className="form-control" value={form.data} onChange={e => setForm(p => ({ ...p, data: e.target.value }))} />
+              <input
+                type="date"
+                className="form-control"
+                value={form.data}
+                onChange={e => handleDateChange(e.target.value)}
+              />
             </div>
             <div className="form-group">
               <label className="form-label">Quilometragem do Veículo *</label>
@@ -148,31 +179,52 @@ export default function LeiturasPage() {
               <input type="number" className="form-control" value={form.pressao || ''} onChange={e => setForm(p => ({ ...p, pressao: e.target.value ? +e.target.value : undefined }))} />
             </div>
             <div className="form-group">
-              <label className="form-label">Posição Atual *</label>
-              <select
+              <label className="form-label">Posição da montagem</label>
+              <input
+                type="text"
                 className="form-control"
-                value={form.posicaoAtual}
-                disabled={!selectedVehicle}
-                onChange={e => setForm(p => ({ ...p, posicaoAtual: e.target.value }))}
-              >
-                <option value="">
-                  {selectedVehicle ? 'Selecionar posição' : 'Selecione o veículo primeiro'}
-                </option>
-                {availableSlots.map(slot => (
-                  <option key={slot.id} value={slot.id}>
-                    {getVehicleSlotLabel(slot)} ({slot.id})
-                  </option>
-                ))}
-              </select>
+                readOnly
+                value={
+                  selectedSlot
+                    ? `${getVehicleSlotLabel(selectedSlot)} (${selectedSlot.id})`
+                    : form.posicaoAtual || 'Sem montagem nesta data'
+                }
+              />
             </div>
             <div className="form-group">
               <label className="form-label">Observações</label>
               <input type="text" className="form-control" value={form.observacoes || ''} onChange={e => setForm(p => ({ ...p, observacoes: e.target.value }))} />
             </div>
           </div>
+          <div
+            style={{
+              marginTop: '0.75rem',
+              padding: '0.65rem 0.85rem',
+              borderRadius: '8px',
+              background: 'rgba(59,130,246,0.08)',
+              border: '1px solid rgba(59,130,246,0.2)',
+              color: 'var(--text-secondary)',
+              fontSize: '0.8rem',
+            }}
+          >
+            Veículo e posição são definidos pelo histórico de montagem do pneu na data da leitura. A leitura não movimenta o pneu.
+          </div>
+          {saveError && (
+            <p style={{ marginTop: '0.75rem', color: '#dc2626', fontSize: '0.8rem' }}>
+              {saveError}
+            </p>
+          )}
           <div style={{ display: 'flex', gap: '0.75rem', marginTop: '0.75rem' }}>
             <button onClick={handleSave} className="btn btn-primary"><i className="fas fa-check" /> Salvar</button>
-            <button onClick={() => setShowForm(false)} className="btn btn-outline">Cancelar</button>
+            <button
+              onClick={() => {
+                setSaveError('')
+                setShowForm(false)
+              }}
+              className="btn btn-outline"
+            >
+              Cancelar
+            </button>
           </div>
         </div>
       )}

@@ -113,6 +113,21 @@ export function savePositionHistory(h: TirePositionHistory[]): void {
   save(KEYS.positionHistory, h)
 }
 
+export function getTirePositionAtDate(
+  tireId: string,
+  date: string,
+  allHistory: TirePositionHistory[]
+): TirePositionHistory | null {
+  return (
+    allHistory.find(
+      entry =>
+        entry.tireId === tireId &&
+        entry.dataInicial <= date &&
+        (!entry.dataFinal || date < entry.dataFinal)
+    ) ?? null
+  )
+}
+
 export interface CloseTirePositionResult {
   ok: boolean
   history: TirePositionHistory[]
