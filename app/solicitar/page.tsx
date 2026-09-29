@@ -141,10 +141,13 @@ function SolicitarForm() {
         ...(i.pendingReason ? { reason: i.pendingReason } : {}),
       }))
 
+    const initialStatus: Order['status'] = itensPendentes.length > 0 ? 'pendente_dosagem' : 'solicitado'
+    const today = new Date().toISOString().split('T')[0]
+
     const order: Order = {
       id: uuid(),
       companyId: 'manual',
-      data: new Date().toISOString().split('T')[0],
+      data: today,
       itens,
       ...(itensPendentes.length > 0 ? { itensPendentes } : {}),
       quantidadeEstimadaProduto: totalOz,
@@ -159,7 +162,8 @@ function SolicitarForm() {
       email: form.email,
       telefone: form.telefone,
       observacoes: form.observacoes || undefined,
-      status: itensPendentes.length > 0 ? 'pendente_dosagem' : 'solicitado',
+      status: initialStatus,
+      statusHistory: [{ status: initialStatus, date: today }],
     }
     const existing = getOrders()
     saveOrders([...existing, order])

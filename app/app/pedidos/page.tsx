@@ -119,7 +119,12 @@ export default function PedidosPage() {
     const effectiveStatus = getEffectiveOrderStatus(selected)
     if (effectiveStatus === 'pendente_dosagem') return
 
-    const updatedOrder: Order = { ...selected, status }
+    const today = new Date().toISOString().split('T')[0]
+    const statusHistory = [
+      ...(selected.statusHistory || []),
+      { status, date: today },
+    ]
+    const updatedOrder: Order = { ...selected, status, statusHistory }
     const updatedOrders = orders.map(order => order.id === updatedOrder.id ? updatedOrder : order)
 
     saveOrders(updatedOrders)
@@ -135,12 +140,25 @@ export default function PedidosPage() {
     const quantidadeEstimadaProduto = itens.reduce((sum, item) => sum + item.totalOz, 0)
     const { itensPendentes: _previousPendingItems, ...orderWithoutPendingItems } = selected
 
+    const nextStatus = getStatusAfterPendingResolution(selected, itensPendentes.length)
+    const statusChanged = nextStatus !== selected.status
+    const today = new Date().toISOString().split('T')[0]
     const updatedOrder: Order = {
       ...orderWithoutPendingItems,
       itens,
       ...(itensPendentes.length > 0 ? { itensPendentes } : {}),
       quantidadeEstimadaProduto,
-      status: getStatusAfterPendingResolution(selected, itensPendentes.length),
+      status: nextStatus,
+      ...(statusChanged
+        ? {
+            statusHistory: [
+              ...(selected.statusHistory || []),
+              { status: nextStatus, date: today },
+            ],
+          }
+        : selected.statusHistory
+        ? { statusHistory: selected.statusHistory }
+        : {}),
     }
     const updatedOrders = orders.map(order => order.id === updatedOrder.id ? updatedOrder : order)
 
@@ -631,6 +649,28 @@ export default function PedidosPage() {
                 })}
               </div>
             </>
+          )}
+          {selected.statusHistory && selected.statusHistory.length > 0 && (
+            <div style={{ marginTop: '1.25rem' }}>
+              <h4 style={{ fontWeight: 700, marginBottom: '0.6rem' }}>Histórico do pedido</h4>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>
+                {selected.statusHistory.map((entry, i) => (
+                  <div
+                    key={`${entry.status}-${entry.date}-${i}`}
+                    style={{
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      gap: '1rem',
+                      fontSize: '0.8rem',
+                      color: 'var(--text-secondary)',
+                    }}
+                  >
+                    <span>{statusLabels[entry.status]?.label || entry.status}</span>
+                    <span>{entry.date}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
           )}
           {selected.observacoes && (
             <p style={{ marginTop: '1rem', color: 'var(--text-secondary)', fontSize: '0.875rem' }}><strong>Observações:</strong> {selected.observacoes}</p>

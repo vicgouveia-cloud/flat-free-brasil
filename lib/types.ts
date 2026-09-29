@@ -168,6 +168,11 @@ export interface PendingOrderItem {
 
 export type OrderStatus = 'pendente_dosagem' | 'solicitado' | 'em_analise' | 'aprovado' | 'enviado' | 'entregue' | 'cancelado'
 
+export interface OrderStatusHistoryEntry {
+  status: OrderStatus
+  date: string
+}
+
 export interface Order {
   id: string
   companyId: string
@@ -187,4 +192,5 @@ export interface Order {
   telefone: string
   observacoes?: string
   status: OrderStatus
+  statusHistory?: OrderStatusHistoryEntry[]
 }
