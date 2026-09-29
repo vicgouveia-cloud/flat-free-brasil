@@ -71,6 +71,7 @@ function computeTireStats(
     o =>
       o.tireId === pt.tireId &&
       o.tipo !== 'recapagem' &&
+      o.tipo !== 'retorno_recapagem' &&
       isDateInTireCycle(o.data, cycleBounds)
   ).length
 

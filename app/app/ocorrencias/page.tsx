@@ -21,6 +21,7 @@ const typeLabels: Record<OccurrenceType, string> = {
   rodizio: 'Rodízio',
   retirada: 'Retirada',
   recapagem: 'Recapagem',
+  retorno_recapagem: 'Retorno da recapagem',
   outro: 'Outro',
 }
 
@@ -54,6 +55,31 @@ export default function OcorrenciasPage() {
     if (!form.tireId || !form.data || !form.descricao.trim()) return
 
     let updatedPositionHistory = getPositionHistory()
+
+    if (form.tipo === 'retorno_recapagem') {
+      const tire = tires.find(item => item.id === form.tireId)
+      const latestRecap = occurrences
+        .filter(
+          occurrence =>
+            occurrence.tireId === form.tireId &&
+            occurrence.tipo === 'recapagem'
+        )
+        .sort((a, b) => b.data.localeCompare(a.data))[0]
+
+      if (!tire || tire.status !== 'recapagem') {
+        setSaveError(
+          'O retorno da recapagem só pode ser registrado para um pneu que esteja com status Recapagem.'
+        )
+        return
+      }
+
+      if (!latestRecap || form.data < latestRecap.data) {
+        setSaveError(
+          'A data de retorno não pode ser anterior à recapagem que iniciou o ciclo atual.'
+        )
+        return
+      }
+    }
 
     if (form.tipo === 'recapagem' || form.tipo === 'retirada') {
       const closeResult = closeTirePositionAtDate(
@@ -95,6 +121,20 @@ export default function OcorrenciasPage() {
       const updatedTires = tires.map(tire =>
         tire.id === form.tireId
           ? { ...tire, status: 'recapagem' as const }
+          : tire
+      )
+      saveTires(updatedTires)
+      setTires(updatedTires)
+    }
+
+    if (form.tipo === 'retorno_recapagem') {
+      const updatedTires = tires.map(tire =>
+        tire.id === form.tireId
+          ? {
+              ...tire,
+              condicao: 'recapado' as const,
+              status: 'em_operacao' as const,
+            }
           : tire
       )
       saveTires(updatedTires)
@@ -219,7 +259,9 @@ export default function OcorrenciasPage() {
             </div>
           </div>
 
-          {(form.tipo === 'recapagem' || form.tipo === 'retirada') && (
+          {(form.tipo === 'recapagem' ||
+            form.tipo === 'retirada' ||
+            form.tipo === 'retorno_recapagem') && (
             <div
               style={{
                 marginTop: '0.75rem',
@@ -233,6 +275,8 @@ export default function OcorrenciasPage() {
             >
               {form.tipo === 'recapagem'
                 ? 'A recapagem encerra o ciclo atual do pneu, fecha sua montagem vigente nesta data e altera o status para Recapagem.'
+                : form.tipo === 'retorno_recapagem'
+                ? 'O retorno da recapagem mantém o novo ciclo já iniciado, marca o pneu como Recapado e o devolve ao status Em operação. A nova montagem pode ocorrer com ou sem uma nova aplicação Flat Free.'
                 : 'A retirada fecha a montagem vigente do pneu nesta data. O ciclo do pneu e seu status permanecem inalterados, permitindo uma nova montagem posteriormente.'}
             </div>
           )}

@@ -104,6 +104,7 @@ export type OccurrenceType =
   | 'rodizio'
   | 'retirada'
   | 'recapagem'
+  | 'retorno_recapagem'
   | 'outro'
 
 export interface Occurrence {
