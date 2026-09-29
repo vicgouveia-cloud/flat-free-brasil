@@ -67,6 +67,7 @@ export default function PneusPage() {
 
   // Application form
   const [showAppForm, setShowAppForm] = useState(false)
+  const [applicationError, setApplicationError] = useState('')
   const [appForm, setAppForm] = useState<Omit<FlatFreeApplication, 'id'>>(
     {
       tireId: '',
@@ -159,10 +160,19 @@ export default function PneusPage() {
       observacoes: '',
     })
     setShowAppForm(false)
+    setApplicationError('')
   }
 
   function handleSaveApplication() {
     if (!selected) return
+
+    const currentTire = getTires().find(tire => tire.id === selected.id)
+    if (!currentTire || currentTire.status !== 'em_operacao') {
+      setApplicationError(
+        'A aplicação Flat Free só pode ser registrada quando o pneu estiver com status Em operação.'
+      )
+      return
+    }
     const existingInCycle = getApplicationForTireCycleAtDate(
       selected.id,
       appForm.data,
@@ -188,6 +198,7 @@ export default function PneusPage() {
     savePositionHistory(updatedHistory)
     setPosHistory(updatedHistory)
 
+    setApplicationError('')
     setShowAppForm(false)
   }
 
@@ -429,10 +440,18 @@ export default function PneusPage() {
                 <span className="badge badge-green" style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem' }}>
                   <i className="fas fa-circle-check" /> Aplicação já registrada
                 </span>
-              ) : (
-                <button onClick={() => setShowAppForm(v => !v)} className="btn btn-outline btn-sm">
+              ) : selected.status === 'em_operacao' ? (
+                <button
+                  onClick={() => {
+                    setApplicationError('')
+                    setShowAppForm(v => !v)
+                  }}
+                  className="btn btn-outline btn-sm"
+                >
                   <i className="fas fa-plus" /> Registrar Aplicação
                 </button>
+              ) : (
+                <span className="badge badge-gray">Aplicação indisponível neste status</span>
               )}
             </div>
 
@@ -442,7 +461,19 @@ export default function PneusPage() {
               </p>
             )}
 
-            {!hasApplication && showAppForm && (
+            {!hasApplication && selected.status !== 'em_operacao' && (
+              <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginBottom: '1rem' }}>
+                Para registrar uma nova aplicação, o pneu precisa estar com status Em operação. O histórico existente permanece disponível para consulta.
+              </p>
+            )}
+
+            {applicationError && (
+              <p style={{ marginBottom: '1rem', color: '#dc2626', fontSize: '0.8rem' }}>
+                {applicationError}
+              </p>
+            )}
+
+            {!hasApplication && selected.status === 'em_operacao' && showAppForm && (
               <div style={{ background: 'var(--bg-surface-elevated)', borderRadius: '10px', padding: '1.25rem', marginBottom: '1rem', border: '1px solid var(--border-color)' }}>
                 <h5 style={{ fontWeight: 700, marginBottom: '1rem' }}>Nova Aplicação Flat Free</h5>
                 {getDosageOz(selected.medida) !== null ? (
