@@ -120,8 +120,11 @@ export default function PedidosPage() {
     if (effectiveStatus === 'pendente_dosagem') return
 
     const today = new Date().toISOString().split('T')[0]
+    const existingHistory = selected.statusHistory || []
     const statusHistory = [
-      ...(selected.statusHistory || []),
+      ...(existingHistory.length > 0
+        ? existingHistory
+        : [{ status: selected.status, date: selected.data }]),
       { status, date: today },
     ]
     const updatedOrder: Order = { ...selected, status, statusHistory }
@@ -152,7 +155,9 @@ export default function PedidosPage() {
       ...(statusChanged
         ? {
             statusHistory: [
-              ...(selected.statusHistory || []),
+              ...(selected.statusHistory && selected.statusHistory.length > 0
+                ? selected.statusHistory
+                : [{ status: selected.status, date: selected.data }]),
               { status: nextStatus, date: today },
             ],
           }
