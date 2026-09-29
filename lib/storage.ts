@@ -5,15 +5,16 @@
 // =============================================
 
 import type {
-  Vehicle, Tire, TireReading, FlatFreeApplication,
+  Company, Vehicle, Tire, TireReading, FlatFreeApplication,
   PilotProject, Order, Occurrence, TirePositionHistory
 } from './types'
 import {
-  DEMO_VEHICLES, DEMO_TIRES, DEMO_READINGS, DEMO_APPLICATIONS,
+  DEMO_COMPANY, DEMO_VEHICLES, DEMO_TIRES, DEMO_READINGS, DEMO_APPLICATIONS,
   DEMO_PROJECTS, DEMO_ORDERS, DEMO_POSITION_HISTORY
 } from './demo-data'
 
 const KEYS = {
+  company: 'ff_company',
   vehicles: 'ff_vehicles',
   tires: 'ff_tires',
   readings: 'ff_readings',
@@ -43,9 +44,32 @@ function save<T>(key: string, data: T[]): void {
   localStorage.setItem(key, JSON.stringify(data))
 }
 
+function loadOne<T>(key: string, fallback: T): T {
+  if (typeof window === 'undefined') return fallback
+  try {
+    const raw = localStorage.getItem(key)
+    if (!raw) {
+      localStorage.setItem(key, JSON.stringify(fallback))
+      return fallback
+    }
+    return JSON.parse(raw) as T
+  } catch {
+    return fallback
+  }
+}
+
+function saveOne<T>(key: string, data: T): void {
+  if (typeof window === 'undefined') return
+  localStorage.setItem(key, JSON.stringify(data))
+}
+
 export function uuid(): string {
   return Date.now().toString(36) + Math.random().toString(36).slice(2)
 }
+
+// Company
+export function getCompany(): Company { return loadOne(KEYS.company, DEMO_COMPANY) }
+export function saveCompany(company: Company): void { saveOne(KEYS.company, company) }
 
 // Vehicles
 export function getVehicles(): Vehicle[] { return load(KEYS.vehicles, DEMO_VEHICLES) }

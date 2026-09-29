@@ -4,6 +4,7 @@ import { usePathname } from 'next/navigation'
 
 const navItems = [
   { href: '/app', label: 'Painel', icon: 'fa-gauge' },
+  { href: '/app/empresa', label: 'Empresa', icon: 'fa-building' },
   { href: '/app/pedidos', label: 'Pedidos', icon: 'fa-box' },
   { href: '/app/projetos', label: 'Projetos Piloto', icon: 'fa-flask' },
   { href: '/app/veiculos', label: 'Veículos', icon: 'fa-truck' },
