@@ -47,6 +47,7 @@ export default function VeiculosPage() {
   const [selectedSlotId, setSelectedSlotId] = useState<string | null>(null)
   const [mountTireId, setMountTireId] = useState('')
   const [mountDate, setMountDate] = useState(new Date().toISOString().split('T')[0])
+  const [viewDate, setViewDate] = useState(new Date().toISOString().split('T')[0])
   const [mountError, setMountError] = useState('')
 
   useEffect(() => {
@@ -62,40 +63,59 @@ export default function VeiculosPage() {
     setVisualizing(null)
   }
 
-  function openVehicleDrawing(vehicle: Vehicle) {
+  function getMountedTiresAtDate(vehicle: Vehicle, date: string): VehicleMountedTire[] {
     const tires = getTires()
     const applications = getApplications()
     const occurrences = getOccurrences()
-    const today = new Date().toISOString().split('T')[0]
 
-    const mounted = getPositionHistory()
-      .filter(entry => entry.vehicleId === vehicle.id && !entry.dataFinal)
+    return getPositionHistory()
+      .filter(
+        entry =>
+          entry.vehicleId === vehicle.id &&
+          entry.dataInicial <= date &&
+          (!entry.dataFinal || date < entry.dataFinal)
+      )
       .map(entry => {
         const tire = tires.find(item => item.id === entry.tireId)
         const slotId = entry.slotId || getSlotIdFromPosition(entry.posicao)
         if (!tire || !slotId) return null
 
+        const application = getApplicationForTireCycleAtDate(
+          tire.id,
+          date,
+          applications,
+          occurrences
+        )
+
         return {
           slotId,
           tire,
-          hasFlatFree: Boolean(
-            getApplicationForTireCycleAtDate(
-              tire.id,
-              today,
-              applications,
-              occurrences
-            )
-          ),
+          hasFlatFree: Boolean(application && application.data <= date),
         } satisfies VehicleMountedTire
       })
       .filter((item): item is VehicleMountedTire => item !== null)
+  }
 
-    setMountedTires(mounted)
+  function openVehicleDrawing(vehicle: Vehicle) {
+    const today = new Date().toISOString().split('T')[0]
+
+    setMountedTires(getMountedTiresAtDate(vehicle, today))
+    setViewDate(today)
     setVisualizing(vehicle)
     setSelectedSlotId(null)
     setMountTireId('')
     setMountError('')
     setShowForm(false)
+  }
+
+  function handleViewDateChange(date: string) {
+    if (!visualizing || !date) return
+
+    setViewDate(date)
+    setMountedTires(getMountedTiresAtDate(visualizing, date))
+    setSelectedSlotId(null)
+    setMountTireId('')
+    setMountError('')
   }
 
   function handleSelectSlot(slotId: string) {
@@ -127,10 +147,12 @@ export default function VeiculosPage() {
     }
 
     savePositionHistory(result.history)
+    const today = new Date().toISOString().split('T')[0]
+    setViewDate(today)
+    setMountedTires(getMountedTiresAtDate(visualizing, today))
     setSelectedSlotId(null)
     setMountTireId('')
     setMountError('')
-    openVehicleDrawing(visualizing)
   }
 
   function openEdit(v: Vehicle) {
@@ -257,14 +279,67 @@ export default function VeiculosPage() {
             </div>
             <button onClick={() => setVisualizing(null)} className="btn btn-outline btn-sm">Fechar desenho</button>
           </div>
+          <div
+            style={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'end',
+              gap: '1rem',
+              flexWrap: 'wrap',
+              marginBottom: '1rem',
+            }}
+          >
+            <div className="form-group" style={{ marginBottom: 0, minWidth: '220px' }}>
+              <label className="form-label">Visualizar montagem em</label>
+              <input
+                type="date"
+                className="form-control"
+                value={viewDate}
+                max={new Date().toISOString().split('T')[0]}
+                onChange={e => handleViewDateChange(e.target.value)}
+              />
+            </div>
+            {viewDate !== new Date().toISOString().split('T')[0] && (
+              <button
+                type="button"
+                className="btn btn-outline btn-sm"
+                onClick={() =>
+                  handleViewDateChange(new Date().toISOString().split('T')[0])
+                }
+              >
+                Voltar para hoje
+              </button>
+            )}
+          </div>
+
+          {viewDate !== new Date().toISOString().split('T')[0] && (
+            <div
+              style={{
+                marginBottom: '1rem',
+                padding: '0.65rem 0.85rem',
+                borderRadius: '8px',
+                background: 'rgba(59,130,246,0.08)',
+                border: '1px solid rgba(59,130,246,0.2)',
+                color: 'var(--text-secondary)',
+                fontSize: '0.8rem',
+              }}
+            >
+              Visualização histórica em <strong>{viewDate}</strong>. O desenho fica somente para consulta nesta data.
+            </div>
+          )}
+
           <VehicleTopView
             vehicle={visualizing}
             mountedTires={mountedTires}
-            selectedSlotId={selectedSlotId}
-            onSelectFreeSlot={handleSelectSlot}
+            selectedSlotId={viewDate === new Date().toISOString().split('T')[0] ? selectedSlotId : null}
+            onSelectFreeSlot={
+              viewDate === new Date().toISOString().split('T')[0]
+                ? handleSelectSlot
+                : undefined
+            }
           />
 
-          {selectedSlotId && (
+          {viewDate === new Date().toISOString().split('T')[0] && selectedSlotId && (
             <div
               style={{
                 marginTop: '1.25rem',
