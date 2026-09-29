@@ -42,6 +42,11 @@ function getEffectiveOrderStatus(order: Order) {
     : order.status
 }
 
+function getStatusAfterPendingResolution(order: Order, remainingPendingCount: number): Order['status'] {
+  if (order.status !== 'pendente_dosagem') return order.status
+  return remainingPendingCount > 0 ? 'pendente_dosagem' : 'solicitado'
+}
+
 function getPendingReasonText(item: PendingOrderItem) {
   switch (item.reason) {
     case 'historical_conflict':
@@ -110,7 +115,7 @@ export default function PedidosPage() {
       itens,
       ...(itensPendentes.length > 0 ? { itensPendentes } : {}),
       quantidadeEstimadaProduto,
-      status: itensPendentes.length > 0 ? 'pendente_dosagem' : 'solicitado',
+      status: getStatusAfterPendingResolution(selected, itensPendentes.length),
     }
     const updatedOrders = orders.map(order => order.id === updatedOrder.id ? updatedOrder : order)
 
@@ -189,24 +194,7 @@ export default function PedidosPage() {
         calculatedDoseBeforeRounding: calculation.recommendedOunces,
       },
     }
-    const itens: OrderItem[] = [...selected.itens, resolvedItem]
-    const itensPendentes = selected.itensPendentes.filter((_, i) => i !== index)
-    const quantidadeEstimadaProduto = itens.reduce((sum, item) => sum + item.totalOz, 0)
-    const { itensPendentes: _previousPendingItems, ...orderWithoutPendingItems } = selected
-
-    const updatedOrder: Order = {
-      ...orderWithoutPendingItems,
-      itens,
-      ...(itensPendentes.length > 0 ? { itensPendentes } : {}),
-      quantidadeEstimadaProduto,
-      status: itensPendentes.length > 0 ? 'pendente_dosagem' : 'solicitado',
-    }
-    const updatedOrders = orders.map(order => order.id === updatedOrder.id ? updatedOrder : order)
-
-    saveOrders(updatedOrders)
-    setOrders(updatedOrders)
-    setSelected(updatedOrder)
-    setPendingTechnicalInputs({})
+    persistResolvedPending(index, resolvedItem)
   }
 
   return (
