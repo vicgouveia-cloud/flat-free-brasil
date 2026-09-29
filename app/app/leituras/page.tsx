@@ -16,6 +16,8 @@ import {
   getVehicleSlotLabel,
 } from '@/lib/vehicle-layout'
 
+const today = new Date().toISOString().split('T')[0]
+
 export default function LeiturasPage() {
   const [readings, setReadings] = useState<TireReading[]>([])
   const [tires, setTires] = useState(getTires())
@@ -24,7 +26,7 @@ export default function LeiturasPage() {
   const [saveError, setSaveError] = useState('')
   const [form, setForm] = useState<Omit<TireReading, 'id'>>({
     tireId: '',
-    data: new Date().toISOString().split('T')[0],
+    data: today,
     vehicleId: '',
     quilometragemVeiculo: 0,
     sulco: 0,
@@ -91,6 +93,11 @@ export default function LeiturasPage() {
   function handleSave() {
     if (!form.tireId || !form.data || !form.quilometragemVeiculo || !form.sulco) return
 
+    if (form.data > today) {
+      setSaveError('A data da leitura não pode estar no futuro.')
+      return
+    }
+
     const { position, slotId } = getMountingForReading(form.tireId, form.data)
     if (!position || !slotId) {
       setSaveError(
@@ -113,7 +120,7 @@ export default function LeiturasPage() {
     setSaveError('')
     setShowForm(false)
     setForm({
-      tireId: '', data: new Date().toISOString().split('T')[0],
+      tireId: '', data: today,
       vehicleId: '', quilometragemVeiculo: 0, sulco: 0,
       pressao: undefined, posicaoAtual: '', observacoes: '',
     })
@@ -129,6 +136,16 @@ export default function LeiturasPage() {
         <button
           onClick={() => {
             setSaveError('')
+            setForm({
+              tireId: '',
+              data: today,
+              vehicleId: '',
+              quilometragemVeiculo: 0,
+              sulco: 0,
+              pressao: undefined,
+              posicaoAtual: '',
+              observacoes: '',
+            })
             setShowForm(true)
           }}
           className="btn btn-primary btn-sm"
@@ -162,6 +179,7 @@ export default function LeiturasPage() {
               <input
                 type="date"
                 className="form-control"
+                max={today}
                 value={form.data}
                 onChange={e => handleDateChange(e.target.value)}
               />

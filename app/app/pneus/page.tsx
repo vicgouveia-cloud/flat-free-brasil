@@ -223,6 +223,11 @@ export default function PneusPage() {
   function handleSaveApplication() {
     if (!selected) return
 
+    if (appForm.data > today) {
+      setApplicationError('A data da aplicação não pode estar no futuro.')
+      return
+    }
+
     const currentTire = getTires().find(tire => tire.id === selected.id)
     if (!currentTire || currentTire.status !== 'em_operacao') {
       setApplicationError(
@@ -558,6 +563,7 @@ export default function PneusPage() {
                     <input
                       type="date"
                       className="form-control"
+                      max={today}
                       value={appForm.data}
                       onChange={e => syncApplicationMounting(selected.id, e.target.value)}
                     />
