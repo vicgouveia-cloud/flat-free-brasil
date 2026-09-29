@@ -57,6 +57,7 @@ export default function PneusPage() {
   const [form, setForm] = useState<Omit<Tire, 'id'>>(EMPTY_TIRE)
   const [showForm, setShowForm] = useState(false)
   const [editing, setEditing] = useState<Tire | null>(null)
+  const [tireSaveError, setTireSaveError] = useState('')
 
   // For detail view
   const [applications, setApplications] = useState(getApplications())
@@ -93,12 +94,14 @@ export default function PneusPage() {
   function openNew() {
     setEditing(null)
     setForm(EMPTY_TIRE)
+    setTireSaveError('')
     setShowForm(true)
     setSelected(null)
   }
 
   function openEdit(t: Tire) {
     setEditing(t)
+    setTireSaveError('')
     setForm({
       companyId: t.companyId,
       identificacaoInterna: t.identificacaoInterna,
@@ -118,6 +121,32 @@ export default function PneusPage() {
   function handleSave() {
     if (!form.identificacaoInterna || !form.fabricante || !form.medida.trim()) return
 
+    if (editing) {
+      if (editing.status !== 'recapagem' && form.status === 'recapagem') {
+        setTireSaveError(
+          'Para enviar o pneu à recapagem, registre uma ocorrência do tipo Recapagem. Esse fluxo encerra corretamente o ciclo e a montagem atual.'
+        )
+        return
+      }
+
+      if (editing.status === 'recapagem' && form.status === 'em_operacao') {
+        setTireSaveError(
+          'Para devolver o pneu à operação após a recapagem, registre a ocorrência Retorno da recapagem.'
+        )
+        return
+      }
+
+      const isMounted = getPositionHistory().some(
+        entry => entry.tireId === editing.id && !entry.dataFinal
+      )
+      if (isMounted && form.status !== 'em_operacao') {
+        setTireSaveError(
+          'Este pneu ainda está montado. Registre uma Retirada antes de alterar manualmente o status para Estoque ou Descartado.'
+        )
+        return
+      }
+    }
+
     const catalogEntry = findCatalogEntry(form.medida)
     const medida = catalogEntry?.canonicalMeasure || normalizeMeasure(form.medida)
     const normalizedForm = { ...form, medida }
@@ -130,6 +159,7 @@ export default function PneusPage() {
     }
     saveTires(updated)
     setTires(updated)
+    setTireSaveError('')
     setShowForm(false)
   }
 
@@ -331,9 +361,22 @@ export default function PneusPage() {
               </select>
             </div>
           </div>
+          {tireSaveError && (
+            <p style={{ marginTop: '1rem', color: '#dc2626', fontSize: '0.8rem' }}>
+              {tireSaveError}
+            </p>
+          )}
           <div style={{ display: 'flex', gap: '0.75rem', marginTop: '1rem' }}>
             <button onClick={handleSave} className="btn btn-primary"><i className="fas fa-check" /> Salvar</button>
-            <button onClick={() => setShowForm(false)} className="btn btn-outline">Cancelar</button>
+            <button
+              onClick={() => {
+                setTireSaveError('')
+                setShowForm(false)
+              }}
+              className="btn btn-outline"
+            >
+              Cancelar
+            </button>
           </div>
         </div>
       )}
