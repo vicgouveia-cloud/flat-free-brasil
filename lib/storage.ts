@@ -107,6 +107,74 @@ export function savePositionHistory(h: TirePositionHistory[]): void {
   save(KEYS.positionHistory, h)
 }
 
+interface PositionEvent {
+  tireId: string
+  vehicleId: string
+  posicao: string
+  data: string
+}
+
+function updatePositionHistory(
+  event: PositionEvent,
+  allHistory: TirePositionHistory[]
+): TirePositionHistory[] {
+  const openEntry = allHistory.find(
+    h => h.tireId === event.tireId && !h.dataFinal
+  )
+
+  if (!openEntry) {
+    const newEntry: TirePositionHistory = {
+      id: uuid(),
+      tireId: event.tireId,
+      vehicleId: event.vehicleId,
+      posicao: event.posicao,
+      dataInicial: event.data,
+    }
+    return [...allHistory, newEntry]
+  }
+
+  const sameVehicle = openEntry.vehicleId === event.vehicleId
+  const samePosition = openEntry.posicao === event.posicao
+
+  if (sameVehicle && samePosition) {
+    return allHistory
+  }
+
+  const closed = allHistory.map(h =>
+    h.id === openEntry.id ? { ...h, dataFinal: event.data } : h
+  )
+  const newEntry: TirePositionHistory = {
+    id: uuid(),
+    tireId: event.tireId,
+    vehicleId: event.vehicleId,
+    posicao: event.posicao,
+    dataInicial: event.data,
+  }
+  return [...closed, newEntry]
+}
+
+/**
+ * Use the application itself as the treated tire's operational baseline.
+ * Old locally stored applications may not have vehicle/position data; in that
+ * case the history remains unchanged until a reading supplies that context.
+ */
+export function updatePositionHistoryOnApplication(
+  application: FlatFreeApplication,
+  allHistory: TirePositionHistory[]
+): TirePositionHistory[] {
+  if (!application.vehicleId || !application.posicaoInicial) return allHistory
+
+  return updatePositionHistory(
+    {
+      tireId: application.tireId,
+      vehicleId: application.vehicleId,
+      posicao: application.posicaoInicial,
+      data: application.data,
+    },
+    allHistory
+  )
+}
+
 /**
  * Call this whenever a new reading is saved.
  * Handles opening/closing position history entries automatically.
@@ -115,40 +183,13 @@ export function updatePositionHistoryOnReading(
   reading: TireReading,
   allHistory: TirePositionHistory[]
 ): TirePositionHistory[] {
-  const openEntry = allHistory.find(
-    h => h.tireId === reading.tireId && !h.dataFinal
-  )
-
-  if (!openEntry) {
-    // No history yet — create initial entry
-    const newEntry: TirePositionHistory = {
-      id: uuid(),
+  return updatePositionHistory(
+    {
       tireId: reading.tireId,
       vehicleId: reading.vehicleId,
       posicao: reading.posicaoAtual,
-      dataInicial: reading.data,
-    }
-    return [...allHistory, newEntry]
-  }
-
-  const sameVehicle = openEntry.vehicleId === reading.vehicleId
-  const samePosition = openEntry.posicao === reading.posicaoAtual
-
-  if (sameVehicle && samePosition) {
-    // No change — leave as is
-    return allHistory
-  }
-
-  // Position or vehicle changed — close old entry and open new one
-  const closed = allHistory.map(h =>
-    h.id === openEntry.id ? { ...h, dataFinal: reading.data } : h
+      data: reading.data,
+    },
+    allHistory
   )
-  const newEntry: TirePositionHistory = {
-    id: uuid(),
-    tireId: reading.tireId,
-    vehicleId: reading.vehicleId,
-    posicao: reading.posicaoAtual,
-    dataInicial: reading.data,
-  }
-  return [...closed, newEntry]
 }

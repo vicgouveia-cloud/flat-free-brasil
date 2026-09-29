@@ -65,6 +65,8 @@ export interface FlatFreeApplication {
   tireId: string
   data: string
   doseAplicada: number
+  vehicleId?: string
+  posicaoInicial?: string
   lote?: string
   responsavel?: string
   quilometragemAplicacao: number

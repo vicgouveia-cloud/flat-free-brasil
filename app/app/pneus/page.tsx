@@ -2,7 +2,8 @@
 import { useEffect, useState } from 'react'
 import {
   getTires, saveTires, getApplications, saveApplications,
-  getReadings, getPositionHistory, getVehicles, uuid
+  getReadings, getPositionHistory, savePositionHistory,
+  updatePositionHistoryOnApplication, getVehicles, uuid
 } from '@/lib/storage'
 import type { Tire, TireCondition, TireStatus, FlatFreeApplication, TirePositionHistory } from '@/lib/types'
 import { DOSAGE_CATALOG, findCatalogEntry, getDosageOz, normalizeMeasure } from '@/lib/dosage'
@@ -49,6 +50,8 @@ export default function PneusPage() {
       tireId: '',
       data: today,
       doseAplicada: 0,
+      vehicleId: '',
+      posicaoInicial: '',
       lote: '',
       responsavel: '',
       quilometragemAplicacao: 0,
@@ -119,6 +122,8 @@ export default function PneusPage() {
       tireId: t.id,
       data: today,
       doseAplicada: suggestedOz,
+      vehicleId: '',
+      posicaoInicial: '',
       lote: '',
       responsavel: '',
       quilometragemAplicacao: 0,
@@ -133,11 +138,24 @@ export default function PneusPage() {
     if (!selected) return
     const existing = applications.filter(a => a.tireId === selected.id)
     if (existing.length > 0) return
-    if (!appForm.tireId || !appForm.quilometragemAplicacao || !appForm.sulcoInicial || !appForm.doseAplicada) return
+    if (
+      !appForm.tireId ||
+      !appForm.vehicleId ||
+      !appForm.posicaoInicial ||
+      !appForm.quilometragemAplicacao ||
+      !appForm.sulcoInicial ||
+      !appForm.doseAplicada
+    ) return
+
     const newApp: FlatFreeApplication = { id: uuid(), ...appForm }
     const updated = [...applications, newApp]
     saveApplications(updated)
     setApplications(updated)
+
+    const updatedHistory = updatePositionHistoryOnApplication(newApp, getPositionHistory())
+    savePositionHistory(updatedHistory)
+    setPosHistory(updatedHistory)
+
     setShowAppForm(false)
   }
 
@@ -334,6 +352,31 @@ export default function PneusPage() {
                     <input type="date" className="form-control" value={appForm.data} onChange={e => setAppForm(p => ({ ...p, data: e.target.value }))} />
                   </div>
                   <div className="form-group">
+                    <label className="form-label">Veículo *</label>
+                    <select
+                      className="form-control"
+                      required
+                      value={appForm.vehicleId || ''}
+                      onChange={e => setAppForm(p => ({ ...p, vehicleId: e.target.value }))}
+                    >
+                      <option value="">Selecionar veículo</option>
+                      {vehicles.filter(v => v.status === 'ativo').map(v => (
+                        <option key={v.id} value={v.id}>{v.identificacaoInterna}</option>
+                      ))}
+                    </select>
+                  </div>
+                  <div className="form-group">
+                    <label className="form-label">Posição inicial *</label>
+                    <input
+                      type="text"
+                      className="form-control"
+                      required
+                      placeholder="Ex.: Dianteiro Direito"
+                      value={appForm.posicaoInicial || ''}
+                      onChange={e => setAppForm(p => ({ ...p, posicaoInicial: e.target.value }))}
+                    />
+                  </div>
+                  <div className="form-group">
                     <label className="form-label">Quantidade Aplicada (fl oz) *</label>
                     <input type="number" step="0.5" className="form-control" value={appForm.doseAplicada || ''} onChange={e => setAppForm(p => ({ ...p, doseAplicada: +e.target.value }))} />
                   </div>
@@ -373,11 +416,13 @@ export default function PneusPage() {
               <p style={{ color: 'var(--text-muted)', fontSize: '0.875rem' }}>Nenhuma aplicação registrada.</p>
             ) : (
               <table className="table">
-                <thead><tr><th>Data</th><th>Aplicado (oz)</th><th>Km Aplicação</th><th>Sulco Inicial</th><th>Responsável</th></tr></thead>
+                <thead><tr><th>Data</th><th>Veículo</th><th>Posição</th><th>Aplicado (oz)</th><th>Km Aplicação</th><th>Sulco Inicial</th><th>Responsável</th></tr></thead>
                 <tbody>
                   {tireApplications.map(a => (
                     <tr key={a.id}>
                       <td>{a.data}</td>
+                      <td>{a.vehicleId ? getVehicleName(a.vehicleId) : '—'}</td>
+                      <td>{a.posicaoInicial || '—'}</td>
                       <td><strong>{a.doseAplicada} oz</strong></td>
                       <td>{a.quilometragemAplicacao.toLocaleString('pt-BR')}</td>
                       <td>{a.sulcoInicial} mm</td>
