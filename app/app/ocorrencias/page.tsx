@@ -55,7 +55,7 @@ export default function OcorrenciasPage() {
 
     let updatedPositionHistory = getPositionHistory()
 
-    if (form.tipo === 'recapagem') {
+    if (form.tipo === 'recapagem' || form.tipo === 'retirada') {
       const closeResult = closeTirePositionAtDate(
         form.tireId,
         form.data,
@@ -64,7 +64,9 @@ export default function OcorrenciasPage() {
 
       if (!closeResult.ok) {
         setSaveError(
-          'A data da recapagem não pode ser anterior ao início da montagem atual deste pneu.'
+          form.tipo === 'recapagem'
+            ? 'A data da recapagem não pode ser anterior ao início da montagem atual deste pneu.'
+            : 'A data da retirada não pode ser anterior ao início da montagem atual deste pneu.'
         )
         return
       }
@@ -85,9 +87,11 @@ export default function OcorrenciasPage() {
     saveOccurrences(updated)
     setOccurrences(updated)
 
-    if (form.tipo === 'recapagem') {
+    if (form.tipo === 'recapagem' || form.tipo === 'retirada') {
       savePositionHistory(updatedPositionHistory)
+    }
 
+    if (form.tipo === 'recapagem') {
       const updatedTires = tires.map(tire =>
         tire.id === form.tireId
           ? { ...tire, status: 'recapagem' as const }
@@ -215,7 +219,7 @@ export default function OcorrenciasPage() {
             </div>
           </div>
 
-          {form.tipo === 'recapagem' && (
+          {(form.tipo === 'recapagem' || form.tipo === 'retirada') && (
             <div
               style={{
                 marginTop: '0.75rem',
@@ -227,7 +231,9 @@ export default function OcorrenciasPage() {
                 fontSize: '0.8rem',
               }}
             >
-              A recapagem encerra o ciclo atual do pneu, fecha sua montagem vigente nesta data e altera o status para Recapagem.
+              {form.tipo === 'recapagem'
+                ? 'A recapagem encerra o ciclo atual do pneu, fecha sua montagem vigente nesta data e altera o status para Recapagem.'
+                : 'A retirada fecha a montagem vigente do pneu nesta data. O ciclo do pneu e seu status permanecem inalterados, permitindo uma nova montagem posteriormente.'}
             </div>
           )}
 
