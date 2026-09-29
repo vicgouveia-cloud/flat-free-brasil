@@ -5,7 +5,7 @@ import {
   getReadings, getPositionHistory, getVehicles, uuid
 } from '@/lib/storage'
 import type { Tire, TireCondition, TireStatus, FlatFreeApplication, TirePositionHistory } from '@/lib/types'
-import { DOSAGE_TABLE, getDosageOz } from '@/lib/dosage'
+import { DOSAGE_CATALOG, findCatalogEntry, getDosageOz, normalizeMeasure } from '@/lib/dosage'
 
 const EMPTY_TIRE: Omit<Tire, 'id'> = {
   companyId: 'demo-company-1',
@@ -89,12 +89,17 @@ export default function PneusPage() {
   }
 
   function handleSave() {
-    if (!form.identificacaoInterna || !form.fabricante) return
+    if (!form.identificacaoInterna || !form.fabricante || !form.medida.trim()) return
+
+    const catalogEntry = findCatalogEntry(form.medida)
+    const medida = catalogEntry?.canonicalMeasure || normalizeMeasure(form.medida)
+    const normalizedForm = { ...form, medida }
+
     let updated: Tire[]
     if (editing) {
-      updated = tires.map(t => t.id === editing.id ? { ...editing, ...form } : t)
+      updated = tires.map(t => t.id === editing.id ? { ...editing, ...normalizedForm } : t)
     } else {
-      updated = [...tires, { id: uuid(), ...form }]
+      updated = [...tires, { id: uuid(), ...normalizedForm }]
     }
     saveTires(updated)
     setTires(updated)
@@ -185,11 +190,24 @@ export default function PneusPage() {
               <input type="text" className="form-control" value={form.modelo} onChange={e => setForm(p => ({ ...p, modelo: e.target.value }))} />
             </div>
             <div className="form-group">
-              <label className="form-label">Medida</label>
-              <select className="form-control" value={form.medida} onChange={e => setForm(p => ({ ...p, medida: e.target.value }))}>
-                {DOSAGE_TABLE.map(d => <option key={d.measure} value={d.measure}>{d.measure}</option>)}
-                <option value="outro">Outra medida</option>
-              </select>
+              <label className="form-label">Medida *</label>
+              <input
+                type="text"
+                className="form-control"
+                list="tire-measures"
+                required
+                value={form.medida}
+                onChange={e => setForm(p => ({ ...p, medida: e.target.value }))}
+                placeholder="Ex.: 295/80 R22,5"
+              />
+              <datalist id="tire-measures">
+                {DOSAGE_CATALOG.map(entry => (
+                  <option key={entry.canonicalMeasure} value={entry.canonicalMeasure} />
+                ))}
+              </datalist>
+              <span style={{ display: 'block', marginTop: '0.35rem', fontSize: '0.72rem', color: 'var(--text-muted)' }}>
+                Se a medida não estiver nas sugestões, digite a medida real do pneu.
+              </span>
             </div>
             <div className="form-group">
               <label className="form-label">Condição</label>
