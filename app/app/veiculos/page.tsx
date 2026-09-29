@@ -5,15 +5,17 @@ import {
   getOccurrences,
   getPositionHistory,
   getTires,
+  mountTireToVehicleSlot,
   getUnits,
   getVehicles,
+  savePositionHistory,
   saveVehicles,
   uuid,
 } from '@/lib/storage'
 import VehicleTopView, { type VehicleMountedTire } from '@/components/VehicleTopView'
 import { VEHICLE_LAYOUT_LABELS, getSlotIdFromPosition, inferVehicleLayoutType } from '@/lib/vehicle-layout'
 import { getApplicationForTireCycleAtDate } from '@/lib/tire-lifecycle'
-import type { Unit, Vehicle, VehicleLayoutType, VehicleStatus } from '@/lib/types'
+import type { Tire, Unit, Vehicle, VehicleLayoutType, VehicleStatus } from '@/lib/types'
 
 const EMPTY_VEHICLE: Omit<Vehicle, 'id'> = {
   companyId: 'demo-company-1',
@@ -41,10 +43,16 @@ export default function VeiculosPage() {
   const [showForm, setShowForm] = useState(false)
   const [visualizing, setVisualizing] = useState<Vehicle | null>(null)
   const [mountedTires, setMountedTires] = useState<VehicleMountedTire[]>([])
+  const [tires, setTires] = useState<Tire[]>([])
+  const [selectedSlotId, setSelectedSlotId] = useState<string | null>(null)
+  const [mountTireId, setMountTireId] = useState('')
+  const [mountDate, setMountDate] = useState(new Date().toISOString().split('T')[0])
+  const [mountError, setMountError] = useState('')
 
   useEffect(() => {
     setVehicles(getVehicles())
     setUnits(getUnits())
+    setTires(getTires())
   }, [])
 
   function openNew() {
@@ -84,7 +92,45 @@ export default function VeiculosPage() {
 
     setMountedTires(mounted)
     setVisualizing(vehicle)
+    setSelectedSlotId(null)
+    setMountTireId('')
+    setMountError('')
     setShowForm(false)
+  }
+
+  function handleSelectSlot(slotId: string) {
+    setSelectedSlotId(slotId)
+    setMountTireId('')
+    setMountError('')
+  }
+
+  function handleMountTire() {
+    if (!visualizing || !selectedSlotId || !mountTireId || !mountDate) return
+
+    const currentHistory = getPositionHistory()
+    const result = mountTireToVehicleSlot(
+      mountTireId,
+      visualizing.id,
+      selectedSlotId,
+      mountDate,
+      currentHistory
+    )
+
+    if (!result.ok) {
+      const messages = {
+        slot_occupied: 'Esta posição já está ocupada.',
+        invalid_date: 'A data não pode ser anterior ao início da montagem atual deste pneu.',
+        already_mounted: 'Este pneu já está montado nesta posição.',
+      }
+      setMountError(result.error ? messages[result.error] : 'Não foi possível atualizar a montagem.')
+      return
+    }
+
+    savePositionHistory(result.history)
+    setSelectedSlotId(null)
+    setMountTireId('')
+    setMountError('')
+    openVehicleDrawing(visualizing)
   }
 
   function openEdit(v: Vehicle) {
@@ -211,7 +257,96 @@ export default function VeiculosPage() {
             </div>
             <button onClick={() => setVisualizing(null)} className="btn btn-outline btn-sm">Fechar desenho</button>
           </div>
-          <VehicleTopView vehicle={visualizing} mountedTires={mountedTires} />
+          <VehicleTopView
+            vehicle={visualizing}
+            mountedTires={mountedTires}
+            selectedSlotId={selectedSlotId}
+            onSelectFreeSlot={handleSelectSlot}
+          />
+
+          {selectedSlotId && (
+            <div
+              style={{
+                marginTop: '1.25rem',
+                padding: '1rem',
+                border: '1px solid var(--border-color)',
+                borderRadius: '10px',
+                background: 'var(--bg-surface-elevated)',
+              }}
+            >
+              <h4 style={{ fontWeight: 700, marginBottom: '0.75rem' }}>
+                Montar pneu em {selectedSlotId}
+              </h4>
+              <div
+                style={{
+                  display: 'grid',
+                  gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
+                  gap: '0.75rem',
+                }}
+              >
+                <div className="form-group" style={{ marginBottom: 0 }}>
+                  <label className="form-label">Pneu *</label>
+                  <select
+                    className="form-control"
+                    value={mountTireId}
+                    onChange={e => {
+                      setMountTireId(e.target.value)
+                      setMountError('')
+                    }}
+                  >
+                    <option value="">Selecionar pneu</option>
+                    {tires
+                      .filter(tire => tire.status === 'em_operacao')
+                      .map(tire => (
+                        <option key={tire.id} value={tire.id}>
+                          {tire.identificacaoInterna} — {tire.medida}
+                        </option>
+                      ))}
+                  </select>
+                </div>
+                <div className="form-group" style={{ marginBottom: 0 }}>
+                  <label className="form-label">Data da montagem *</label>
+                  <input
+                    type="date"
+                    className="form-control"
+                    value={mountDate}
+                    onChange={e => {
+                      setMountDate(e.target.value)
+                      setMountError('')
+                    }}
+                  />
+                </div>
+              </div>
+
+              {mountError && (
+                <p style={{ marginTop: '0.75rem', color: '#dc2626', fontSize: '0.8rem' }}>
+                  {mountError}
+                </p>
+              )}
+
+              <div style={{ display: 'flex', gap: '0.75rem', marginTop: '0.9rem', flexWrap: 'wrap' }}>
+                <button
+                  type="button"
+                  className="btn btn-primary btn-sm"
+                  disabled={!mountTireId || !mountDate}
+                  onClick={handleMountTire}
+                >
+                  Confirmar montagem
+                </button>
+                <button
+                  type="button"
+                  className="btn btn-outline btn-sm"
+                  onClick={() => {
+                    setSelectedSlotId(null)
+                    setMountTireId('')
+                    setMountError('')
+                  }}
+                >
+                  Cancelar
+                </button>
+              </div>
+            </div>
+          )}
         </div>
       )}
 

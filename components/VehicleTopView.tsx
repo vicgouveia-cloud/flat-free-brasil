@@ -12,15 +12,19 @@ export interface VehicleMountedTire {
 function TireSlot({
   label,
   mounted,
+  selected,
+  onSelect,
 }: {
   label: string
   mounted?: VehicleMountedTire
+  selected?: boolean
+  onSelect?: () => void
 }) {
   const title = mounted
     ? `${label} • ${mounted.tire.identificacaoInterna} • ${mounted.hasFlatFree ? 'Com Flat Free' : 'Sem aplicação Flat Free no ciclo atual'}`
     : `${label} • posição livre`
 
-  return (
+  const content = (
     <div
       title={title}
       style={{
@@ -28,7 +32,9 @@ function TireSlot({
         minHeight: '58px',
         padding: '0.25rem 0.15rem',
         borderRadius: '8px',
-        border: mounted
+        border: selected
+          ? '2px solid var(--color-safety-orange)'
+          : mounted
           ? mounted.hasFlatFree
             ? '2px solid var(--color-safety-orange)'
             : '2px solid var(--text-secondary)'
@@ -57,14 +63,31 @@ function TireSlot({
       )}
     </div>
   )
+
+  if (mounted || !onSelect) return content
+
+  return (
+    <button
+      type="button"
+      onClick={onSelect}
+      aria-label={`Selecionar posição ${label}`}
+      style={{ background: 'none', border: 0, padding: 0, cursor: 'pointer' }}
+    >
+      {content}
+    </button>
+  )
 }
 
 export default function VehicleTopView({
   vehicle,
   mountedTires = [],
+  selectedSlotId,
+  onSelectFreeSlot,
 }: {
   vehicle: Vehicle
   mountedTires?: VehicleMountedTire[]
+  selectedSlotId?: string | null
+  onSelectFreeSlot?: (slotId: string) => void
 }) {
   const layout = getVehicleLayout(vehicle)
   const isTrailer = layout.type === 'semi_trailer' || layout.type === 'trailer'
@@ -165,7 +188,13 @@ export default function VehicleTopView({
                 >
                   <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '5px' }}>
                     {left.map(slot => (
-                      <TireSlot key={slot.id} label={slot.id} mounted={mountedBySlot.get(slot.id)} />
+                      <TireSlot
+                        key={slot.id}
+                        label={slot.id}
+                        mounted={mountedBySlot.get(slot.id)}
+                        selected={selectedSlotId === slot.id}
+                        onSelect={mountedBySlot.has(slot.id) ? undefined : () => onSelectFreeSlot?.(slot.id)}
+                      />
                     ))}
                   </div>
 
@@ -199,7 +228,13 @@ export default function VehicleTopView({
 
                   <div style={{ display: 'flex', justifyContent: 'flex-start', gap: '5px' }}>
                     {right.map(slot => (
-                      <TireSlot key={slot.id} label={slot.id} mounted={mountedBySlot.get(slot.id)} />
+                      <TireSlot
+                        key={slot.id}
+                        label={slot.id}
+                        mounted={mountedBySlot.get(slot.id)}
+                        selected={selectedSlotId === slot.id}
+                        onSelect={mountedBySlot.has(slot.id) ? undefined : () => onSelectFreeSlot?.(slot.id)}
+                      />
                     ))}
                   </div>
                 </div>
@@ -210,7 +245,7 @@ export default function VehicleTopView({
       </div>
 
       <p style={{ marginTop: '0.85rem', color: 'var(--text-muted)', fontSize: '0.75rem' }}>
-        A montagem é derivada do histórico de posições. O destaque Flat Free considera somente a aplicação válida no ciclo atual do pneu.
+        A montagem é derivada do histórico de posições. Clique em uma posição livre para montar ou remanejar um pneu. O destaque Flat Free considera somente a aplicação válida no ciclo atual do pneu.
       </p>
     </div>
   )

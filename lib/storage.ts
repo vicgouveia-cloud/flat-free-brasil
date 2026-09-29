@@ -12,6 +12,7 @@ import {
   DEMO_COMPANY, DEMO_UNITS, DEMO_VEHICLES, DEMO_TIRES, DEMO_READINGS, DEMO_APPLICATIONS,
   DEMO_PROJECTS, DEMO_ORDERS, DEMO_POSITION_HISTORY
 } from './demo-data'
+import { getSlotIdFromPosition } from './vehicle-layout'
 
 const KEYS = {
   company: 'ff_company',
@@ -110,6 +111,72 @@ export function getPositionHistory(): TirePositionHistory[] {
 }
 export function savePositionHistory(h: TirePositionHistory[]): void {
   save(KEYS.positionHistory, h)
+}
+
+export interface MountTireToSlotResult {
+  ok: boolean
+  history: TirePositionHistory[]
+  error?: 'slot_occupied' | 'invalid_date' | 'already_mounted'
+}
+
+export function mountTireToVehicleSlot(
+  tireId: string,
+  vehicleId: string,
+  slotId: string,
+  date: string,
+  allHistory: TirePositionHistory[]
+): MountTireToSlotResult {
+  const currentForTire = allHistory.find(
+    entry => entry.tireId === tireId && !entry.dataFinal
+  )
+
+  if (currentForTire && date < currentForTire.dataInicial) {
+    return { ok: false, history: allHistory, error: 'invalid_date' }
+  }
+
+  const currentSlotId = currentForTire
+    ? currentForTire.slotId || getSlotIdFromPosition(currentForTire.posicao)
+    : null
+
+  if (
+    currentForTire &&
+    currentForTire.vehicleId === vehicleId &&
+    currentSlotId === slotId
+  ) {
+    return { ok: false, history: allHistory, error: 'already_mounted' }
+  }
+
+  const occupied = allHistory.some(entry => {
+    if (entry.dataFinal || entry.vehicleId !== vehicleId) return false
+    const entrySlotId = entry.slotId || getSlotIdFromPosition(entry.posicao)
+    return entrySlotId === slotId && entry.tireId !== tireId
+  })
+
+  if (occupied) {
+    return { ok: false, history: allHistory, error: 'slot_occupied' }
+  }
+
+  const closedHistory = currentForTire
+    ? allHistory.map(entry =>
+        entry.id === currentForTire.id
+          ? { ...entry, dataFinal: date }
+          : entry
+      )
+    : allHistory
+
+  const newEntry: TirePositionHistory = {
+    id: uuid(),
+    tireId,
+    vehicleId,
+    slotId,
+    posicao: slotId,
+    dataInicial: date,
+  }
+
+  return {
+    ok: true,
+    history: [...closedHistory, newEntry],
+  }
 }
 
 interface PositionEvent {
