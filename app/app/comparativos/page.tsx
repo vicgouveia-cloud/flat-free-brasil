@@ -2,6 +2,11 @@
 import { useEffect, useState } from 'react'
 import { getProjects, getTires, getApplications, getReadings, getOccurrences } from '@/lib/storage'
 import type { PilotProject, Tire, TireReading, FlatFreeApplication, Occurrence } from '@/lib/types'
+import {
+  getApplicationForTireCycleAtDate,
+  getTireCycleBoundsAtDate,
+  isDateInTireCycle,
+} from '@/lib/tire-lifecycle'
 
 interface TireStats {
   tire: Tire
@@ -27,6 +32,7 @@ interface TireStats {
  */
 function computeTireStats(
   pt: { tireId: string; grupo: 'tratado' | 'controle' },
+  projectStartDate: string,
   tires: Tire[],
   applications: FlatFreeApplication[],
   readings: TireReading[],
@@ -35,12 +41,33 @@ function computeTireStats(
   const tire = tires.find(t => t.id === pt.tireId)
   if (!tire) return null
 
+  const cycleBounds = getTireCycleBoundsAtDate(
+    pt.tireId,
+    projectStartDate,
+    occurrences
+  )
+
   const tireReadings = readings
-    .filter(r => r.tireId === pt.tireId)
+    .filter(
+      r =>
+        r.tireId === pt.tireId &&
+        isDateInTireCycle(r.data, cycleBounds)
+    )
     .sort((a, b) => a.quilometragemVeiculo - b.quilometragemVeiculo || a.data.localeCompare(b.data))
 
-  const app = applications.find(a => a.tireId === pt.tireId) || null
-  const occurrenceCount = occurrences.filter(o => o.tireId === pt.tireId).length
+  const app = getApplicationForTireCycleAtDate(
+    pt.tireId,
+    projectStartDate,
+    applications,
+    occurrences
+  )
+
+  const occurrenceCount = occurrences.filter(
+    o =>
+      o.tireId === pt.tireId &&
+      o.tipo !== 'recapagem' &&
+      isDateInTireCycle(o.data, cycleBounds)
+  ).length
 
   let baseKm: number | null = null
   let baseSulco: number | null = null
@@ -119,7 +146,16 @@ function computeStats(
   occurrences: Occurrence[]
 ): TireStats[] {
   return project.pneus
-    .map(pt => computeTireStats(pt, tires, applications, readings, occurrences))
+    .map(pt =>
+      computeTireStats(
+        pt,
+        project.dataInicio,
+        tires,
+        applications,
+        readings,
+        occurrences
+      )
+    )
     .filter((s): s is TireStats => s !== null)
 }
 

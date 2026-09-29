@@ -3,10 +3,11 @@ import { useEffect, useState } from 'react'
 import {
   getTires, saveTires, getApplications, saveApplications,
   getReadings, getPositionHistory, savePositionHistory,
-  updatePositionHistoryOnApplication, getVehicles, uuid
+  updatePositionHistoryOnApplication, getOccurrences, getVehicles, uuid
 } from '@/lib/storage'
 import type { Tire, TireCondition, TireStatus, FlatFreeApplication, TirePositionHistory } from '@/lib/types'
 import { DOSAGE_CATALOG, findCatalogEntry, getDosageOz, normalizeMeasure } from '@/lib/dosage'
+import { getApplicationForTireCycleAtDate } from '@/lib/tire-lifecycle'
 
 const EMPTY_TIRE: Omit<Tire, 'id'> = {
   companyId: 'demo-company-1',
@@ -136,8 +137,13 @@ export default function PneusPage() {
 
   function handleSaveApplication() {
     if (!selected) return
-    const existing = applications.filter(a => a.tireId === selected.id)
-    if (existing.length > 0) return
+    const existingInCycle = getApplicationForTireCycleAtDate(
+      selected.id,
+      appForm.data,
+      applications,
+      getOccurrences()
+    )
+    if (existingInCycle) return
     if (
       !appForm.tireId ||
       !appForm.vehicleId ||
@@ -170,7 +176,16 @@ export default function PneusPage() {
   const tireApplications = selected
     ? applications.filter(a => a.tireId === selected.id).sort((a, b) => b.data.localeCompare(a.data))
     : []
-  const hasApplication = tireApplications.length > 0
+  const hasApplication = selected
+    ? Boolean(
+        getApplicationForTireCycleAtDate(
+          selected.id,
+          today,
+          applications,
+          getOccurrences()
+        )
+      )
+    : false
   const tirePosHistory = selected
     ? posHistory
         .filter(h => h.tireId === selected.id)
@@ -334,7 +349,7 @@ export default function PneusPage() {
 
             {hasApplication && (
               <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginBottom: '1rem' }}>
-                Aplicação única já realizada. O produto Flat Free é aplicado uma única vez durante a vida útil do pneu.
+                Aplicação já registrada no ciclo atual do pneu. Após uma recapagem, um novo ciclo pode receber ou não uma nova aplicação Flat Free.
               </p>
             )}
 

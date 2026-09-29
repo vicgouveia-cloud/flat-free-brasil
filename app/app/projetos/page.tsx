@@ -1,7 +1,8 @@
 'use client'
 import { useEffect, useState } from 'react'
-import { getProjects, saveProjects, getTires, uuid } from '@/lib/storage'
+import { getProjects, saveProjects, getTires, getApplications, getOccurrences, uuid } from '@/lib/storage'
 import type { PilotProject, PilotProjectStatus, TireGroup } from '@/lib/types'
+import { getApplicationForTireCycleAtDate } from '@/lib/tire-lifecycle'
 
 const statusLabels: Record<PilotProjectStatus, { label: string; cls: string }> = {
   planejamento: { label: 'Planejamento', cls: 'badge-blue' },
@@ -15,6 +16,7 @@ export default function ProjetosPage() {
   const [tires, setTires] = useState(getTires())
   const [selected, setSelected] = useState<PilotProject | null>(null)
   const [showForm, setShowForm] = useState(false)
+  const [activationError, setActivationError] = useState<string | null>(null)
   const [form, setForm] = useState({ nome: '', descricao: '', dataInicio: new Date().toISOString().split('T')[0], criterios: '' })
   const [projectTires, setProjectTires] = useState<{ tireId: string; grupo: TireGroup }[]>([])
 
@@ -57,9 +59,41 @@ export default function ProjetosPage() {
   }
 
   function activateProject(id: string) {
-    const updated = projects.map(p => p.id === id ? { ...p, status: 'ativo' as PilotProjectStatus } : p)
+    const project = projects.find(p => p.id === id)
+    if (!project) return
+
+    const applications = getApplications()
+    const occurrences = getOccurrences()
+    const applicationInProjectCycle = (tireId: string) =>
+      getApplicationForTireCycleAtDate(
+        tireId,
+        project.dataInicio,
+        applications,
+        occurrences
+      )
+
+    const treatedWithoutApplication = project.pneus.filter(
+      pt => pt.grupo === 'tratado' && !applicationInProjectCycle(pt.tireId)
+    )
+    const controlsWithApplication = project.pneus.filter(
+      pt => pt.grupo === 'controle' && Boolean(applicationInProjectCycle(pt.tireId))
+    )
+
+    if (treatedWithoutApplication.length > 0 || controlsWithApplication.length > 0) {
+      const issues = [
+        ...treatedWithoutApplication.map(pt => `${getTireName(pt.tireId)} está no grupo Tratado, mas não possui aplicação Flat Free no ciclo deste projeto.`),
+        ...controlsWithApplication.map(pt => `${getTireName(pt.tireId)} está no grupo Controle, mas possui aplicação Flat Free no ciclo deste projeto.`),
+      ]
+      setActivationError(issues.join(' '))
+      return
+    }
+
+    const updated = projects.map(p =>
+      p.id === id ? { ...p, status: 'ativo' as PilotProjectStatus } : p
+    )
     saveProjects(updated)
     setProjects(updated)
+    setActivationError(null)
     if (selected?.id === id) setSelected(updated.find(p => p.id === id) || null)
   }
 
@@ -140,6 +174,21 @@ export default function ProjetosPage() {
               )}
             </div>
           </div>
+          {activationError && selected.status === 'planejamento' && (
+            <div
+              style={{
+                marginBottom: '1.25rem',
+                padding: '0.75rem 1rem',
+                borderRadius: '8px',
+                background: 'rgba(245,158,11,0.08)',
+                border: '1px solid rgba(245,158,11,0.25)',
+                color: 'var(--text-secondary)',
+                fontSize: '0.82rem',
+              }}
+            >
+              <strong style={{ color: '#d97706' }}>Antes de ativar:</strong> {activationError}
+            </div>
+          )}
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '1rem', marginBottom: '1.5rem' }}>
             <div><span style={{ fontSize: '0.7rem', color: 'var(--text-muted)', fontWeight: 700, textTransform: 'uppercase', display: 'block' }}>Início</span><span>{selected.dataInicio}</span></div>
             <div><span style={{ fontSize: '0.7rem', color: 'var(--text-muted)', fontWeight: 700, textTransform: 'uppercase', display: 'block' }}>Tratados</span><span style={{ fontWeight: 700, color: 'var(--color-safety-orange)' }}>{selected.pneus.filter(p => p.grupo === 'tratado').length} pneus</span></div>
@@ -177,7 +226,17 @@ export default function ProjetosPage() {
                   <td><span className={`badge ${statusLabels[p.status].cls}`}>{statusLabels[p.status].label}</span></td>
                   <td>{p.pneus.filter(t => t.grupo === 'tratado').length}</td>
                   <td>{p.pneus.filter(t => t.grupo === 'controle').length}</td>
-                  <td><button onClick={() => setSelected(p)} className="btn btn-outline btn-sm">Detalhes</button></td>
+                  <td>
+                    <button
+                      onClick={() => {
+                        setActivationError(null)
+                        setSelected(p)
+                      }}
+                      className="btn btn-outline btn-sm"
+                    >
+                      Detalhes
+                    </button>
+                  </td>
                 </tr>
               ))}
             </tbody>
