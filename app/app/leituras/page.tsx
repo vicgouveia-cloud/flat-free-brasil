@@ -2,6 +2,11 @@
 import { useEffect, useState } from 'react'
 import { getTires, getVehicles, getReadings, saveReadings, getPositionHistory, savePositionHistory, updatePositionHistoryOnReading, uuid } from '@/lib/storage'
 import type { TireReading } from '@/lib/types'
+import {
+  getSlotIdFromPosition,
+  getVehicleLayout,
+  getVehicleSlotLabel,
+} from '@/lib/vehicle-layout'
 
 export default function LeiturasPage() {
   const [readings, setReadings] = useState<TireReading[]>([])
@@ -34,6 +39,40 @@ export default function LeiturasPage() {
     const v = vehicles.find(v => v.id === id)
     return v ? v.identificacaoInterna : id
   }
+
+  function handleTireChange(tireId: string) {
+    const currentPosition = getPositionHistory().find(
+      entry => entry.tireId === tireId && !entry.dataFinal
+    )
+    const slotId = currentPosition
+      ? currentPosition.slotId || getSlotIdFromPosition(currentPosition.posicao)
+      : null
+
+    setForm(prev => ({
+      ...prev,
+      tireId,
+      vehicleId: currentPosition?.vehicleId || '',
+      posicaoAtual: slotId || '',
+    }))
+  }
+
+  const selectedVehicle = vehicles.find(vehicle => vehicle.id === form.vehicleId) || null
+  const occupiedSlotIds = new Set(
+    getPositionHistory()
+      .filter(
+        entry =>
+          !entry.dataFinal &&
+          entry.vehicleId === form.vehicleId &&
+          entry.tireId !== form.tireId
+      )
+      .map(entry => entry.slotId || getSlotIdFromPosition(entry.posicao))
+      .filter((slotId): slotId is string => Boolean(slotId))
+  )
+  const availableSlots = selectedVehicle
+    ? getVehicleLayout(selectedVehicle).axles
+        .flatMap(axle => axle.slots)
+        .filter(slot => !occupiedSlotIds.has(slot.id))
+    : []
 
   function handleSave() {
     if (!form.tireId || !form.vehicleId || !form.posicaoAtual || !form.quilometragemVeiculo || !form.sulco) return
@@ -74,14 +113,20 @@ export default function LeiturasPage() {
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '1rem' }}>
             <div className="form-group">
               <label className="form-label">Pneu *</label>
-              <select className="form-control" value={form.tireId} onChange={e => setForm(p => ({ ...p, tireId: e.target.value }))}>
+              <select className="form-control" value={form.tireId} onChange={e => handleTireChange(e.target.value)}>
                 <option value="">Selecionar pneu</option>
                 {tires.map(t => <option key={t.id} value={t.id}>{t.identificacaoInterna} — {t.medida}</option>)}
               </select>
             </div>
             <div className="form-group">
               <label className="form-label">Veículo *</label>
-              <select className="form-control" value={form.vehicleId} onChange={e => setForm(p => ({ ...p, vehicleId: e.target.value }))}>
+              <select
+                className="form-control"
+                value={form.vehicleId}
+                onChange={e =>
+                  setForm(p => ({ ...p, vehicleId: e.target.value, posicaoAtual: '' }))
+                }
+              >
                 <option value="">Selecionar veículo</option>
                 {vehicles.map(v => <option key={v.id} value={v.id}>{v.identificacaoInterna}</option>)}
               </select>
@@ -104,7 +149,21 @@ export default function LeiturasPage() {
             </div>
             <div className="form-group">
               <label className="form-label">Posição Atual *</label>
-              <input type="text" className="form-control" placeholder="Ex: Dianteiro Direito" value={form.posicaoAtual} onChange={e => setForm(p => ({ ...p, posicaoAtual: e.target.value }))} />
+              <select
+                className="form-control"
+                value={form.posicaoAtual}
+                disabled={!selectedVehicle}
+                onChange={e => setForm(p => ({ ...p, posicaoAtual: e.target.value }))}
+              >
+                <option value="">
+                  {selectedVehicle ? 'Selecionar posição' : 'Selecione o veículo primeiro'}
+                </option>
+                {availableSlots.map(slot => (
+                  <option key={slot.id} value={slot.id}>
+                    {getVehicleSlotLabel(slot)} ({slot.id})
+                  </option>
+                ))}
+              </select>
             </div>
             <div className="form-group">
               <label className="form-label">Observações</label>

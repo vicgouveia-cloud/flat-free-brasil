@@ -96,6 +96,18 @@ export function getVehicleLayout(vehicle: Vehicle): VehicleLayoutDefinition {
 }
 
 
+export function getVehicleSlotLabel(slot: VehicleTireSlot): string {
+  const side = slot.side === 'left' ? 'Esquerdo' : 'Direito'
+  const position =
+    slot.position === 'single'
+      ? ''
+      : slot.position === 'inner'
+      ? ' interno'
+      : ' externo'
+
+  return `Eixo ${slot.axle} · ${side}${position}`
+}
+
 export function getSlotIdFromPosition(position: string): string | null {
   const normalized = position.trim().toLowerCase()
 

@@ -195,10 +195,12 @@ function updatePositionHistory(
   )
 
   if (!openEntry) {
+    const eventSlotId = getSlotIdFromPosition(event.posicao)
     const newEntry: TirePositionHistory = {
       id: uuid(),
       tireId: event.tireId,
       vehicleId: event.vehicleId,
+      ...(eventSlotId ? { slotId: eventSlotId } : {}),
       posicao: event.posicao,
       dataInicial: event.data,
     }
@@ -206,7 +208,12 @@ function updatePositionHistory(
   }
 
   const sameVehicle = openEntry.vehicleId === event.vehicleId
-  const samePosition = openEntry.posicao === event.posicao
+  const eventSlotId = getSlotIdFromPosition(event.posicao)
+  const openSlotId = openEntry.slotId || getSlotIdFromPosition(openEntry.posicao)
+  const samePosition =
+    eventSlotId && openSlotId
+      ? eventSlotId === openSlotId
+      : openEntry.posicao === event.posicao
 
   if (sameVehicle && samePosition) {
     return allHistory
@@ -219,6 +226,7 @@ function updatePositionHistory(
     id: uuid(),
     tireId: event.tireId,
     vehicleId: event.vehicleId,
+    ...(eventSlotId ? { slotId: eventSlotId } : {}),
     posicao: event.posicao,
     dataInicial: event.data,
   }

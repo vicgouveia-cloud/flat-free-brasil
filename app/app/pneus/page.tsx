@@ -8,6 +8,11 @@ import {
 import type { Tire, TireCondition, TireStatus, FlatFreeApplication, TirePositionHistory, Unit } from '@/lib/types'
 import { DOSAGE_CATALOG, findCatalogEntry, getDosageOz, normalizeMeasure } from '@/lib/dosage'
 import { getApplicationForTireCycleAtDate } from '@/lib/tire-lifecycle'
+import {
+  getSlotIdFromPosition,
+  getVehicleLayout,
+  getVehicleSlotLabel,
+} from '@/lib/vehicle-layout'
 
 const EMPTY_TIRE: Omit<Tire, 'id'> = {
   companyId: 'demo-company-1',
@@ -202,6 +207,25 @@ export default function PneusPage() {
         .sort((a, b) => a.dataInicial.localeCompare(b.dataInicial))
     : []
   const currentPosition = tirePosHistory.find(h => !h.dataFinal) || null
+  const selectedApplicationVehicle = vehicles.find(
+    vehicle => vehicle.id === appForm.vehicleId
+  ) || null
+  const occupiedApplicationSlotIds = new Set(
+    posHistory
+      .filter(
+        entry =>
+          !entry.dataFinal &&
+          entry.vehicleId === appForm.vehicleId &&
+          entry.tireId !== selected?.id
+      )
+      .map(entry => entry.slotId || getSlotIdFromPosition(entry.posicao))
+      .filter((slotId): slotId is string => Boolean(slotId))
+  )
+  const applicationSlots = selectedApplicationVehicle
+    ? getVehicleLayout(selectedApplicationVehicle).axles
+        .flatMap(axle => axle.slots)
+        .filter(slot => !occupiedApplicationSlotIds.has(slot.id))
+    : []
 
   return (
     <div>
@@ -419,7 +443,13 @@ export default function PneusPage() {
                       className="form-control"
                       required
                       value={appForm.vehicleId || ''}
-                      onChange={e => setAppForm(p => ({ ...p, vehicleId: e.target.value }))}
+                      onChange={e =>
+                        setAppForm(p => ({
+                          ...p,
+                          vehicleId: e.target.value,
+                          posicaoInicial: '',
+                        }))
+                      }
                     >
                       <option value="">Selecionar veículo</option>
                       {vehicles.filter(v => v.status === 'ativo').map(v => (
@@ -429,14 +459,26 @@ export default function PneusPage() {
                   </div>
                   <div className="form-group">
                     <label className="form-label">Posição inicial *</label>
-                    <input
-                      type="text"
+                    <select
                       className="form-control"
                       required
-                      placeholder="Ex.: Dianteiro Direito"
+                      disabled={!selectedApplicationVehicle}
                       value={appForm.posicaoInicial || ''}
-                      onChange={e => setAppForm(p => ({ ...p, posicaoInicial: e.target.value }))}
-                    />
+                      onChange={e =>
+                        setAppForm(p => ({ ...p, posicaoInicial: e.target.value }))
+                      }
+                    >
+                      <option value="">
+                        {selectedApplicationVehicle
+                          ? 'Selecionar posição'
+                          : 'Selecione o veículo primeiro'}
+                      </option>
+                      {applicationSlots.map(slot => (
+                        <option key={slot.id} value={slot.id}>
+                          {getVehicleSlotLabel(slot)} ({slot.id})
+                        </option>
+                      ))}
+                    </select>
                   </div>
                   <div className="form-group">
                     <label className="form-label">Quantidade Aplicada (fl oz) *</label>
