@@ -1,7 +1,16 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { getOccurrences, saveOccurrences, getTires, uuid } from '@/lib/storage'
+import {
+  closeTirePositionAtDate,
+  getOccurrences,
+  getPositionHistory,
+  getTires,
+  saveOccurrences,
+  savePositionHistory,
+  saveTires,
+  uuid,
+} from '@/lib/storage'
 import type { Occurrence, OccurrenceType, Tire } from '@/lib/types'
 
 const typeLabels: Record<OccurrenceType, string> = {
@@ -21,6 +30,7 @@ export default function OcorrenciasPage() {
   const [occurrences, setOccurrences] = useState<Occurrence[]>([])
   const [tires, setTires] = useState<Tire[]>([])
   const [showForm, setShowForm] = useState(false)
+  const [saveError, setSaveError] = useState('')
   const [form, setForm] = useState<Omit<Occurrence, 'id'>>({
     tireId: '',
     data: today,
@@ -43,6 +53,25 @@ export default function OcorrenciasPage() {
   function handleSave() {
     if (!form.tireId || !form.data || !form.descricao.trim()) return
 
+    let updatedPositionHistory = getPositionHistory()
+
+    if (form.tipo === 'recapagem') {
+      const closeResult = closeTirePositionAtDate(
+        form.tireId,
+        form.data,
+        updatedPositionHistory
+      )
+
+      if (!closeResult.ok) {
+        setSaveError(
+          'A data da recapagem não pode ser anterior ao início da montagem atual deste pneu.'
+        )
+        return
+      }
+
+      updatedPositionHistory = closeResult.history
+    }
+
     const occurrence: Occurrence = {
       id: uuid(),
       ...form,
@@ -55,6 +84,20 @@ export default function OcorrenciasPage() {
 
     saveOccurrences(updated)
     setOccurrences(updated)
+
+    if (form.tipo === 'recapagem') {
+      savePositionHistory(updatedPositionHistory)
+
+      const updatedTires = tires.map(tire =>
+        tire.id === form.tireId
+          ? { ...tire, status: 'recapagem' as const }
+          : tire
+      )
+      saveTires(updatedTires)
+      setTires(updatedTires)
+    }
+
+    setSaveError('')
     setShowForm(false)
     setForm({
       tireId: '',
@@ -109,7 +152,10 @@ export default function OcorrenciasPage() {
                 className="form-control"
                 required
                 value={form.tireId}
-                onChange={e => setForm(p => ({ ...p, tireId: e.target.value }))}
+                onChange={e => {
+                  setSaveError('')
+                  setForm(p => ({ ...p, tireId: e.target.value }))
+                }}
               >
                 <option value="">Selecionar pneu</option>
                 {tires.map(tire => (
@@ -127,7 +173,10 @@ export default function OcorrenciasPage() {
                 className="form-control"
                 required
                 value={form.data}
-                onChange={e => setForm(p => ({ ...p, data: e.target.value }))}
+                onChange={e => {
+                  setSaveError('')
+                  setForm(p => ({ ...p, data: e.target.value }))
+                }}
               />
             </div>
 
@@ -136,9 +185,10 @@ export default function OcorrenciasPage() {
               <select
                 className="form-control"
                 value={form.tipo}
-                onChange={e =>
+                onChange={e => {
+                  setSaveError('')
                   setForm(p => ({ ...p, tipo: e.target.value as OccurrenceType }))
-                }
+                }}
               >
                 {(Object.entries(typeLabels) as [OccurrenceType, string][]).map(
                   ([value, label]) => (
@@ -165,12 +215,37 @@ export default function OcorrenciasPage() {
             </div>
           </div>
 
+          {form.tipo === 'recapagem' && (
+            <div
+              style={{
+                marginTop: '0.75rem',
+                padding: '0.65rem 0.85rem',
+                borderRadius: '8px',
+                background: 'rgba(255,92,0,0.08)',
+                border: '1px solid rgba(255,92,0,0.2)',
+                color: 'var(--text-secondary)',
+                fontSize: '0.8rem',
+              }}
+            >
+              A recapagem encerra o ciclo atual do pneu, fecha sua montagem vigente nesta data e altera o status para Recapagem.
+            </div>
+          )}
+
+          {saveError && (
+            <p style={{ marginTop: '0.75rem', color: '#dc2626', fontSize: '0.8rem' }}>
+              {saveError}
+            </p>
+          )}
+
           <div style={{ display: 'flex', gap: '0.75rem', marginTop: '0.75rem' }}>
             <button onClick={handleSave} className="btn btn-primary">
               <i className="fas fa-check" /> Salvar
             </button>
             <button
-              onClick={() => setShowForm(false)}
+              onClick={() => {
+                setSaveError('')
+                setShowForm(false)
+              }}
               className="btn btn-outline"
             >
               Cancelar

@@ -113,6 +113,37 @@ export function savePositionHistory(h: TirePositionHistory[]): void {
   save(KEYS.positionHistory, h)
 }
 
+export interface CloseTirePositionResult {
+  ok: boolean
+  history: TirePositionHistory[]
+  error?: 'invalid_date'
+}
+
+export function closeTirePositionAtDate(
+  tireId: string,
+  date: string,
+  allHistory: TirePositionHistory[]
+): CloseTirePositionResult {
+  const current = allHistory.find(
+    entry => entry.tireId === tireId && !entry.dataFinal
+  )
+
+  if (!current) {
+    return { ok: true, history: allHistory }
+  }
+
+  if (date < current.dataInicial) {
+    return { ok: false, history: allHistory, error: 'invalid_date' }
+  }
+
+  return {
+    ok: true,
+    history: allHistory.map(entry =>
+      entry.id === current.id ? { ...entry, dataFinal: date } : entry
+    ),
+  }
+}
+
 export interface MountTireToSlotResult {
   ok: boolean
   history: TirePositionHistory[]
