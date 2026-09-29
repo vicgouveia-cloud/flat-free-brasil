@@ -10,6 +10,7 @@ const navItems = [
   { href: '/app/veiculos', label: 'Veículos', icon: 'fa-truck' },
   { href: '/app/pneus', label: 'Pneus', icon: 'fa-circle-dot' },
   { href: '/app/leituras', label: 'Leituras', icon: 'fa-ruler' },
+  { href: '/app/ocorrencias', label: 'Ocorrências', icon: 'fa-triangle-exclamation' },
   { href: '/app/comparativos', label: 'Comparativos', icon: 'fa-chart-bar' },
 ]
 
