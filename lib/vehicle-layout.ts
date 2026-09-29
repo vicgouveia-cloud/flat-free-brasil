@@ -94,3 +94,21 @@ export function getVehicleLayout(vehicle: Vehicle): VehicleLayoutDefinition {
 
   return { type, axleCount, axles }
 }
+
+
+export function getSlotIdFromPosition(position: string): string | null {
+  const normalized = position.trim().toLowerCase()
+
+  if (/^e\d+-(?:l|r|lo|li|ri|ro)$/i.test(position.trim())) {
+    return position.trim().toUpperCase()
+  }
+
+  const legacyMap: Record<string, string> = {
+    'dianteiro esquerdo': 'E1-L',
+    'dianteira esquerda': 'E1-L',
+    'dianteiro direito': 'E1-R',
+    'dianteira direita': 'E1-R',
+  }
+
+  return legacyMap[normalized] || null
+}

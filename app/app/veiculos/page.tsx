@@ -1,8 +1,18 @@
 'use client'
 import { useEffect, useState } from 'react'
-import { getUnits, getVehicles, saveVehicles, uuid } from '@/lib/storage'
-import VehicleTopView from '@/components/VehicleTopView'
-import { VEHICLE_LAYOUT_LABELS, inferVehicleLayoutType } from '@/lib/vehicle-layout'
+import {
+  getApplications,
+  getOccurrences,
+  getPositionHistory,
+  getTires,
+  getUnits,
+  getVehicles,
+  saveVehicles,
+  uuid,
+} from '@/lib/storage'
+import VehicleTopView, { type VehicleMountedTire } from '@/components/VehicleTopView'
+import { VEHICLE_LAYOUT_LABELS, getSlotIdFromPosition, inferVehicleLayoutType } from '@/lib/vehicle-layout'
+import { getApplicationForTireCycleAtDate } from '@/lib/tire-lifecycle'
 import type { Unit, Vehicle, VehicleLayoutType, VehicleStatus } from '@/lib/types'
 
 const EMPTY_VEHICLE: Omit<Vehicle, 'id'> = {
@@ -30,6 +40,7 @@ export default function VeiculosPage() {
   const [form, setForm] = useState(EMPTY_VEHICLE)
   const [showForm, setShowForm] = useState(false)
   const [visualizing, setVisualizing] = useState<Vehicle | null>(null)
+  const [mountedTires, setMountedTires] = useState<VehicleMountedTire[]>([])
 
   useEffect(() => {
     setVehicles(getVehicles())
@@ -41,6 +52,39 @@ export default function VeiculosPage() {
     setForm(EMPTY_VEHICLE)
     setShowForm(true)
     setVisualizing(null)
+  }
+
+  function openVehicleDrawing(vehicle: Vehicle) {
+    const tires = getTires()
+    const applications = getApplications()
+    const occurrences = getOccurrences()
+    const today = new Date().toISOString().split('T')[0]
+
+    const mounted = getPositionHistory()
+      .filter(entry => entry.vehicleId === vehicle.id && !entry.dataFinal)
+      .map(entry => {
+        const tire = tires.find(item => item.id === entry.tireId)
+        const slotId = entry.slotId || getSlotIdFromPosition(entry.posicao)
+        if (!tire || !slotId) return null
+
+        return {
+          slotId,
+          tire,
+          hasFlatFree: Boolean(
+            getApplicationForTireCycleAtDate(
+              tire.id,
+              today,
+              applications,
+              occurrences
+            )
+          ),
+        } satisfies VehicleMountedTire
+      })
+      .filter((item): item is VehicleMountedTire => item !== null)
+
+    setMountedTires(mounted)
+    setVisualizing(vehicle)
+    setShowForm(false)
   }
 
   function openEdit(v: Vehicle) {
@@ -167,7 +211,7 @@ export default function VeiculosPage() {
             </div>
             <button onClick={() => setVisualizing(null)} className="btn btn-outline btn-sm">Fechar desenho</button>
           </div>
-          <VehicleTopView vehicle={visualizing} />
+          <VehicleTopView vehicle={visualizing} mountedTires={mountedTires} />
         </div>
       )}
 
@@ -187,10 +231,7 @@ export default function VeiculosPage() {
                 <td><span className={`badge ${statusLabels[v.status].cls}`}>{statusLabels[v.status].label}</span></td>
                 <td style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
                   <button
-                    onClick={() => {
-                      setVisualizing(v)
-                      setShowForm(false)
-                    }}
+                    onClick={() => openVehicleDrawing(v)}
                     className="btn btn-outline btn-sm"
                   >
                     <i className="fas fa-diagram-project" /> Desenho

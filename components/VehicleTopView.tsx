@@ -1,34 +1,74 @@
 'use client'
 
-import type { Vehicle } from '@/lib/types'
+import type { Tire, Vehicle } from '@/lib/types'
 import { getVehicleLayout, VEHICLE_LAYOUT_LABELS } from '@/lib/vehicle-layout'
 
-function TireSlot({ label }: { label: string }) {
+export interface VehicleMountedTire {
+  slotId: string
+  tire: Tire
+  hasFlatFree: boolean
+}
+
+function TireSlot({
+  label,
+  mounted,
+}: {
+  label: string
+  mounted?: VehicleMountedTire
+}) {
+  const title = mounted
+    ? `${label} • ${mounted.tire.identificacaoInterna} • ${mounted.hasFlatFree ? 'Com Flat Free' : 'Sem aplicação Flat Free no ciclo atual'}`
+    : `${label} • posição livre`
+
   return (
     <div
-      title={label}
+      title={title}
       style={{
-        width: '26px',
-        height: '54px',
+        width: mounted ? '44px' : '30px',
+        minHeight: '58px',
+        padding: '0.25rem 0.15rem',
         borderRadius: '8px',
-        border: '2px solid var(--text-secondary)',
-        background: 'var(--bg-surface)',
+        border: mounted
+          ? mounted.hasFlatFree
+            ? '2px solid var(--color-safety-orange)'
+            : '2px solid var(--text-secondary)'
+          : '2px dashed var(--border-color)',
+        background: mounted
+          ? mounted.hasFlatFree
+            ? 'rgba(255,92,0,0.10)'
+            : 'var(--bg-surface)'
+          : 'transparent',
         display: 'flex',
+        flexDirection: 'column',
         alignItems: 'center',
         justifyContent: 'center',
-        fontSize: '0.58rem',
+        gap: '0.1rem',
+        fontSize: '0.55rem',
         fontWeight: 800,
-        color: 'var(--text-muted)',
+        color: mounted?.hasFlatFree ? 'var(--color-safety-orange)' : 'var(--text-muted)',
+        textAlign: 'center',
       }}
     >
-      {label}
+      <span>{mounted ? mounted.tire.identificacaoInterna : label}</span>
+      {mounted && (
+        <span style={{ fontSize: '0.48rem', fontWeight: 700, color: 'var(--text-muted)' }}>
+          {label}
+        </span>
+      )}
     </div>
   )
 }
 
-export default function VehicleTopView({ vehicle }: { vehicle: Vehicle }) {
+export default function VehicleTopView({
+  vehicle,
+  mountedTires = [],
+}: {
+  vehicle: Vehicle
+  mountedTires?: VehicleMountedTire[]
+}) {
   const layout = getVehicleLayout(vehicle)
   const isTrailer = layout.type === 'semi_trailer' || layout.type === 'trailer'
+  const mountedBySlot = new Map(mountedTires.map(item => [item.slotId, item]))
 
   return (
     <div>
@@ -49,13 +89,37 @@ export default function VehicleTopView({ vehicle }: { vehicle: Vehicle }) {
           </span>
         </div>
         <span style={{ color: 'var(--text-muted)', fontSize: '0.72rem' }}>
-          Vista superior • slots ainda sem montagem interativa
+          Vista superior • montagem atual
         </span>
       </div>
 
       <div
         style={{
-          maxWidth: '520px',
+          display: 'flex',
+          gap: '1rem',
+          flexWrap: 'wrap',
+          marginBottom: '1rem',
+          fontSize: '0.72rem',
+          color: 'var(--text-secondary)',
+        }}
+      >
+        <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}>
+          <span style={{ width: '12px', height: '12px', borderRadius: '3px', border: '2px solid var(--color-safety-orange)', background: 'rgba(255,92,0,0.10)' }} />
+          Com Flat Free no ciclo atual
+        </span>
+        <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}>
+          <span style={{ width: '12px', height: '12px', borderRadius: '3px', border: '2px solid var(--text-secondary)', background: 'var(--bg-surface)' }} />
+          Sem aplicação no ciclo atual
+        </span>
+        <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}>
+          <span style={{ width: '12px', height: '12px', borderRadius: '3px', border: '2px dashed var(--border-color)' }} />
+          Posição livre
+        </span>
+      </div>
+
+      <div
+        style={{
+          maxWidth: '560px',
           margin: '0 auto',
           padding: '1rem 1.5rem 1.5rem',
           borderRadius: '16px',
@@ -100,7 +164,9 @@ export default function VehicleTopView({ vehicle }: { vehicle: Vehicle }) {
                   }}
                 >
                   <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '5px' }}>
-                    {left.map(slot => <TireSlot key={slot.id} label={slot.id} />)}
+                    {left.map(slot => (
+                      <TireSlot key={slot.id} label={slot.id} mounted={mountedBySlot.get(slot.id)} />
+                    ))}
                   </div>
 
                   <div style={{ position: 'relative', height: '12px' }}>
@@ -132,7 +198,9 @@ export default function VehicleTopView({ vehicle }: { vehicle: Vehicle }) {
                   </div>
 
                   <div style={{ display: 'flex', justifyContent: 'flex-start', gap: '5px' }}>
-                    {right.map(slot => <TireSlot key={slot.id} label={slot.id} />)}
+                    {right.map(slot => (
+                      <TireSlot key={slot.id} label={slot.id} mounted={mountedBySlot.get(slot.id)} />
+                    ))}
                   </div>
                 </div>
               </div>
@@ -142,8 +210,7 @@ export default function VehicleTopView({ vehicle }: { vehicle: Vehicle }) {
       </div>
 
       <p style={{ marginTop: '0.85rem', color: 'var(--text-muted)', fontSize: '0.75rem' }}>
-        Cada posição já possui um identificador estável. No próximo estágio esses slots poderão receber o pneu montado,
-        seu histórico e a indicação de tratamento Flat Free.
+        A montagem é derivada do histórico de posições. O destaque Flat Free considera somente a aplicação válida no ciclo atual do pneu.
       </p>
     </div>
   )

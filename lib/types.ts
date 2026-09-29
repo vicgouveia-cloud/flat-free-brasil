@@ -57,6 +57,7 @@ export interface TirePositionHistory {
   id: string
   tireId: string
   vehicleId: string
+  slotId?: string
   posicao: string
   dataInicial: string
   dataFinal?: string
