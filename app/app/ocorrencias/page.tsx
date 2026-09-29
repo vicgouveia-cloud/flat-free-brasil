@@ -54,6 +54,11 @@ export default function OcorrenciasPage() {
   function handleSave() {
     if (!form.tireId || !form.data || !form.descricao.trim()) return
 
+    if (form.data > today) {
+      setSaveError('A data da ocorrência não pode estar no futuro.')
+      return
+    }
+
     let updatedPositionHistory = getPositionHistory()
 
     if (form.tipo === 'retorno_recapagem') {
@@ -170,7 +175,16 @@ export default function OcorrenciasPage() {
           </p>
         </div>
         <button
-          onClick={() => setShowForm(true)}
+          onClick={() => {
+            setSaveError('')
+            setForm({
+              tireId: '',
+              data: today,
+              tipo: 'perfuracao',
+              descricao: '',
+            })
+            setShowForm(true)
+          }}
           className="btn btn-primary btn-sm"
         >
           <i className="fas fa-plus" /> Registrar Ocorrência
@@ -216,6 +230,7 @@ export default function OcorrenciasPage() {
                 type="date"
                 className="form-control"
                 required
+                max={today}
                 value={form.data}
                 onChange={e => {
                   setSaveError('')
