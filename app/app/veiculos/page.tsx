@@ -1,10 +1,11 @@
 'use client'
 import { useEffect, useState } from 'react'
-import { getVehicles, saveVehicles, uuid } from '@/lib/storage'
-import type { Vehicle, VehicleStatus } from '@/lib/types'
+import { getUnits, getVehicles, saveVehicles, uuid } from '@/lib/storage'
+import type { Unit, Vehicle, VehicleStatus } from '@/lib/types'
 
 const EMPTY_VEHICLE: Omit<Vehicle, 'id'> = {
   companyId: 'demo-company-1',
+  unitId: '',
   identificacaoInterna: '',
   placa: '',
   tipo: 'Caminhão 6x4',
@@ -21,11 +22,15 @@ const statusLabels: Record<VehicleStatus, { label: string; cls: string }> = {
 
 export default function VeiculosPage() {
   const [vehicles, setVehicles] = useState<Vehicle[]>([])
+  const [units, setUnits] = useState<Unit[]>([])
   const [editing, setEditing] = useState<Vehicle | null>(null)
   const [form, setForm] = useState(EMPTY_VEHICLE)
   const [showForm, setShowForm] = useState(false)
 
-  useEffect(() => { setVehicles(getVehicles()) }, [])
+  useEffect(() => {
+    setVehicles(getVehicles())
+    setUnits(getUnits())
+  }, [])
 
   function openNew() {
     setEditing(null)
@@ -35,12 +40,21 @@ export default function VeiculosPage() {
 
   function openEdit(v: Vehicle) {
     setEditing(v)
-    setForm({ companyId: v.companyId, identificacaoInterna: v.identificacaoInterna, placa: v.placa || '', tipo: v.tipo, fabricanteModelo: v.fabricanteModelo || '', configuracaoEixos: v.configuracaoEixos || '', status: v.status })
+    setForm({
+      companyId: v.companyId,
+      unitId: v.unitId || '',
+      identificacaoInterna: v.identificacaoInterna,
+      placa: v.placa || '',
+      tipo: v.tipo,
+      fabricanteModelo: v.fabricanteModelo || '',
+      configuracaoEixos: v.configuracaoEixos || '',
+      status: v.status,
+    })
     setShowForm(true)
   }
 
   function handleSave() {
-    if (!form.identificacaoInterna) return
+    if (!form.identificacaoInterna.trim() || !form.unitId) return
     let updated: Vehicle[]
     if (editing) {
       updated = vehicles.map(v => v.id === editing.id ? { ...editing, ...form } : v)
@@ -85,6 +99,20 @@ export default function VeiculosPage() {
               </div>
             ))}
             <div className="form-group">
+              <label className="form-label">Unidade *</label>
+              <select
+                className="form-control"
+                required
+                value={form.unitId || ''}
+                onChange={e => setForm(p => ({ ...p, unitId: e.target.value }))}
+              >
+                <option value="">Selecionar unidade</option>
+                {units.map(unit => (
+                  <option key={unit.id} value={unit.id}>{unit.nome}</option>
+                ))}
+              </select>
+            </div>
+            <div className="form-group">
               <label className="form-label">Status</label>
               <select className="form-control" value={form.status} onChange={e => setForm(p => ({ ...p, status: e.target.value as VehicleStatus }))}>
                 <option value="ativo">Ativo</option>
@@ -102,13 +130,14 @@ export default function VeiculosPage() {
 
       <div className="card">
         <table className="table">
-          <thead><tr><th>ID Interno</th><th>Placa</th><th>Tipo</th><th>Modelo</th><th>Status</th><th>Ações</th></tr></thead>
+          <thead><tr><th>ID Interno</th><th>Unidade</th><th>Placa</th><th>Tipo</th><th>Modelo</th><th>Status</th><th>Ações</th></tr></thead>
           <tbody>
             {vehicles.length === 0 ? (
-              <tr><td colSpan={6} style={{ textAlign: 'center', color: 'var(--text-muted)', padding: '2rem' }}>Nenhum veículo cadastrado.</td></tr>
+              <tr><td colSpan={7} style={{ textAlign: 'center', color: 'var(--text-muted)', padding: '2rem' }}>Nenhum veículo cadastrado.</td></tr>
             ) : vehicles.map(v => (
               <tr key={v.id}>
                 <td style={{ fontWeight: 600 }}>{v.identificacaoInterna}</td>
+                <td>{units.find(unit => unit.id === v.unitId)?.nome || 'Sem unidade'}</td>
                 <td>{v.placa || '—'}</td>
                 <td>{v.tipo}</td>
                 <td>{v.fabricanteModelo || '—'}</td>

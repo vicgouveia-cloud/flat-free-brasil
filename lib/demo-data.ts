@@ -34,6 +34,7 @@ export const DEMO_VEHICLES: Vehicle[] = [
   {
     id: 'veh-001',
     companyId: 'demo-company-1',
+    unitId: 'unit-001',
     identificacaoInterna: 'TK-01',
     placa: 'ABC-1234',
     tipo: 'Caminhão 6x4',
@@ -44,6 +45,7 @@ export const DEMO_VEHICLES: Vehicle[] = [
   {
     id: 'veh-002',
     companyId: 'demo-company-1',
+    unitId: 'unit-001',
     identificacaoInterna: 'TK-02',
     placa: 'DEF-5678',
     tipo: 'Caminhão 6x4',

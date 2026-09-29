@@ -25,6 +25,7 @@ export type VehicleStatus = 'ativo' | 'inativo' | 'em_manutencao'
 export interface Vehicle {
   id: string
   companyId: string
+  unitId?: string
   identificacaoInterna: string
   placa?: string
   tipo: string
