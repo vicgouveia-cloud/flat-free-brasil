@@ -119,6 +119,11 @@ export default function PedidosPage() {
     const effectiveStatus = getEffectiveOrderStatus(selected)
     if (effectiveStatus === 'pendente_dosagem') return
 
+    if (
+      status === 'cancelado' &&
+      !window.confirm('Cancelar este pedido? Esta ação encerrará o fluxo do pedido.')
+    ) return
+
     const today = new Date().toISOString().split('T')[0]
     const existingHistory = selected.statusHistory || []
     const statusHistory = [
