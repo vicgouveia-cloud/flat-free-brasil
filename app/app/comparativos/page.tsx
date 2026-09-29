@@ -17,6 +17,7 @@ interface TireStats {
   custoPerKm: number | null
   occurrenceCount: number
   valid: boolean  // true only when a real interval (km > 0, sulco > 0) exists
+  invalidReason?: 'insufficient_data' | 'vehicle_transfer' | 'missing_application_vehicle'
 }
 
 /**
@@ -53,7 +54,11 @@ function computeTireStats(
         r.tireId === pt.tireId &&
         isDateInTireCycle(r.data, cycleBounds)
     )
-    .sort((a, b) => a.quilometragemVeiculo - b.quilometragemVeiculo || a.data.localeCompare(b.data))
+    .sort(
+      (a, b) =>
+        a.data.localeCompare(b.data) ||
+        a.quilometragemVeiculo - b.quilometragemVeiculo
+    )
 
   const app = getApplicationForTireCycleAtDate(
     pt.tireId,
@@ -74,20 +79,66 @@ function computeTireStats(
   let finalKm: number | null = null
   let finalSulco: number | null = null
 
+  if (pt.grupo === 'tratado' && app && !app.vehicleId) {
+    return {
+      tire,
+      grupo: pt.grupo,
+      kmRodados: null,
+      sulcoConsumido: null,
+      kmPerMm: null,
+      custoPerKm: null,
+      occurrenceCount,
+      valid: false,
+      invalidReason: 'missing_application_vehicle',
+    }
+  }
+
   if (pt.grupo === 'tratado' && app) {
     // Use application as baseline
     baseKm = app.quilometragemAplicacao
     baseSulco = app.sulcoInicial
-    // Final = last reading after application
-    const posteriorReadings = tireReadings.filter(
-      r => r.quilometragemVeiculo > app.quilometragemAplicacao
-    )
+    // Final = last reading after application, but only when the odometer
+    // belongs to the same vehicle used as the application baseline.
+    const posteriorReadings = tireReadings.filter(r => r.data >= app.data)
+
+    if (posteriorReadings.some(r => r.vehicleId !== app.vehicleId)) {
+      return {
+        tire,
+        grupo: pt.grupo,
+        kmRodados: null,
+        sulcoConsumido: null,
+        kmPerMm: null,
+        custoPerKm: null,
+        occurrenceCount,
+        valid: false,
+        invalidReason: 'vehicle_transfer',
+      }
+    }
+
     if (posteriorReadings.length > 0) {
       const last = posteriorReadings[posteriorReadings.length - 1]
       finalKm = last.quilometragemVeiculo
       finalSulco = last.sulco
     }
   } else {
+    // A vehicle odometer is only comparable with readings from that same vehicle.
+    if (
+      tireReadings.length >= 2 &&
+      new Set(tireReadings.map(r => r.vehicleId)).size > 1
+    ) {
+      return {
+        tire,
+        grupo: pt.grupo,
+        kmRodados: null,
+        sulcoConsumido: null,
+        kmPerMm: null,
+        custoPerKm: null,
+        occurrenceCount,
+        valid: false,
+        invalidReason: 'vehicle_transfer',
+      }
+    }
+
     // Use first and last readings as interval
     if (tireReadings.length >= 2) {
       const first = tireReadings[0]
@@ -116,6 +167,7 @@ function computeTireStats(
       tire, grupo: pt.grupo,
       kmRodados: null, sulcoConsumido: null, kmPerMm: null,
       custoPerKm: null, occurrenceCount, valid: false,
+      invalidReason: 'insufficient_data',
     }
   }
 
@@ -217,6 +269,12 @@ export default function ComparativosPage() {
   const fmtCost = (n: number | null) =>
     n !== null ? `R$ ${n.toLocaleString('pt-BR', { minimumFractionDigits: 4, maximumFractionDigits: 4 })}` : '—'
 
+  function invalidReasonLabel(reason?: TireStats['invalidReason']) {
+    if (reason === 'vehicle_transfer') return 'Troca de veículo no intervalo'
+    if (reason === 'missing_application_vehicle') return 'Aplicação antiga sem veículo-base'
+    return 'Dados insuficientes'
+  }
+
   return (
     <div>
       <h1 style={{ fontSize: '1.5rem', fontWeight: 800, marginBottom: '0.25rem' }}>Comparativos</h1>
@@ -250,7 +308,9 @@ export default function ComparativosPage() {
             <i className="fas fa-arrow-left" /> Voltar
           </button>
           <h2 style={{ fontWeight: 800, marginBottom: '0.25rem' }}>{selected.nome}</h2>
-          <p style={{ color: 'var(--text-secondary)', fontSize: '0.875rem', marginBottom: '1.5rem' }}>Dados calculados com base nas leituras registradas. Apenas pneus com intervalo válido entram nas médias.</p>
+          <p style={{ color: 'var(--text-secondary)', fontSize: '0.875rem', marginBottom: '1.5rem' }}>
+            Dados calculados com base nas leituras registradas. Apenas pneus com intervalo válido entram nas médias. Hodômetros de veículos diferentes não são somados entre si.
+          </p>
 
           {(allTreated.length > 0 || allControl.length > 0) && (
             <div className="card" style={{ marginBottom: '1.5rem' }}>
@@ -341,7 +401,7 @@ export default function ComparativosPage() {
                     <td>{s.occurrenceCount}</td>
                     <td>
                       {!s.valid
-                        ? <span className="badge badge-gray">Dados insuficientes</span>
+                        ? <span className="badge badge-gray">{invalidReasonLabel(s.invalidReason)}</span>
                         : <span className="badge badge-green">OK</span>}
                     </td>
                   </tr>
