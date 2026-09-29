@@ -101,6 +101,7 @@ export default function VeiculosPage() {
 
     setMountedTires(getMountedTiresAtDate(vehicle, today))
     setViewDate(today)
+    setMountDate(today)
     setVisualizing(vehicle)
     setSelectedSlotId(null)
     setMountTireId('')
@@ -127,6 +128,12 @@ export default function VeiculosPage() {
   function handleMountTire() {
     if (!visualizing || !selectedSlotId || !mountTireId || !mountDate) return
 
+    const today = new Date().toISOString().split('T')[0]
+    if (mountDate > today) {
+      setMountError('A data da montagem não pode estar no futuro.')
+      return
+    }
+
     const currentHistory = getPositionHistory()
     const result = mountTireToVehicleSlot(
       mountTireId,
@@ -141,6 +148,8 @@ export default function VeiculosPage() {
         slot_occupied: 'Esta posição já está ocupada.',
         invalid_date: 'A data não pode ser anterior ao início da montagem atual deste pneu.',
         already_mounted: 'Este pneu já está montado nesta posição.',
+        tire_history_conflict: 'Esta data invade um período de montagem já registrado para este pneu.',
+        slot_history_conflict: 'Esta data invade um período em que esta posição já estava ocupada por outro pneu.',
       }
       setMountError(result.error ? messages[result.error] : 'Não foi possível atualizar a montagem.')
       return
@@ -384,6 +393,7 @@ export default function VeiculosPage() {
                   <input
                     type="date"
                     className="form-control"
+                    max={new Date().toISOString().split('T')[0]}
                     value={mountDate}
                     onChange={e => {
                       setMountDate(e.target.value)

@@ -162,7 +162,12 @@ export function closeTirePositionAtDate(
 export interface MountTireToSlotResult {
   ok: boolean
   history: TirePositionHistory[]
-  error?: 'slot_occupied' | 'invalid_date' | 'already_mounted'
+  error?:
+    | 'slot_occupied'
+    | 'invalid_date'
+    | 'already_mounted'
+    | 'tire_history_conflict'
+    | 'slot_history_conflict'
 }
 
 export function mountTireToVehicleSlot(
@@ -192,14 +197,46 @@ export function mountTireToVehicleSlot(
     return { ok: false, history: allHistory, error: 'already_mounted' }
   }
 
+  const tireHistoryConflict = allHistory.some(
+    entry =>
+      entry.tireId === tireId &&
+      entry.id !== currentForTire?.id &&
+      (!entry.dataFinal || entry.dataFinal > date)
+  )
+
+  if (tireHistoryConflict) {
+    return { ok: false, history: allHistory, error: 'tire_history_conflict' }
+  }
+
   const occupied = allHistory.some(entry => {
-    if (entry.dataFinal || entry.vehicleId !== vehicleId) return false
+    if (
+      entry.vehicleId !== vehicleId ||
+      entry.tireId === tireId ||
+      entry.dataFinal
+    ) return false
+
     const entrySlotId = entry.slotId || getSlotIdFromPosition(entry.posicao)
-    return entrySlotId === slotId && entry.tireId !== tireId
+    return entrySlotId === slotId
   })
 
   if (occupied) {
     return { ok: false, history: allHistory, error: 'slot_occupied' }
+  }
+
+  const slotHistoryConflict = allHistory.some(entry => {
+    if (
+      entry.vehicleId !== vehicleId ||
+      entry.tireId === tireId ||
+      !entry.dataFinal ||
+      entry.dataFinal <= date
+    ) return false
+
+    const entrySlotId = entry.slotId || getSlotIdFromPosition(entry.posicao)
+    return entrySlotId === slotId
+  })
+
+  if (slotHistoryConflict) {
+    return { ok: false, history: allHistory, error: 'slot_history_conflict' }
   }
 
   const closedHistory = currentForTire
