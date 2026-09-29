@@ -2,8 +2,8 @@
 import { useEffect, useState } from 'react'
 import {
   getTires, saveTires, getApplications, saveApplications,
-  getReadings, getPositionHistory, savePositionHistory,
-  updatePositionHistoryOnApplication, getOccurrences, getVehicles, getUnits, uuid
+  getReadings, getPositionHistory, getTirePositionAtDate,
+  getOccurrences, getVehicles, getUnits, uuid
 } from '@/lib/storage'
 import type {
   ApplicationDosageSource,
@@ -163,12 +163,39 @@ export default function PneusPage() {
     setShowForm(false)
   }
 
+  function getApplicationMounting(tireId: string, date: string) {
+    const position = getTirePositionAtDate(tireId, date, getPositionHistory())
+    const slotId = position
+      ? position.slotId || getSlotIdFromPosition(position.posicao)
+      : null
+
+    return { position, slotId }
+  }
+
+  function syncApplicationMounting(tireId: string, date: string) {
+    const { position, slotId } = getApplicationMounting(tireId, date)
+    setApplicationError('')
+    setAppForm(prev => ({
+      ...prev,
+      tireId,
+      data: date,
+      vehicleId: position?.vehicleId || '',
+      posicaoInicial: slotId || '',
+    }))
+  }
+
   function openDetail(t: Tire) {
+    const positionHistory = getPositionHistory()
+    const position = getTirePositionAtDate(t.id, today, positionHistory)
+    const slotId = position
+      ? position.slotId || getSlotIdFromPosition(position.posicao)
+      : null
+
     setSelected(t)
     setShowForm(false)
     setApplications(getApplications())
     setReadings(getReadings())
-    setPosHistory(getPositionHistory())
+    setPosHistory(positionHistory)
     setVehicles(getVehicles())
     setUnits(getUnits())
     // Pre-fill app form for this tire while preserving recommendation traceability.
@@ -180,8 +207,8 @@ export default function PneusPage() {
       medidaAplicacao: t.medida,
       doseRecomendadaOz: suggestedOz ?? undefined,
       dosageSource: suggestedOz !== null ? 'table' : 'manual',
-      vehicleId: '',
-      posicaoInicial: '',
+      vehicleId: position?.vehicleId || '',
+      posicaoInicial: slotId || '',
       lote: '',
       responsavel: '',
       quilometragemAplicacao: 0,
@@ -210,23 +237,31 @@ export default function PneusPage() {
       getOccurrences()
     )
     if (existingInCycle) return
+
+    const { position, slotId } = getApplicationMounting(selected.id, appForm.data)
+    if (!position || !slotId) {
+      setApplicationError(
+        'Não existe uma montagem registrada para este pneu na data da aplicação. Registre a montagem correta antes da aplicação Flat Free.'
+      )
+      return
+    }
+
     if (
       !appForm.tireId ||
-      !appForm.vehicleId ||
-      !appForm.posicaoInicial ||
       !appForm.quilometragemAplicacao ||
       !appForm.sulcoInicial ||
       !appForm.doseAplicada
     ) return
 
-    const newApp: FlatFreeApplication = { id: uuid(), ...appForm }
+    const newApp: FlatFreeApplication = {
+      id: uuid(),
+      ...appForm,
+      vehicleId: position.vehicleId,
+      posicaoInicial: slotId,
+    }
     const updated = [...applications, newApp]
     saveApplications(updated)
     setApplications(updated)
-
-    const updatedHistory = updatePositionHistoryOnApplication(newApp, getPositionHistory())
-    savePositionHistory(updatedHistory)
-    setPosHistory(updatedHistory)
 
     setApplicationError('')
     setShowAppForm(false)
@@ -269,22 +304,11 @@ export default function PneusPage() {
   const selectedApplicationVehicle = vehicles.find(
     vehicle => vehicle.id === appForm.vehicleId
   ) || null
-  const occupiedApplicationSlotIds = new Set(
-    posHistory
-      .filter(
-        entry =>
-          !entry.dataFinal &&
-          entry.vehicleId === appForm.vehicleId &&
-          entry.tireId !== selected?.id
-      )
-      .map(entry => entry.slotId || getSlotIdFromPosition(entry.posicao))
-      .filter((slotId): slotId is string => Boolean(slotId))
-  )
-  const applicationSlots = selectedApplicationVehicle
+  const selectedApplicationSlot = selectedApplicationVehicle && appForm.posicaoInicial
     ? getVehicleLayout(selectedApplicationVehicle).axles
         .flatMap(axle => axle.slots)
-        .filter(slot => !occupiedApplicationSlotIds.has(slot.id))
-    : []
+        .find(slot => slot.id === appForm.posicaoInicial) || null
+    : null
 
   return (
     <div>
@@ -531,50 +555,34 @@ export default function PneusPage() {
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem' }}>
                   <div className="form-group">
                     <label className="form-label">Data *</label>
-                    <input type="date" className="form-control" value={appForm.data} onChange={e => setAppForm(p => ({ ...p, data: e.target.value }))} />
+                    <input
+                      type="date"
+                      className="form-control"
+                      value={appForm.data}
+                      onChange={e => syncApplicationMounting(selected.id, e.target.value)}
+                    />
                   </div>
                   <div className="form-group">
-                    <label className="form-label">Veículo *</label>
-                    <select
+                    <label className="form-label">Veículo da montagem</label>
+                    <input
+                      type="text"
                       className="form-control"
-                      required
-                      value={appForm.vehicleId || ''}
-                      onChange={e =>
-                        setAppForm(p => ({
-                          ...p,
-                          vehicleId: e.target.value,
-                          posicaoInicial: '',
-                        }))
-                      }
-                    >
-                      <option value="">Selecionar veículo</option>
-                      {vehicles.filter(v => v.status === 'ativo').map(v => (
-                        <option key={v.id} value={v.id}>{v.identificacaoInterna}</option>
-                      ))}
-                    </select>
+                      readOnly
+                      value={selectedApplicationVehicle?.identificacaoInterna || 'Sem montagem nesta data'}
+                    />
                   </div>
                   <div className="form-group">
-                    <label className="form-label">Posição inicial *</label>
-                    <select
+                    <label className="form-label">Posição da montagem</label>
+                    <input
+                      type="text"
                       className="form-control"
-                      required
-                      disabled={!selectedApplicationVehicle}
-                      value={appForm.posicaoInicial || ''}
-                      onChange={e =>
-                        setAppForm(p => ({ ...p, posicaoInicial: e.target.value }))
+                      readOnly
+                      value={
+                        selectedApplicationSlot
+                          ? `${getVehicleSlotLabel(selectedApplicationSlot)} (${selectedApplicationSlot.id})`
+                          : appForm.posicaoInicial || 'Sem montagem nesta data'
                       }
-                    >
-                      <option value="">
-                        {selectedApplicationVehicle
-                          ? 'Selecionar posição'
-                          : 'Selecione o veículo primeiro'}
-                      </option>
-                      {applicationSlots.map(slot => (
-                        <option key={slot.id} value={slot.id}>
-                          {getVehicleSlotLabel(slot)} ({slot.id})
-                        </option>
-                      ))}
-                    </select>
+                    />
                   </div>
                   <div className="form-group">
                     <label className="form-label">Quantidade Aplicada (fl oz) *</label>
@@ -604,6 +612,19 @@ export default function PneusPage() {
                     <label className="form-label">Observações — opcional</label>
                     <input type="text" className="form-control" value={appForm.observacoes || ''} onChange={e => setAppForm(p => ({ ...p, observacoes: e.target.value }))} />
                   </div>
+                </div>
+                <div
+                  style={{
+                    marginTop: '0.75rem',
+                    padding: '0.65rem 0.85rem',
+                    borderRadius: '8px',
+                    background: 'rgba(59,130,246,0.08)',
+                    border: '1px solid rgba(59,130,246,0.2)',
+                    color: 'var(--text-secondary)',
+                    fontSize: '0.8rem',
+                  }}
+                >
+                  Veículo e posição são definidos pelo histórico de montagem na data da aplicação. A aplicação registra o tratamento, mas não movimenta o pneu.
                 </div>
                 <div style={{ display: 'flex', gap: '0.75rem', marginTop: '0.75rem' }}>
                   <button onClick={handleSaveApplication} className="btn btn-primary btn-sm"><i className="fas fa-check" /> Salvar Aplicação</button>
