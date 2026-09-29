@@ -80,6 +80,8 @@ export default function PedidosPage() {
   const [selected, setSelected] = useState<Order | null>(null)
   const [pendingTechnicalInputs, setPendingTechnicalInputs] = useState<Record<number, PendingTechnicalInput>>({})
   const [pendingUsageInputs, setPendingUsageInputs] = useState<Record<number, PendingUsageInput>>({})
+  const [shippingCarrier, setShippingCarrier] = useState('')
+  const [shippingTrackingCode, setShippingTrackingCode] = useState('')
 
   useEffect(() => { setOrders(getOrders()) }, [])
 
@@ -113,7 +115,7 @@ export default function PedidosPage() {
     }))
   }
 
-  function updateOrderStatus(status: OrderStatus) {
+  function updateOrderStatus(status: OrderStatus, shippingInfo?: Order['shippingInfo']) {
     if (!selected) return
 
     const effectiveStatus = getEffectiveOrderStatus(selected)
@@ -132,12 +134,21 @@ export default function PedidosPage() {
         : [{ status: selected.status, date: selected.data }]),
       { status, date: today },
     ]
-    const updatedOrder: Order = { ...selected, status, statusHistory }
+    const updatedOrder: Order = {
+      ...selected,
+      status,
+      statusHistory,
+      ...(shippingInfo ? { shippingInfo } : {}),
+    }
     const updatedOrders = orders.map(order => order.id === updatedOrder.id ? updatedOrder : order)
 
     saveOrders(updatedOrders)
     setOrders(updatedOrders)
     setSelected(updatedOrder)
+    if (status === 'enviado') {
+      setShippingCarrier('')
+      setShippingTrackingCode('')
+    }
   }
 
   function persistResolvedPending(index: number, resolvedItem: OrderItem) {
@@ -330,7 +341,43 @@ export default function PedidosPage() {
                     Cancelar pedido
                   </button>
                 )}
-                {next && (
+                {next && next.status === 'enviado' ? (
+                  <>
+                    <input
+                      type="text"
+                      className="form-control"
+                      value={shippingCarrier}
+                      onChange={e => setShippingCarrier(e.target.value)}
+                      placeholder="Transportadora"
+                      aria-label="Transportadora"
+                      style={{ maxWidth: '220px' }}
+                    />
+                    <input
+                      type="text"
+                      className="form-control"
+                      value={shippingTrackingCode}
+                      onChange={e => setShippingTrackingCode(e.target.value)}
+                      placeholder="Código de rastreio (opcional)"
+                      aria-label="Código de rastreio"
+                      style={{ maxWidth: '240px' }}
+                    />
+                    <button
+                      type="button"
+                      className="btn btn-primary btn-sm"
+                      disabled={!shippingCarrier.trim()}
+                      onClick={() =>
+                        updateOrderStatus('enviado', {
+                          carrier: shippingCarrier.trim(),
+                          ...(shippingTrackingCode.trim()
+                            ? { trackingCode: shippingTrackingCode.trim() }
+                            : {}),
+                        })
+                      }
+                    >
+                      Marcar como enviado
+                    </button>
+                  </>
+                ) : next ? (
                   <button
                     type="button"
                     className="btn btn-primary btn-sm"
@@ -338,7 +385,7 @@ export default function PedidosPage() {
                   >
                     {next.label}
                   </button>
-                )}
+                ) : null}
               </div>
             )
           })()}
@@ -680,6 +727,19 @@ export default function PedidosPage() {
                   </div>
                 ))}
               </div>
+            </div>
+          )}
+          {selected.shippingInfo && (
+            <div style={{ marginTop: '1.25rem' }}>
+              <h4 style={{ fontWeight: 700, marginBottom: '0.45rem' }}>Envio</h4>
+              <p style={{ color: 'var(--text-secondary)', fontSize: '0.825rem', margin: 0 }}>
+                <strong>Transportadora:</strong> {selected.shippingInfo.carrier}
+                {selected.shippingInfo.trackingCode && (
+                  <>
+                    {' '}• <strong>Rastreio:</strong> {selected.shippingInfo.trackingCode}
+                  </>
+                )}
+              </p>
             </div>
           )}
           {selected.observacoes && (

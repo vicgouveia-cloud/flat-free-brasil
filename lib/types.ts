@@ -173,6 +173,11 @@ export interface OrderStatusHistoryEntry {
   date: string
 }
 
+export interface OrderShippingInfo {
+  carrier: string
+  trackingCode?: string
+}
+
 export interface Order {
   id: string
   companyId: string
@@ -193,4 +198,5 @@ export interface Order {
   observacoes?: string
   status: OrderStatus
   statusHistory?: OrderStatusHistoryEntry[]
+  shippingInfo?: OrderShippingInfo
 }
