@@ -5,7 +5,15 @@ import {
   getReadings, getPositionHistory, savePositionHistory,
   updatePositionHistoryOnApplication, getOccurrences, getVehicles, getUnits, uuid
 } from '@/lib/storage'
-import type { Tire, TireCondition, TireStatus, FlatFreeApplication, TirePositionHistory, Unit } from '@/lib/types'
+import type {
+  ApplicationDosageSource,
+  Tire,
+  TireCondition,
+  TireStatus,
+  FlatFreeApplication,
+  TirePositionHistory,
+  Unit,
+} from '@/lib/types'
 import { DOSAGE_CATALOG, findCatalogEntry, getDosageOz, normalizeMeasure } from '@/lib/dosage'
 import { getApplicationForTireCycleAtDate } from '@/lib/tire-lifecycle'
 import {
@@ -35,6 +43,13 @@ const statusLabels: Record<TireStatus, { label: string; cls: string }> = {
 }
 
 const today = new Date().toISOString().split('T')[0]
+
+const applicationDosageSourceLabels: Record<ApplicationDosageSource, string> = {
+  table: 'Tabela',
+  estimated: 'Estimativa operacional',
+  technical: 'Cálculo técnico',
+  manual: 'Confirmação manual',
+}
 
 export default function PneusPage() {
   const [tires, setTires] = useState<Tire[]>([])
@@ -125,12 +140,15 @@ export default function PneusPage() {
     setPosHistory(getPositionHistory())
     setVehicles(getVehicles())
     setUnits(getUnits())
-    // Pre-fill app form for this tire
-    const suggestedOz = getDosageOz(t.medida) ?? 0
+    // Pre-fill app form for this tire while preserving recommendation traceability.
+    const suggestedOz = getDosageOz(t.medida)
     setAppForm({
       tireId: t.id,
       data: today,
-      doseAplicada: suggestedOz,
+      doseAplicada: suggestedOz ?? 0,
+      medidaAplicacao: t.medida,
+      doseRecomendadaOz: suggestedOz ?? undefined,
+      dosageSource: suggestedOz !== null ? 'table' : 'manual',
       vehicleId: '',
       posicaoInicial: '',
       lote: '',
@@ -427,9 +445,13 @@ export default function PneusPage() {
             {!hasApplication && showAppForm && (
               <div style={{ background: 'var(--bg-surface-elevated)', borderRadius: '10px', padding: '1.25rem', marginBottom: '1rem', border: '1px solid var(--border-color)' }}>
                 <h5 style={{ fontWeight: 700, marginBottom: '1rem' }}>Nova Aplicação Flat Free</h5>
-                {getDosageOz(selected.medida) !== null && (
+                {getDosageOz(selected.medida) !== null ? (
                   <div style={{ background: 'rgba(255,92,0,0.08)', border: '1px solid rgba(255,92,0,0.2)', borderRadius: '6px', padding: '0.5rem 0.75rem', marginBottom: '1rem', fontSize: '0.8rem', color: 'var(--color-safety-orange)' }}>
-                    <i className="fas fa-info-circle" /> Dosagem canônica para {selected.medida}: <strong>{getDosageOz(selected.medida)} fl oz</strong>. Ajuste se a quantidade real aplicada for diferente.
+                    <i className="fas fa-info-circle" /> Dose de referência para {selected.medida}: <strong>{getDosageOz(selected.medida)} fl oz</strong>. A quantidade realmente aplicada pode ser diferente e será registrada separadamente.
+                  </div>
+                ) : (
+                  <div style={{ background: 'rgba(148,163,184,0.1)', border: '1px solid var(--border-color)', borderRadius: '6px', padding: '0.5rem 0.75rem', marginBottom: '1rem', fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
+                    <i className="fas fa-triangle-exclamation" /> Esta medida não possui dose automática confirmada. A quantidade informada será registrada como confirmação manual, sem criar uma recomendação técnica automática.
                   </div>
                 )}
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem' }}>
@@ -520,14 +542,38 @@ export default function PneusPage() {
               <p style={{ color: 'var(--text-muted)', fontSize: '0.875rem' }}>Nenhuma aplicação registrada.</p>
             ) : (
               <table className="table">
-                <thead><tr><th>Data</th><th>Veículo</th><th>Posição</th><th>Aplicado (oz)</th><th>Km Aplicação</th><th>Sulco Inicial</th><th>Responsável</th></tr></thead>
+                <thead>
+                  <tr>
+                    <th>Data</th>
+                    <th>Medida</th>
+                    <th>Origem</th>
+                    <th>Recomendado</th>
+                    <th>Aplicado</th>
+                    <th>Veículo</th>
+                    <th>Posição</th>
+                    <th>Km Aplicação</th>
+                    <th>Sulco Inicial</th>
+                    <th>Responsável</th>
+                  </tr>
+                </thead>
                 <tbody>
                   {tireApplications.map(a => (
                     <tr key={a.id}>
                       <td>{a.data}</td>
+                      <td>{a.medidaAplicacao || selected.medida}</td>
+                      <td>
+                        {a.dosageSource
+                          ? applicationDosageSourceLabels[a.dosageSource]
+                          : 'Legado'}
+                      </td>
+                      <td>
+                        {a.doseRecomendadaOz !== undefined
+                          ? `${a.doseRecomendadaOz} oz`
+                          : '—'}
+                      </td>
+                      <td><strong>{a.doseAplicada} oz</strong></td>
                       <td>{a.vehicleId ? getVehicleName(a.vehicleId) : '—'}</td>
                       <td>{a.posicaoInicial || '—'}</td>
-                      <td><strong>{a.doseAplicada} oz</strong></td>
                       <td>{a.quilometragemAplicacao.toLocaleString('pt-BR')}</td>
                       <td>{a.sulcoInicial} mm</td>
                       <td>{a.responsavel || '—'}</td>

@@ -64,11 +64,16 @@ export interface TirePositionHistory {
   observacoes?: string
 }
 
+export type ApplicationDosageSource = 'table' | 'estimated' | 'technical' | 'manual'
+
 export interface FlatFreeApplication {
   id: string
   tireId: string
   data: string
   doseAplicada: number
+  medidaAplicacao?: string
+  doseRecomendadaOz?: number
+  dosageSource?: ApplicationDosageSource
   vehicleId?: string
   posicaoInicial?: string
   lote?: string

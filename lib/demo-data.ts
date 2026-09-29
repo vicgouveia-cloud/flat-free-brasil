@@ -118,6 +118,9 @@ export const DEMO_APPLICATIONS: FlatFreeApplication[] = [
     tireId: 'tire-001',
     data: '2026-01-20',
     doseAplicada: 32,   // 32 fl oz — canonical for 295/80 R22,5
+    medidaAplicacao: '295/80 R22,5',
+    doseRecomendadaOz: 32,
+    dosageSource: 'table',
     vehicleId: 'veh-001',
     posicaoInicial: 'Dianteiro Direito',
     responsavel: 'Carlos Silva',
@@ -130,6 +133,9 @@ export const DEMO_APPLICATIONS: FlatFreeApplication[] = [
     tireId: 'tire-002',
     data: '2026-01-20',
     doseAplicada: 28,   // 28 fl oz — canonical for 275/80 R22,5
+    medidaAplicacao: '275/80 R22,5',
+    doseRecomendadaOz: 28,
+    dosageSource: 'table',
     vehicleId: 'veh-001',
     posicaoInicial: 'Dianteiro Esquerdo',
     responsavel: 'Carlos Silva',
