@@ -14,11 +14,13 @@ function TireSlot({
   mounted,
   selected,
   onSelect,
+  onSelectMounted,
 }: {
   label: string
   mounted?: VehicleMountedTire
   selected?: boolean
   onSelect?: () => void
+  onSelectMounted?: (mounted: VehicleMountedTire) => void
 }) {
   const title = mounted
     ? `${label} • ${mounted.tire.identificacaoInterna} • ${mounted.hasFlatFree ? 'Com Flat Free' : 'Sem aplicação Flat Free no ciclo atual'}`
@@ -64,6 +66,19 @@ function TireSlot({
     </div>
   )
 
+  if (mounted && onSelectMounted) {
+    return (
+      <button
+        type="button"
+        onClick={() => onSelectMounted(mounted)}
+        aria-label={`Selecionar pneu ${mounted.tire.identificacaoInterna} na posição ${label}`}
+        style={{ background: 'none', border: 0, padding: 0, cursor: 'pointer' }}
+      >
+        {content}
+      </button>
+    )
+  }
+
   if (mounted || !onSelect) return content
 
   return (
@@ -83,11 +98,13 @@ export default function VehicleTopView({
   mountedTires = [],
   selectedSlotId,
   onSelectFreeSlot,
+  onSelectMountedTire,
 }: {
   vehicle: Vehicle
   mountedTires?: VehicleMountedTire[]
   selectedSlotId?: string | null
   onSelectFreeSlot?: (slotId: string) => void
+  onSelectMountedTire?: (mounted: VehicleMountedTire) => void
 }) {
   const layout = getVehicleLayout(vehicle)
   const isTrailer = layout.type === 'semi_trailer' || layout.type === 'trailer'
@@ -194,6 +211,7 @@ export default function VehicleTopView({
                         mounted={mountedBySlot.get(slot.id)}
                         selected={selectedSlotId === slot.id}
                         onSelect={mountedBySlot.has(slot.id) ? undefined : () => onSelectFreeSlot?.(slot.id)}
+                        onSelectMounted={onSelectMountedTire}
                       />
                     ))}
                   </div>
@@ -234,6 +252,7 @@ export default function VehicleTopView({
                         mounted={mountedBySlot.get(slot.id)}
                         selected={selectedSlotId === slot.id}
                         onSelect={mountedBySlot.has(slot.id) ? undefined : () => onSelectFreeSlot?.(slot.id)}
+                        onSelectMounted={onSelectMountedTire}
                       />
                     ))}
                   </div>
@@ -245,7 +264,7 @@ export default function VehicleTopView({
       </div>
 
       <p style={{ marginTop: '0.85rem', color: 'var(--text-muted)', fontSize: '0.75rem' }}>
-        A montagem é derivada do histórico de posições. Clique em uma posição livre para montar ou remanejar um pneu. O destaque Flat Free considera somente a aplicação válida no ciclo atual do pneu.
+        A montagem é derivada do histórico de posições. Clique em uma posição livre para montar ou remanejar; clique em um pneu montado para registrar sua retirada. O destaque Flat Free considera somente a aplicação válida no ciclo atual do pneu.
       </p>
     </div>
   )

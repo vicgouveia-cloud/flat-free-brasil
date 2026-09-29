@@ -179,6 +179,49 @@ export function mountTireToVehicleSlot(
   }
 }
 
+
+export interface UnmountTireResult {
+  ok: boolean
+  history: TirePositionHistory[]
+  error?: 'not_mounted' | 'invalid_date'
+}
+
+export function unmountTireFromVehicleSlot(
+  tireId: string,
+  vehicleId: string,
+  slotId: string,
+  date: string,
+  allHistory: TirePositionHistory[]
+): UnmountTireResult {
+  const currentEntry = allHistory.find(entry => {
+    if (
+      entry.tireId !== tireId ||
+      entry.vehicleId !== vehicleId ||
+      entry.dataFinal
+    ) return false
+
+    const entrySlotId = entry.slotId || getSlotIdFromPosition(entry.posicao)
+    return entrySlotId === slotId
+  })
+
+  if (!currentEntry) {
+    return { ok: false, history: allHistory, error: 'not_mounted' }
+  }
+
+  if (date < currentEntry.dataInicial) {
+    return { ok: false, history: allHistory, error: 'invalid_date' }
+  }
+
+  return {
+    ok: true,
+    history: allHistory.map(entry =>
+      entry.id === currentEntry.id
+        ? { ...entry, dataFinal: date }
+        : entry
+    ),
+  }
+}
+
 interface PositionEvent {
   tireId: string
   vehicleId: string

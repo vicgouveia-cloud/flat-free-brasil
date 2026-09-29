@@ -6,6 +6,7 @@ import {
   getPositionHistory,
   getTires,
   mountTireToVehicleSlot,
+  unmountTireFromVehicleSlot,
   getUnits,
   getVehicles,
   savePositionHistory,
@@ -48,6 +49,9 @@ export default function VeiculosPage() {
   const [mountTireId, setMountTireId] = useState('')
   const [mountDate, setMountDate] = useState(new Date().toISOString().split('T')[0])
   const [mountError, setMountError] = useState('')
+  const [selectedMountedTire, setSelectedMountedTire] = useState<VehicleMountedTire | null>(null)
+  const [unmountDate, setUnmountDate] = useState(new Date().toISOString().split('T')[0])
+  const [unmountError, setUnmountError] = useState('')
 
   useEffect(() => {
     setVehicles(getVehicles())
@@ -95,6 +99,8 @@ export default function VeiculosPage() {
     setSelectedSlotId(null)
     setMountTireId('')
     setMountError('')
+    setSelectedMountedTire(null)
+    setUnmountError('')
     setShowForm(false)
   }
 
@@ -102,6 +108,16 @@ export default function VeiculosPage() {
     setSelectedSlotId(slotId)
     setMountTireId('')
     setMountError('')
+    setSelectedMountedTire(null)
+    setUnmountError('')
+  }
+
+  function handleSelectMountedTire(mounted: VehicleMountedTire) {
+    setSelectedMountedTire(mounted)
+    setSelectedSlotId(null)
+    setMountTireId('')
+    setMountError('')
+    setUnmountError('')
   }
 
   function handleMountTire() {
@@ -130,6 +146,33 @@ export default function VeiculosPage() {
     setSelectedSlotId(null)
     setMountTireId('')
     setMountError('')
+    openVehicleDrawing(visualizing)
+  }
+
+  function handleUnmountTire() {
+    if (!visualizing || !selectedMountedTire || !unmountDate) return
+
+    const currentHistory = getPositionHistory()
+    const result = unmountTireFromVehicleSlot(
+      selectedMountedTire.tire.id,
+      visualizing.id,
+      selectedMountedTire.slotId,
+      unmountDate,
+      currentHistory
+    )
+
+    if (!result.ok) {
+      const messages = {
+        not_mounted: 'Este pneu não está mais montado nesta posição.',
+        invalid_date: 'A data da retirada não pode ser anterior à data de montagem.',
+      }
+      setUnmountError(result.error ? messages[result.error] : 'Não foi possível registrar a retirada.')
+      return
+    }
+
+    savePositionHistory(result.history)
+    setSelectedMountedTire(null)
+    setUnmountError('')
     openVehicleDrawing(visualizing)
   }
 
@@ -262,6 +305,7 @@ export default function VeiculosPage() {
             mountedTires={mountedTires}
             selectedSlotId={selectedSlotId}
             onSelectFreeSlot={handleSelectSlot}
+            onSelectMountedTire={handleSelectMountedTire}
           />
 
           {selectedSlotId && (
@@ -340,6 +384,65 @@ export default function VeiculosPage() {
                     setSelectedSlotId(null)
                     setMountTireId('')
                     setMountError('')
+                  }}
+                >
+                  Cancelar
+                </button>
+              </div>
+            </div>
+          )}
+
+          {selectedMountedTire && (
+            <div
+              style={{
+                marginTop: '1.25rem',
+                padding: '1rem',
+                border: '1px solid var(--border-color)',
+                borderRadius: '10px',
+                background: 'var(--bg-surface-elevated)',
+              }}
+            >
+              <h4 style={{ fontWeight: 700, marginBottom: '0.35rem' }}>
+                Retirar {selectedMountedTire.tire.identificacaoInterna}
+              </h4>
+              <p style={{ color: 'var(--text-secondary)', fontSize: '0.8rem', marginBottom: '0.75rem' }}>
+                Posição atual: {selectedMountedTire.slotId}. A retirada encerra esta posição no histórico sem alterar o status do pneu.
+              </p>
+
+              <div className="form-group" style={{ maxWidth: '280px', marginBottom: 0 }}>
+                <label className="form-label">Data da retirada *</label>
+                <input
+                  type="date"
+                  className="form-control"
+                  value={unmountDate}
+                  onChange={e => {
+                    setUnmountDate(e.target.value)
+                    setUnmountError('')
+                  }}
+                />
+              </div>
+
+              {unmountError && (
+                <p style={{ marginTop: '0.75rem', color: '#dc2626', fontSize: '0.8rem' }}>
+                  {unmountError}
+                </p>
+              )}
+
+              <div style={{ display: 'flex', gap: '0.75rem', marginTop: '0.9rem', flexWrap: 'wrap' }}>
+                <button
+                  type="button"
+                  className="btn btn-primary btn-sm"
+                  disabled={!unmountDate}
+                  onClick={handleUnmountTire}
+                >
+                  Registrar retirada
+                </button>
+                <button
+                  type="button"
+                  className="btn btn-outline btn-sm"
+                  onClick={() => {
+                    setSelectedMountedTire(null)
+                    setUnmountError('')
                   }}
                 >
                   Cancelar
