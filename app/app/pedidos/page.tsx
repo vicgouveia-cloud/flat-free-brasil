@@ -365,6 +365,10 @@ export default function PedidosPage() {
                       type="button"
                       className="btn btn-primary btn-sm"
                       disabled={!shippingCarrier.trim()}
+                      style={{
+                        opacity: shippingCarrier.trim() ? 1 : 0.5,
+                        cursor: shippingCarrier.trim() ? 'pointer' : 'not-allowed',
+                      }}
                       onClick={() =>
                         updateOrderStatus('enviado', {
                           carrier: shippingCarrier.trim(),
