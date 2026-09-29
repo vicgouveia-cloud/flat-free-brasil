@@ -45,6 +45,7 @@ export function getApplicationForTireCycleAtDate(
     .filter(
       application =>
         application.tireId === tireId &&
+        application.data <= referenceDate &&
         isDateInTireCycle(application.data, bounds)
     )
     .sort(
