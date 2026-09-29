@@ -6,7 +6,7 @@
 // =============================================
 
 import type {
-  Company, Vehicle, Tire, TireReading,
+  Company, Unit, Vehicle, Tire, TireReading,
   FlatFreeApplication, PilotProject, Order, TirePositionHistory
 } from './types'
 
@@ -20,6 +20,15 @@ export const DEMO_COMPANY: Company = {
   telefone: '(11) 99999-0001',
   endereco: 'Av. Industrial, 1000 - São Paulo, SP',
 }
+
+export const DEMO_UNITS: Unit[] = [
+  {
+    id: 'unit-001',
+    companyId: 'demo-company-1',
+    nome: 'Matriz',
+    endereco: 'Av. Industrial, 1000 - São Paulo, SP',
+  },
+]
 
 export const DEMO_VEHICLES: Vehicle[] = [
   {

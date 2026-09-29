@@ -5,16 +5,17 @@
 // =============================================
 
 import type {
-  Company, Vehicle, Tire, TireReading, FlatFreeApplication,
+  Company, Unit, Vehicle, Tire, TireReading, FlatFreeApplication,
   PilotProject, Order, Occurrence, TirePositionHistory
 } from './types'
 import {
-  DEMO_COMPANY, DEMO_VEHICLES, DEMO_TIRES, DEMO_READINGS, DEMO_APPLICATIONS,
+  DEMO_COMPANY, DEMO_UNITS, DEMO_VEHICLES, DEMO_TIRES, DEMO_READINGS, DEMO_APPLICATIONS,
   DEMO_PROJECTS, DEMO_ORDERS, DEMO_POSITION_HISTORY
 } from './demo-data'
 
 const KEYS = {
   company: 'ff_company',
+  units: 'ff_units',
   vehicles: 'ff_vehicles',
   tires: 'ff_tires',
   readings: 'ff_readings',
@@ -70,6 +71,10 @@ export function uuid(): string {
 // Company
 export function getCompany(): Company { return loadOne(KEYS.company, DEMO_COMPANY) }
 export function saveCompany(company: Company): void { saveOne(KEYS.company, company) }
+
+// Units
+export function getUnits(): Unit[] { return load(KEYS.units, DEMO_UNITS) }
+export function saveUnits(u: Unit[]): void { save(KEYS.units, u) }
 
 // Vehicles
 export function getVehicles(): Vehicle[] { return load(KEYS.vehicles, DEMO_VEHICLES) }
