@@ -106,6 +106,44 @@ export default function LeiturasPage() {
       return
     }
 
+    const vehicleReadings = readings.filter(
+      reading => reading.vehicleId === position.vehicleId
+    )
+    const previousReading = vehicleReadings
+      .filter(reading => reading.data < form.data)
+      .sort(
+        (a, b) =>
+          b.data.localeCompare(a.data) ||
+          b.quilometragemVeiculo - a.quilometragemVeiculo
+      )[0]
+    const nextReading = vehicleReadings
+      .filter(reading => reading.data > form.data)
+      .sort(
+        (a, b) =>
+          a.data.localeCompare(b.data) ||
+          a.quilometragemVeiculo - b.quilometragemVeiculo
+      )[0]
+
+    if (
+      previousReading &&
+      form.quilometragemVeiculo < previousReading.quilometragemVeiculo
+    ) {
+      setSaveError(
+        `A quilometragem não pode ser menor que a leitura anterior deste veículo (${previousReading.quilometragemVeiculo.toLocaleString('pt-BR')} km em ${previousReading.data}).`
+      )
+      return
+    }
+
+    if (
+      nextReading &&
+      form.quilometragemVeiculo > nextReading.quilometragemVeiculo
+    ) {
+      setSaveError(
+        `A quilometragem não pode ser maior que a leitura posterior deste veículo (${nextReading.quilometragemVeiculo.toLocaleString('pt-BR')} km em ${nextReading.data}).`
+      )
+      return
+    }
+
     const newReading: TireReading = {
       id: uuid(),
       ...form,
