@@ -82,8 +82,13 @@ export default function PedidosPage() {
   const [pendingUsageInputs, setPendingUsageInputs] = useState<Record<number, PendingUsageInput>>({})
   const [shippingCarrier, setShippingCarrier] = useState('')
   const [shippingTrackingCode, setShippingTrackingCode] = useState('')
+  const [statusFilter, setStatusFilter] = useState<'all' | OrderStatus>('all')
 
   useEffect(() => { setOrders(getOrders()) }, [])
+
+  const filteredOrders = statusFilter === 'all'
+    ? orders
+    : orders.filter(order => getEffectiveOrderStatus(order) === statusFilter)
 
   function updatePendingTechnicalInput<K extends keyof PendingTechnicalInput>(
     index: number,
@@ -752,12 +757,45 @@ export default function PedidosPage() {
         </div>
       ) : (
         <div className="card">
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              gap: '0.75rem',
+              flexWrap: 'wrap',
+              marginBottom: '1rem',
+            }}
+          >
+            <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
+              Filtrar pedidos por status
+            </span>
+            <select
+              className="form-control"
+              value={statusFilter}
+              onChange={e => setStatusFilter(e.target.value as 'all' | OrderStatus)}
+              style={{ width: 'auto', minWidth: '210px' }}
+            >
+              <option value="all">Todos os status</option>
+              <option value="pendente_dosagem">Pendente de dosagem</option>
+              <option value="solicitado">Solicitado</option>
+              <option value="em_analise">Em análise</option>
+              <option value="aprovado">Aprovado</option>
+              <option value="enviado">Enviado</option>
+              <option value="entregue">Entregue</option>
+              <option value="cancelado">Cancelado</option>
+            </select>
+          </div>
           <table className="table">
             <thead><tr><th>Empresa</th><th>Data</th><th>Total (doses)</th><th>Status</th><th></th></tr></thead>
             <tbody>
-              {orders.length === 0 ? (
-                <tr><td colSpan={5} style={{ textAlign: 'center', color: 'var(--text-muted)', padding: '2rem' }}>Nenhum pedido registrado.</td></tr>
-              ) : orders.map(o => (
+              {filteredOrders.length === 0 ? (
+                <tr>
+                  <td colSpan={5} style={{ textAlign: 'center', color: 'var(--text-muted)', padding: '2rem' }}>
+                    {orders.length === 0 ? 'Nenhum pedido registrado.' : 'Nenhum pedido neste status.'}
+                  </td>
+                </tr>
+              ) : filteredOrders.map(o => (
                 <tr key={o.id}>
                   <td style={{ fontWeight: 600 }}>{o.nomeEmpresa}</td>
                   <td>{o.data}</td>
