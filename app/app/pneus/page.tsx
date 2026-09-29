@@ -3,9 +3,9 @@ import { useEffect, useState } from 'react'
 import {
   getTires, saveTires, getApplications, saveApplications,
   getReadings, getPositionHistory, savePositionHistory,
-  updatePositionHistoryOnApplication, getOccurrences, getVehicles, uuid
+  updatePositionHistoryOnApplication, getOccurrences, getVehicles, getUnits, uuid
 } from '@/lib/storage'
-import type { Tire, TireCondition, TireStatus, FlatFreeApplication, TirePositionHistory } from '@/lib/types'
+import type { Tire, TireCondition, TireStatus, FlatFreeApplication, TirePositionHistory, Unit } from '@/lib/types'
 import { DOSAGE_CATALOG, findCatalogEntry, getDosageOz, normalizeMeasure } from '@/lib/dosage'
 import { getApplicationForTireCycleAtDate } from '@/lib/tire-lifecycle'
 
@@ -43,6 +43,7 @@ export default function PneusPage() {
   const [readings, setReadings] = useState(getReadings())
   const [posHistory, setPosHistory] = useState<TirePositionHistory[]>([])
   const [vehicles, setVehicles] = useState(getVehicles())
+  const [units, setUnits] = useState<Unit[]>(getUnits())
 
   // Application form
   const [showAppForm, setShowAppForm] = useState(false)
@@ -65,6 +66,7 @@ export default function PneusPage() {
   useEffect(() => {
     setTires(getTires())
     setVehicles(getVehicles())
+    setUnits(getUnits())
   }, [])
 
   function openNew() {
@@ -117,6 +119,7 @@ export default function PneusPage() {
     setReadings(getReadings())
     setPosHistory(getPositionHistory())
     setVehicles(getVehicles())
+    setUnits(getUnits())
     // Pre-fill app form for this tire
     const suggestedOz = getDosageOz(t.medida) ?? 0
     setAppForm({
@@ -170,6 +173,13 @@ export default function PneusPage() {
     return v ? v.identificacaoInterna : id
   }
 
+  function getUnitNameByVehicleId(vehicleId: string) {
+    const vehicle = vehicles.find(v => v.id === vehicleId)
+    if (!vehicle?.unitId) return 'Sem unidade'
+
+    return units.find(unit => unit.id === vehicle.unitId)?.nome || 'Sem unidade'
+  }
+
   const tireReadings = selected
     ? readings.filter(r => r.tireId === selected.id).sort((a, b) => b.data.localeCompare(a.data))
     : []
@@ -191,6 +201,7 @@ export default function PneusPage() {
         .filter(h => h.tireId === selected.id)
         .sort((a, b) => a.dataInicial.localeCompare(b.dataInicial))
     : []
+  const currentPosition = tirePosHistory.find(h => !h.dataFinal) || null
 
   return (
     <div>
@@ -308,6 +319,42 @@ export default function PneusPage() {
                 </div>
               ))}
             </div>
+          </div>
+
+          <div className="card" style={{ marginBottom: '1.5rem' }}>
+            <h4 style={{ fontWeight: 700, marginBottom: '0.75rem' }}>Alocação Atual</h4>
+            {currentPosition ? (
+              <div
+                style={{
+                  display: 'grid',
+                  gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))',
+                  gap: '1rem',
+                }}
+              >
+                <div>
+                  <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)', fontWeight: 700, textTransform: 'uppercase', display: 'block' }}>
+                    Unidade
+                  </span>
+                  <span style={{ fontWeight: 600 }}>{getUnitNameByVehicleId(currentPosition.vehicleId)}</span>
+                </div>
+                <div>
+                  <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)', fontWeight: 700, textTransform: 'uppercase', display: 'block' }}>
+                    Veículo
+                  </span>
+                  <span style={{ fontWeight: 600 }}>{getVehicleName(currentPosition.vehicleId)}</span>
+                </div>
+                <div>
+                  <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)', fontWeight: 700, textTransform: 'uppercase', display: 'block' }}>
+                    Posição
+                  </span>
+                  <span style={{ fontWeight: 600 }}>{currentPosition.posicao}</span>
+                </div>
+              </div>
+            ) : (
+              <p style={{ color: 'var(--text-muted)', fontSize: '0.875rem', margin: 0 }}>
+                Pneu sem alocação atual registrada.
+              </p>
+            )}
           </div>
 
           {/* Position History */}
