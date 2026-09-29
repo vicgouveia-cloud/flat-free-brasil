@@ -21,11 +21,13 @@ export interface Unit {
 }
 
 export type VehicleStatus = 'ativo' | 'inativo' | 'em_manutencao'
+export type VehicleLayoutType = 'truck' | 'tractor' | 'semi_trailer' | 'trailer' | 'other'
 
 export interface Vehicle {
   id: string
   companyId: string
   unitId?: string
+  layoutType?: VehicleLayoutType
   identificacaoInterna: string
   placa?: string
   tipo: string

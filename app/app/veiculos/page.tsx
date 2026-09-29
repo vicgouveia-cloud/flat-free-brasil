@@ -1,11 +1,14 @@
 'use client'
 import { useEffect, useState } from 'react'
 import { getUnits, getVehicles, saveVehicles, uuid } from '@/lib/storage'
-import type { Unit, Vehicle, VehicleStatus } from '@/lib/types'
+import VehicleTopView from '@/components/VehicleTopView'
+import { VEHICLE_LAYOUT_LABELS, inferVehicleLayoutType } from '@/lib/vehicle-layout'
+import type { Unit, Vehicle, VehicleLayoutType, VehicleStatus } from '@/lib/types'
 
 const EMPTY_VEHICLE: Omit<Vehicle, 'id'> = {
   companyId: 'demo-company-1',
   unitId: '',
+  layoutType: 'truck',
   identificacaoInterna: '',
   placa: '',
   tipo: 'Caminhão 6x4',
@@ -26,6 +29,7 @@ export default function VeiculosPage() {
   const [editing, setEditing] = useState<Vehicle | null>(null)
   const [form, setForm] = useState(EMPTY_VEHICLE)
   const [showForm, setShowForm] = useState(false)
+  const [visualizing, setVisualizing] = useState<Vehicle | null>(null)
 
   useEffect(() => {
     setVehicles(getVehicles())
@@ -36,6 +40,7 @@ export default function VeiculosPage() {
     setEditing(null)
     setForm(EMPTY_VEHICLE)
     setShowForm(true)
+    setVisualizing(null)
   }
 
   function openEdit(v: Vehicle) {
@@ -43,6 +48,7 @@ export default function VeiculosPage() {
     setForm({
       companyId: v.companyId,
       unitId: v.unitId || '',
+      layoutType: inferVehicleLayoutType(v),
       identificacaoInterna: v.identificacaoInterna,
       placa: v.placa || '',
       tipo: v.tipo,
@@ -51,6 +57,7 @@ export default function VeiculosPage() {
       status: v.status,
     })
     setShowForm(true)
+    setVisualizing(null)
   }
 
   function handleSave() {
@@ -99,6 +106,19 @@ export default function VeiculosPage() {
               </div>
             ))}
             <div className="form-group">
+              <label className="form-label">Tipo de layout *</label>
+              <select
+                className="form-control"
+                required
+                value={form.layoutType || 'other'}
+                onChange={e => setForm(p => ({ ...p, layoutType: e.target.value as VehicleLayoutType }))}
+              >
+                {(Object.entries(VEHICLE_LAYOUT_LABELS) as [VehicleLayoutType, string][]).map(([value, label]) => (
+                  <option key={value} value={value}>{label}</option>
+                ))}
+              </select>
+            </div>
+            <div className="form-group">
               <label className="form-label">Unidade *</label>
               <select
                 className="form-control"
@@ -128,6 +148,29 @@ export default function VeiculosPage() {
         </div>
       )}
 
+      {visualizing && (
+        <div className="card" style={{ marginBottom: '1.5rem' }}>
+          <div
+            style={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              gap: '1rem',
+              alignItems: 'center',
+              marginBottom: '1.25rem',
+            }}
+          >
+            <div>
+              <h3 style={{ fontWeight: 800, marginBottom: '0.2rem' }}>{visualizing.identificacaoInterna}</h3>
+              <p style={{ color: 'var(--text-secondary)', fontSize: '0.85rem', margin: 0 }}>
+                {visualizing.fabricanteModelo || visualizing.tipo} • {visualizing.configuracaoEixos || 'configuração não informada'}
+              </p>
+            </div>
+            <button onClick={() => setVisualizing(null)} className="btn btn-outline btn-sm">Fechar desenho</button>
+          </div>
+          <VehicleTopView vehicle={visualizing} />
+        </div>
+      )}
+
       <div className="card">
         <table className="table">
           <thead><tr><th>ID Interno</th><th>Unidade</th><th>Placa</th><th>Tipo</th><th>Modelo</th><th>Status</th><th>Ações</th></tr></thead>
@@ -142,7 +185,16 @@ export default function VeiculosPage() {
                 <td>{v.tipo}</td>
                 <td>{v.fabricanteModelo || '—'}</td>
                 <td><span className={`badge ${statusLabels[v.status].cls}`}>{statusLabels[v.status].label}</span></td>
-                <td style={{ display: 'flex', gap: '0.5rem' }}>
+                <td style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+                  <button
+                    onClick={() => {
+                      setVisualizing(v)
+                      setShowForm(false)
+                    }}
+                    className="btn btn-outline btn-sm"
+                  >
+                    <i className="fas fa-diagram-project" /> Desenho
+                  </button>
                   <button onClick={() => openEdit(v)} className="btn btn-outline btn-sm"><i className="fas fa-pen" /></button>
                   {v.status !== 'inativo' && <button onClick={() => handleDeactivate(v.id)} className="btn btn-sm" style={{ background: 'rgba(239,68,68,0.1)', color: '#dc2626', border: 'none' }}><i className="fas fa-ban" /></button>}
                 </td>
