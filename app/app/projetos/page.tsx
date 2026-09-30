@@ -34,7 +34,7 @@ export default function ProjetosPage() {
   useEffect(() => { setProjects(getProjects()); setTires(getTires()) }, [])
 
   function handleCreate() {
-    if (!form.nome) return
+    if (!form.nome.trim() || !form.dataInicio) return
     const project: PilotProject = {
       id: uuid(),
       companyId: 'demo-company-1',
@@ -87,6 +87,13 @@ export default function ProjetosPage() {
   function activateProject(id: string) {
     const project = projects.find(p => p.id === id)
     if (!project) return
+
+    if (!project.dataInicio) {
+      setActivationError(
+        'Este projeto não possui data de início. Informe uma data válida antes de ativá-lo.'
+      )
+      return
+    }
 
     if (project.dataInicio > today) {
       setActivationError(
@@ -221,8 +228,8 @@ export default function ProjetosPage() {
               <textarea className="form-control" rows={2} value={form.descricao} onChange={e => setForm(p => ({ ...p, descricao: e.target.value }))} />
             </div>
             <div className="form-group">
-              <label className="form-label">Data de Início</label>
-              <input type="date" className="form-control" value={form.dataInicio} onChange={e => setForm(p => ({ ...p, dataInicio: e.target.value }))} />
+              <label className="form-label">Data de Início *</label>
+              <input type="date" className="form-control" required value={form.dataInicio} onChange={e => setForm(p => ({ ...p, dataInicio: e.target.value }))} />
             </div>
             <div className="form-group">
               <label className="form-label">Critérios de Comparação</label>
