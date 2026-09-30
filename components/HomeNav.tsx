@@ -39,15 +39,15 @@ export default function HomeNav() {
       <div className="container" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '1rem 1.5rem' }}>
         <Link href="/" style={{ display: 'flex', flexDirection: 'column', color: '#fff', fontFamily: 'Montserrat, sans-serif', fontWeight: 900 }}>
           <span>FLAT <span style={{ color: 'var(--color-safety-orange)' }}>FREE</span></span>
-          <span style={{ fontSize: '0.65rem', fontWeight: 600, letterSpacing: '0.1em', opacity: 0.7 }}>B2B Heavy Duty</span>
+          <span style={{ fontSize: '0.65rem', fontWeight: 600, letterSpacing: '0.1em', opacity: 0.7 }}>Proteção &amp; Gestão de Pneus</span>
         </Link>
 
         <nav style={{ display: menuOpen ? 'flex' : undefined, gap: '0.25rem' }}>
           <a href="#inicio" style={{ padding: '0.5rem 0.75rem', color: '#cbd5e1', fontSize: '0.9rem' }}>Início</a>
-          <a href="#tecnologia" style={{ padding: '0.5rem 0.75rem', color: '#cbd5e1', fontSize: '0.9rem' }}>Tecnologia 3D</a>
+          <a href="#tecnologia" style={{ padding: '0.5rem 0.75rem', color: '#cbd5e1', fontSize: '0.9rem' }}>Como funciona</a>
           <a href="#beneficios" style={{ padding: '0.5rem 0.75rem', color: '#cbd5e1', fontSize: '0.9rem' }}>Benefícios</a>
-          <a href="#calculadora" style={{ padding: '0.5rem 0.75rem', color: '#cbd5e1', fontSize: '0.9rem' }}>Calculadora ROI</a>
-          <a href="#artigos" style={{ padding: '0.5rem 0.75rem', color: '#cbd5e1', fontSize: '0.9rem' }}>Artigos</a>
+          <Link href="/calculadora" style={{ padding: '0.5rem 0.75rem', color: '#cbd5e1', fontSize: '0.9rem' }}>Dosagem</Link>
+          <Link href="/app" style={{ padding: '0.5rem 0.75rem', color: '#cbd5e1', fontSize: '0.9rem' }}>Para frotas</Link>
           <a href="#contato" style={{ padding: '0.5rem 0.75rem', color: '#cbd5e1', fontSize: '0.9rem' }}>Contato</a>
         </nav>
 
@@ -59,10 +59,10 @@ export default function HomeNav() {
             Calcular Aplicação
           </Link>
           <Link href="/solicitar" className="btn btn-primary btn-sm">
-            Solicitar Flat Free
+            Quero Flat Free
           </Link>
           <Link href="/app" className="btn btn-sm" style={{ background: 'rgba(255,255,255,0.1)', color: '#fff', border: '1px solid rgba(255,255,255,0.2)' }}>
-            Plataforma
+            Gestão da Frota
           </Link>
         </div>
       </div>
