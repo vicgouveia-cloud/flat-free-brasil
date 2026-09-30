@@ -27,9 +27,10 @@ interface TireStats {
  *   - final km > baseline km
  *   - baseline sulco > final sulco (sulcoConsumido > 0)
  *
- * For TREATED tires: try FlatFreeApplication as baseline first,
- *   then fall back to first reading.
- * For CONTROL tires: use first reading as baseline, last reading as final.
+ * Only data on or after the project start date participates.
+ * For TREATED tires: use FlatFreeApplication as baseline only when the
+ *   application happened on the project start date; otherwise use project readings.
+ * For CONTROL tires: use first and last project readings.
  */
 function computeTireStats(
   pt: { tireId: string; grupo: 'tratado' | 'controle' },
@@ -52,6 +53,7 @@ function computeTireStats(
     .filter(
       r =>
         r.tireId === pt.tireId &&
+        r.data >= projectStartDate &&
         isDateInTireCycle(r.data, cycleBounds)
     )
     .sort(
@@ -70,6 +72,7 @@ function computeTireStats(
   const occurrenceCount = occurrences.filter(
     o =>
       o.tireId === pt.tireId &&
+      o.data >= projectStartDate &&
       o.tipo !== 'recapagem' &&
       o.tipo !== 'retorno_recapagem' &&
       isDateInTireCycle(o.data, cycleBounds)
@@ -80,7 +83,12 @@ function computeTireStats(
   let finalKm: number | null = null
   let finalSulco: number | null = null
 
-  if (pt.grupo === 'tratado' && app && !app.vehicleId) {
+  const useApplicationBaseline =
+    pt.grupo === 'tratado' &&
+    Boolean(app) &&
+    app?.data === projectStartDate
+
+  if (useApplicationBaseline && app && !app.vehicleId) {
     return {
       tire,
       grupo: pt.grupo,
@@ -94,12 +102,12 @@ function computeTireStats(
     }
   }
 
-  if (pt.grupo === 'tratado' && app) {
-    // Use application as baseline
+  if (useApplicationBaseline && app) {
+    // When the application happened on the project start date, use it as the
+    // treated tire baseline. Older applications define treatment state, but
+    // do not pull pre-project mileage into this project's comparison.
     baseKm = app.quilometragemAplicacao
     baseSulco = app.sulcoInicial
-    // Final = last reading after application, but only when the odometer
-    // belongs to the same vehicle used as the application baseline.
     const posteriorReadings = tireReadings.filter(r => r.data >= app.data)
 
     if (posteriorReadings.some(r => r.vehicleId !== app.vehicleId)) {
@@ -148,12 +156,6 @@ function computeTireStats(
       baseSulco = first.sulco
       finalKm = last.quilometragemVeiculo
       finalSulco = last.sulco
-    } else if (tireReadings.length === 1 && app) {
-      // Treated tire fallback: app as baseline + single reading
-      baseKm = app.quilometragemAplicacao
-      baseSulco = app.sulcoInicial
-      finalKm = tireReadings[0].quilometragemVeiculo
-      finalSulco = tireReadings[0].sulco
     }
   }
 
