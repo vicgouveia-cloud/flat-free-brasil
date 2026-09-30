@@ -7,6 +7,7 @@ import {
   getApplications,
   getOccurrences,
   getPositionHistory,
+  getReadings,
   getTirePositionAtDate,
   uuid,
 } from '@/lib/storage'
@@ -210,6 +211,42 @@ export default function ProjetosPage() {
       const issues = [
         ...treatedWithoutApplication.map(pt => `${getTireName(pt.tireId)} está no grupo Tratado, mas não possui aplicação Flat Free no ciclo deste projeto.`),
         ...controlsWithApplication.map(pt => `${getTireName(pt.tireId)} está no grupo Controle, mas possui aplicação Flat Free no ciclo deste projeto.`),
+      ]
+      setActivationError(issues.join(' '))
+      return
+    }
+
+    const readings = getReadings()
+    const applicationBaselineWithoutVehicle = project.pneus.filter(pt => {
+      if (pt.grupo !== 'tratado') return false
+      const application = applicationInProjectCycle(pt.tireId)
+      return application?.data === project.dataInicio && !application.vehicleId
+    })
+    const missingBaselineReadings = project.pneus.filter(pt => {
+      const application = applicationInProjectCycle(pt.tireId)
+      const usesApplicationBaseline =
+        pt.grupo === 'tratado' && application?.data === project.dataInicio
+
+      if (usesApplicationBaseline) return false
+
+      return !readings.some(
+        reading =>
+          reading.tireId === pt.tireId &&
+          reading.data === project.dataInicio
+      )
+    })
+
+    if (
+      applicationBaselineWithoutVehicle.length > 0 ||
+      missingBaselineReadings.length > 0
+    ) {
+      const issues = [
+        ...applicationBaselineWithoutVehicle.map(
+          pt => `${getTireName(pt.tireId)} possui aplicação na data inicial, mas sem veículo-base registrado.`
+        ),
+        ...missingBaselineReadings.map(
+          pt => `${getTireName(pt.tireId)} precisa de uma leitura registrada em ${project.dataInicio} para definir o baseline do projeto.`
+        ),
       ]
       setActivationError(issues.join(' '))
       return
