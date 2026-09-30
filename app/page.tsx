@@ -168,50 +168,99 @@ export default function HomePage() {
       <HomeNav />
       <main>
         {/* HERO */}
-        <section id="inicio" style={{ background: 'linear-gradient(135deg, #0a0f1e 0%, #0f172a 50%, #1e1a0a 100%)', padding: '6rem 0', minHeight: '85vh', display: 'flex', alignItems: 'center' }}>
+        <section id="inicio" style={{ background: 'linear-gradient(135deg, #0a0f1e 0%, #0f172a 55%, #1e1a0a 100%)', padding: '6rem 0 5rem' }}>
           <div className="container">
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '4rem', alignItems: 'center' }}>
-              <div>
-                <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem', background: 'rgba(255,92,0,0.1)', border: '1px solid rgba(255,92,0,0.3)', borderRadius: '50px', padding: '0.35rem 0.9rem', color: 'var(--color-safety-orange)', fontSize: '0.8rem', fontWeight: 700, marginBottom: '1.5rem' }}>
-                  <i className="fas fa-shield-halved" /> Engenharia Industrial B2B
-                </div>
-                <h1 style={{ fontSize: 'clamp(2rem, 4vw, 3rem)', fontWeight: 900, fontFamily: 'Montserrat, sans-serif', color: '#fff', lineHeight: 1.15, marginBottom: '1.25rem' }}>
-                  Blindagem de Pneus para{' '}
-                  <span style={{ color: 'var(--color-safety-orange)' }}>Frotas Logísticas</span>{' '}
-                  &amp; Industriais
-                </h1>
-                <p style={{ color: '#94a3b8', fontSize: '1.05rem', marginBottom: '2rem', lineHeight: 1.7 }}>
-                  Aumente em até 20% a vida útil dos pneus, reduza o consumo de combustível e elimine paradas não planejadas por furos com a tecnologia avançada de vedação permanente <strong style={{ color: '#fff' }}>Flat Free B2B</strong>.
-                </p>
-                <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap', marginBottom: '2.5rem' }}>
-                  <a href="#contato" className="btn btn-primary btn-lg"><i className="fas fa-truck-fast" /> Fale com um Especialista</a>
-                  <Link href="/calculadora" className="btn btn-secondary btn-lg"><i className="fas fa-calculator" /> Calcular Dosagem</Link>
-                </div>
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '1rem' }}>
-                  {[
-                    { val: '+20%', label: 'Vida Útil do Pneu' },
-                    { val: '-40%', label: 'Downtime Operacional' },
-                    { val: '6 mm', label: 'Vedação Instantânea' },
-                    { val: '3–5%', label: 'Economia de Diesel' },
-                  ].map(s => (
-                    <div key={s.label} style={{ background: 'rgba(255,255,255,0.05)', borderRadius: '10px', padding: '1rem', textAlign: 'center', border: '1px solid rgba(255,255,255,0.08)' }}>
-                      <div style={{ fontSize: '1.4rem', fontWeight: 900, fontFamily: 'Montserrat', color: 'var(--color-safety-orange)' }}>{s.val}</div>
-                      <div style={{ fontSize: '0.75rem', color: '#94a3b8', marginTop: '0.25rem' }}>{s.label}</div>
-                    </div>
-                  ))}
-                </div>
+            <div style={{ maxWidth: '860px', margin: '0 auto', textAlign: 'center' }}>
+              <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem', background: 'rgba(255,92,0,0.1)', border: '1px solid rgba(255,92,0,0.3)', borderRadius: '50px', padding: '0.35rem 0.9rem', color: 'var(--color-safety-orange)', fontSize: '0.8rem', fontWeight: 700, marginBottom: '1.5rem' }}>
+                <i className="fas fa-shield-halved" /> Produto + gestão de pneus
               </div>
-              <div style={{ position: 'relative' }}>
-                <div style={{ borderRadius: '16px', overflow: 'hidden', border: '2px solid rgba(255,92,0,0.2)', boxShadow: '0 0 60px rgba(255,92,0,0.15)' }}>
-                  <img src="/images/hero_trucks_fleet.jpg" alt="Frota Logística de Caminhões Pesados Flat Free B2B" style={{ width: '100%', display: 'block' }} />
-                </div>
-                <div style={{ position: 'absolute', bottom: '-1rem', left: '-1rem', background: 'var(--color-safety-orange)', borderRadius: '12px', padding: '1rem 1.25rem', display: 'flex', gap: '0.75rem', alignItems: 'center', boxShadow: '0 8px 30px rgba(255,92,0,0.4)' }}>
-                  <i className="fas fa-circle-check" style={{ fontSize: '1.5rem', color: '#fff' }} />
-                  <div>
-                    <div style={{ color: '#fff', fontWeight: 700, fontSize: '0.9rem' }}>Uptime Garantido</div>
-                    <div style={{ color: 'rgba(255,255,255,0.8)', fontSize: '0.75rem' }}>Veículos rodando sem interrupção</div>
+              <h1 style={{ fontSize: 'clamp(2.2rem, 5vw, 3.7rem)', fontWeight: 900, fontFamily: 'Montserrat, sans-serif', color: '#fff', lineHeight: 1.08, marginBottom: '1.25rem' }}>
+                Proteção para o pneu. <span style={{ color: 'var(--color-safety-orange)' }}>Informação para prolongar sua vida útil.</span>
+              </h1>
+              <p style={{ color: '#cbd5e1', fontSize: '1.1rem', margin: '0 auto 2rem', lineHeight: 1.7, maxWidth: '760px' }}>
+                Flat Free combina proteção contra perfurações com ferramentas para acompanhar pneus, aplicações, posições, leituras e histórico. Para frotas, veículos particulares e uma futura rede de instalação e revenda.
+              </p>
+              <div style={{ display: 'flex', justifyContent: 'center', gap: '1rem', flexWrap: 'wrap' }}>
+                <Link href="/app" className="btn btn-primary btn-lg"><i className="fas fa-chart-line" /> Conhecer a plataforma</Link>
+                <Link href="/calculadora" className="btn btn-secondary btn-lg"><i className="fas fa-calculator" /> Calcular dosagem</Link>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* AUDIENCES */}
+        <section className="section" style={{ paddingTop: '3.5rem', paddingBottom: '3.5rem' }}>
+          <div className="container">
+            <div className="section-header">
+              <span className="section-tag">Uma solução, diferentes necessidades</span>
+              <h2 className="section-title">Como você quer usar o Flat Free?</h2>
+              <p className="section-description">Escolha o caminho mais próximo da sua necessidade. A mesma solução conecta proteção, acompanhamento e serviço.</p>
+            </div>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '1.5rem' }}>
+              {[
+                {
+                  icon: 'fa-truck',
+                  title: 'Frotas e empresas',
+                  desc: 'Cadastre veículos e pneus, acompanhe posições, aplicações, leituras, ocorrências e histórico para entender melhor o desgaste da frota.',
+                  href: '/app',
+                  cta: 'Gestão de pneus',
+                },
+                {
+                  icon: 'fa-car-side',
+                  title: 'Meu veículo',
+                  desc: 'Entenda a aplicação do Flat Free no seu veículo, consulte a dosagem e prepare-se para localizar um ponto de instalação.',
+                  href: '/calculadora',
+                  cta: 'Consultar aplicação',
+                },
+                {
+                  icon: 'fa-screwdriver-wrench',
+                  title: 'Quero instalar ou revender',
+                  desc: 'Oficinas, borracharias, concessionárias e prestadores poderão integrar a rede de atendimento e comercialização Flat Free.',
+                  href: '#contato',
+                  cta: 'Quero ser parceiro',
+                },
+              ].map(item => (
+                <div key={item.title} className="card" style={{ display: 'flex', flexDirection: 'column', minHeight: '285px' }}>
+                  <div style={{ width: '3rem', height: '3rem', background: 'rgba(255,92,0,0.1)', borderRadius: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '1rem' }}>
+                    <i className={`fas ${item.icon}`} style={{ color: 'var(--color-safety-orange)', fontSize: '1.2rem' }} />
                   </div>
+                  <h3 style={{ fontWeight: 800, fontSize: '1.1rem', marginBottom: '0.7rem' }}>{item.title}</h3>
+                  <p style={{ color: 'var(--text-secondary)', lineHeight: 1.6, fontSize: '0.9rem', flex: 1 }}>{item.desc}</p>
+                  <Link href={item.href} className="btn btn-outline" style={{ marginTop: '1.25rem', justifyContent: 'center' }}>
+                    {item.cta} <i className="fas fa-arrow-right" />
+                  </Link>
                 </div>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        {/* PLATFORM */}
+        <section className="section" style={{ background: 'var(--bg-surface-elevated)' }}>
+          <div className="container">
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '3rem', alignItems: 'center' }}>
+              <div>
+                <span className="section-tag">Flat Free Fleet</span>
+                <h2 className="section-title" style={{ textAlign: 'left', marginTop: '0.8rem' }}>O pneu passa a ter histórico, não apenas cadastro.</h2>
+                <p style={{ color: 'var(--text-secondary)', lineHeight: 1.7, marginBottom: '1.5rem' }}>
+                  A plataforma acompanha cada pneu ao longo da operação: em qual veículo e posição esteve, quando recebeu Flat Free, suas leituras, ocorrências e ciclos de recapagem. Essa base permite transformar manutenção em informação para decisão.
+                </p>
+                <Link href="/app" className="btn btn-primary"><i className="fas fa-gauge-high" /> Acessar gestão da frota</Link>
+              </div>
+              <div className="card" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                {[
+                  ['fa-truck-moving', 'Veículos e posições'],
+                  ['fa-circle-dot', 'Histórico por pneu'],
+                  ['fa-ruler-vertical', 'Leituras de desgaste'],
+                  ['fa-route', 'Movimentações'],
+                  ['fa-droplet', 'Aplicações Flat Free'],
+                  ['fa-rotate', 'Ciclos e recapagens'],
+                ].map(([icon, label]) => (
+                  <div key={label} style={{ padding: '1rem', border: '1px solid var(--border-color)', borderRadius: '10px', background: 'var(--bg-surface)' }}>
+                    <i className={`fas ${icon}`} style={{ color: 'var(--color-safety-orange)', marginBottom: '0.6rem' }} />
+                    <div style={{ fontSize: '0.85rem', fontWeight: 700 }}>{label}</div>
+                  </div>
+                ))}
               </div>
             </div>
           </div>
