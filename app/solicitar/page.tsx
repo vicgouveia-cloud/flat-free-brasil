@@ -51,6 +51,7 @@ function SolicitarForm() {
   const [calcItems, setCalcItems] = useState<CalcItem[]>([])
   const [submitted, setSubmitted] = useState(false)
   const [form, setForm] = useState({
+    perfil: 'frota',
     nomeEmpresa: '', razaoSocial: '', cnpj: '',
     nomeResponsavel: '', email: '', telefone: '',
     endereco: '', cidade: '', estado: '', cep: '',
@@ -214,12 +215,24 @@ function SolicitarForm() {
       )}
 
       <div className="card" style={{ marginBottom: '1.5rem' }}>
-        <h3 style={{ fontWeight: 700, marginBottom: '1.25rem' }}>Dados da Empresa</h3>
+        <h3 style={{ fontWeight: 700, marginBottom: '0.5rem' }}>Como podemos atender você?</h3>
+        <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', marginBottom: '1rem' }}>Esta etapa registra seu interesse. Nossa equipe poderá confirmar aplicação, quantidade, disponibilidade e entrega antes de qualquer fechamento.</p>
+        <div className="form-group" style={{ marginBottom: '1.5rem' }}>
+          <label className="form-label">Perfil de atendimento *</label>
+          <select className="form-control" value={form.perfil} onChange={e => updateForm('perfil', e.target.value)}>
+            <option value="frota">Empresa / frota</option>
+            <option value="particular">Veículo particular</option>
+            <option value="parceiro">Quero instalar ou revender</option>
+          </select>
+        </div>
+        <h3 style={{ fontWeight: 700, marginBottom: '1.25rem' }}>{form.perfil === 'particular' ? 'Seus dados' : 'Dados de contato'}</h3>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '1rem' }}>
           {([
-            ['nomeEmpresa', 'Nome da Empresa *', 'text', true],
-            ['razaoSocial', 'Razão Social (opcional)', 'text', false],
-            ['cnpj', 'CNPJ (opcional)', 'text', false],
+            ['nomeEmpresa', form.perfil === 'particular' ? 'Nome *' : 'Empresa / estabelecimento *', 'text', true],
+            ...(form.perfil !== 'particular' ? [
+              ['razaoSocial', 'Razão Social (opcional)', 'text', false],
+              ['cnpj', 'CNPJ (opcional)', 'text', false],
+            ] : []),
             ['nomeResponsavel', 'Nome do Responsável *', 'text', true],
             ['email', 'E-mail *', 'email', true],
             ['telefone', 'Telefone *', 'tel', true],
@@ -235,11 +248,12 @@ function SolicitarForm() {
       </div>
 
       <div className="card" style={{ marginBottom: '1.5rem' }}>
-        <h3 style={{ fontWeight: 700, marginBottom: '1.25rem' }}>Endereço de Entrega</h3>
+        <h3 style={{ fontWeight: 700, marginBottom: '0.4rem' }}>Localização</h3>
+        <p style={{ color: 'var(--text-secondary)', fontSize: '0.85rem', marginBottom: '1.25rem' }}>Informe onde você pretende receber ou utilizar o Flat Free. Isso também ajudará futuramente na indicação de atendimento e instalação.</p>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '1rem' }}>
           <div className="form-group" style={{ gridColumn: '1 / -1' }}>
-            <label className="form-label">Endereço *</label>
-            <input type="text" className="form-control" required value={form.endereco} onChange={e => updateForm('endereco', e.target.value)} />
+            <label className="form-label">Endereço</label>
+            <input type="text" className="form-control" value={form.endereco} onChange={e => updateForm('endereco', e.target.value)} />
           </div>
           <div className="form-group">
             <label className="form-label">Cidade *</label>
@@ -250,8 +264,8 @@ function SolicitarForm() {
             <input type="text" className="form-control" required maxLength={2} value={form.estado} onChange={e => updateForm('estado', e.target.value)} />
           </div>
           <div className="form-group">
-            <label className="form-label">CEP *</label>
-            <input type="text" className="form-control" required value={form.cep} onChange={e => updateForm('cep', e.target.value)} />
+            <label className="form-label">CEP</label>
+            <input type="text" className="form-control" value={form.cep} onChange={e => updateForm('cep', e.target.value)} />
           </div>
         </div>
       </div>
@@ -261,12 +275,12 @@ function SolicitarForm() {
           <label className="form-label">Observações</label>
           <textarea className="form-control" rows={4} value={form.observacoes}
             onChange={e => updateForm('observacoes', e.target.value)}
-            placeholder="Detalhes adicionais sobre o pedido..." />
+            placeholder={form.perfil === 'parceiro' ? 'Conte sobre seu estabelecimento, serviços e interesse em instalar ou revender Flat Free...' : 'Conte um pouco sobre os veículos, pneus ou necessidade que você quer atender...'} />
         </div>
       </div>
 
       <button type="submit" className="btn btn-primary btn-lg" style={{ width: '100%', justifyContent: 'center' }}>
-        <i className="fas fa-paper-plane" /> Registrar Solicitação
+        <i className="fas fa-paper-plane" /> Enviar Interesse
       </button>
     </form>
   )
@@ -288,9 +302,9 @@ export default function SolicitarPage() {
       <main style={{ minHeight: '100vh', background: 'var(--bg-primary)', padding: '3rem 0' }}>
         <div className="container" style={{ maxWidth: '800px' }}>
           <div style={{ marginBottom: '2rem' }}>
-            <span className="section-tag">Solicitação de Produto</span>
-            <h1 style={{ fontSize: '2rem', fontWeight: 900, fontFamily: 'Montserrat', marginTop: '0.5rem', marginBottom: '0.5rem' }}>Solicitar Flat Free</h1>
-            <p style={{ color: 'var(--text-secondary)' }}>Preencha os dados abaixo para registrar seu pedido/orçamento. Nenhum pagamento é processado nesta etapa.</p>
+            <span className="section-tag">Quero Flat Free</span>
+            <h1 style={{ fontSize: '2rem', fontWeight: 900, fontFamily: 'Montserrat', marginTop: '0.5rem', marginBottom: '0.5rem' }}>Vamos entender sua necessidade</h1>
+            <p style={{ color: 'var(--text-secondary)' }}>Você pode chegar como empresa, proprietário de veículo ou futuro parceiro. Informe sua necessidade para iniciarmos o atendimento. Nenhum pagamento é processado nesta etapa.</p>
           </div>
           <Suspense fallback={<div>Carregando...</div>}>
             <SolicitarForm />
