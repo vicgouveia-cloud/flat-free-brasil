@@ -216,22 +216,26 @@ export default function VeiculosPage() {
     if (!form.identificacaoInterna.trim() || !form.unitId) return
 
     if (editing) {
-      const validSlotIds = new Set(
-        formLayout.axles.flatMap(axle => axle.slots.map(slot => slot.id))
+      const hasPositionHistory = getPositionHistory().some(
+        entry => entry.vehicleId === editing.id
       )
-      const incompatibleSlots = Array.from(
-        new Set(
-          getPositionHistory()
-            .filter(entry => entry.vehicleId === editing.id)
-            .map(entry => entry.slotId || getSlotIdFromPosition(entry.posicao))
-            .filter((slotId): slotId is string => Boolean(slotId))
-            .filter(slotId => !validSlotIds.has(slotId))
-        )
-      )
+      const layoutSignature = (vehicle: Vehicle) => {
+        const layout = getVehicleLayout(vehicle)
+        return [
+          layout.type,
+          ...layout.axles.map(
+            axle => `E${axle.axle}:${axle.slots.map(slot => slot.id).join(',')}`
+          ),
+        ].join('|')
+      }
 
-      if (incompatibleSlots.length > 0) {
+      if (
+        hasPositionHistory &&
+        layoutSignature(editing) !==
+          layoutSignature({ ...editing, ...form } as Vehicle)
+      ) {
         setVehicleSaveError(
-          `A nova configuração removeria posições já usadas no histórico deste veículo (${incompatibleSlots.join(', ')}). Preserve a configuração desses eixos para manter o histórico visual íntegro.`
+          'Este veículo já possui histórico de montagem. A quantidade de eixos, o tipo de layout e a rodagem simples/dupla não podem mais ser alterados, para preservar os desenhos históricos.'
         )
         return
       }
