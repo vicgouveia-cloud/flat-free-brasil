@@ -316,15 +316,15 @@ export default function HomePage() {
         <section id="beneficios" className="section">
           <div className="container">
             <div className="section-header">
-              <span className="section-tag">Rentabilidade &amp; Performance</span>
-              <h2 className="section-title">Vantagens Competitivas Mensuráveis</h2>
-              <p className="section-description">Impacto direto nos custos operacionais da sua frota com física aplicada e manutenção preditiva.</p>
+              <span className="section-tag">Proteção &amp; acompanhamento</span>
+              <h2 className="section-title">Produto e gestão trabalhando juntos</h2>
+              <p className="section-description">A proteção contra perfurações se soma ao acompanhamento de pressão, desgaste, posição e histórico do pneu ao longo da operação.</p>
             </div>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '1.5rem' }}>
               {[
-                { icon: 'fa-gas-pump', title: 'Redução de Consumo de Diesel', desc: 'Pneus com pressão 10% abaixo do recomendado geram até 2.5% a mais de consumo por resistência ao rolamento. O selante veda micro-porosidades e estabiliza a calibragem ideal por meses.', tag: 'Economia de 3% a 5%' },
-                { icon: 'fa-temperature-arrow-down', title: 'Dissipação Térmica & Menor Desgaste', desc: 'O calor é o maior inimigo da vida útil das carcaças. O fluido atua como condutor térmico interno, resfriando a borracha e evitando descascamento e desgastes irregulares.', tag: '+20% de Longevidade' },
-                { icon: 'fa-screwdriver-wrench', title: 'Eliminação de Paradas Emergenciais', desc: 'Evita chamadas de socorro mecânico nas estradas e horas ociosas de motoristas. Mantenha os prazos de entrega just-in-time e preserve seus SLAs de logística.', tag: '-40% em Custos de Manutenção' },
+                { icon: 'fa-gauge-high', title: 'Pressão e condição sob acompanhamento', desc: 'Registre leituras ao longo da operação e mantenha o histórico do pneu disponível para apoiar inspeções e decisões de manutenção.', tag: 'Histórico operacional' },
+                { icon: 'fa-ruler-vertical', title: 'Desgaste acompanhado por leitura', desc: 'Sulco, quilometragem, posição e movimentações formam uma linha do tempo que ajuda a entender como cada pneu está sendo utilizado.', tag: 'Gestão de desgaste' },
+                { icon: 'fa-shield-halved', title: 'Proteção contra perfurações', desc: 'Flat Free atua como proteção preventiva contra perfurações compatíveis com sua especificação, enquanto a plataforma registra a aplicação e acompanha o pneu tratado.', tag: 'Produto + plataforma' },
               ].map(card => (
                 <div key={card.title} className="card" style={{ transition: 'transform 0.2s', cursor: 'default' }}>
                   <div style={{ width: '3rem', height: '3rem', background: 'rgba(255,92,0,0.1)', borderRadius: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '1rem' }}>
@@ -343,9 +343,9 @@ export default function HomePage() {
         <section id="calculadora" className="section" style={{ background: 'var(--bg-surface-elevated)' }}>
           <div className="container">
             <div className="section-header">
-              <span className="section-tag">Estudo de Viabilidade Financeira</span>
-              <h2 className="section-title">Calculadora de ROI de Frota B2B</h2>
-              <p className="section-description">Ajuste os parâmetros abaixo para calcular a estimativa exata de economia anual em combustível, pneus e manutenção para a sua empresa.</p>
+              <span className="section-tag">Planejamento para frotas</span>
+              <h2 className="section-title">Simulação operacional da frota</h2>
+              <p className="section-description">Use os parâmetros abaixo como uma simulação inicial. Resultados reais dependem da operação, dos pneus, das rotas, da manutenção e dos dados medidos em cada frota.</p>
             </div>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '2rem' }}>
               <div className="card">
@@ -382,7 +382,7 @@ export default function HomePage() {
               </div>
               <div className="card">
                 <h3 style={{ fontWeight: 700, marginBottom: '0.5rem' }}>Resultado do Retorno Financeiro</h3>
-                <p style={{ color: 'var(--text-secondary)', fontSize: '0.85rem', marginBottom: '1.5rem' }}>Estimativa baseada em métricas médias de frotas rodoviárias no Brasil.</p>
+                <p style={{ color: 'var(--text-secondary)', fontSize: '0.85rem', marginBottom: '1.5rem' }}>Cenário estimativo para planejamento. Não representa garantia de economia ou desempenho.</p>
                 <div style={{ background: 'linear-gradient(135deg, var(--color-safety-orange), #ff8c42)', borderRadius: '12px', padding: '1.5rem', textAlign: 'center', marginBottom: '1.5rem' }}>
                   <div style={{ color: 'rgba(255,255,255,0.8)', fontSize: '0.85rem', marginBottom: '0.25rem' }}>Economia Total Estimada Anual</div>
                   <div style={{ color: '#fff', fontSize: '2.5rem', fontWeight: 900, fontFamily: 'Montserrat' }}>R$ {fmt(roi.total)}</div>
@@ -412,9 +412,9 @@ export default function HomePage() {
         <section id="artigos" className="section">
           <div className="container">
             <div className="section-header">
-              <span className="section-tag">Engenharia Logística</span>
-              <h2 className="section-title">Artigos &amp; Casos de Sucesso</h2>
-              <p className="section-description">Compreenda os custos ocultos do pneu furado nas operações B2B e como mitigar riscos na cadeia de suprimentos.</p>
+              <span className="section-tag">Conteúdo e conhecimento</span>
+              <h2 className="section-title">Gestão de pneus na prática</h2>
+              <p className="section-description">Conteúdo para apoiar frotistas, instaladores e usuários na aplicação do produto e no acompanhamento dos pneus.</p>
             </div>
             <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '2rem' }}>
               <article className="card" style={{ padding: 0, overflow: 'hidden' }}>
@@ -465,9 +465,9 @@ export default function HomePage() {
           <div className="container">
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '3rem', alignItems: 'start' }}>
               <div>
-                <span className="section-tag">Atendimento Corporativo</span>
-                <h3 style={{ fontSize: '1.75rem', fontWeight: 800, margin: '1rem 0' }}>Solicite Seu Orçamento Exclusivo</h3>
-                <p style={{ color: 'var(--text-secondary)', marginBottom: '2rem' }}>Preencha o formulário para que nossos engenheiros de frota faça uma análise técnica sob medida das necessidades da sua operação.</p>
+                <span className="section-tag">Fale com a Flat Free</span>
+                <h3 style={{ fontSize: '1.75rem', fontWeight: 800, margin: '1rem 0' }}>Produto, frota ou parceria: fale com a gente</h3>
+                <p style={{ color: 'var(--text-secondary)', marginBottom: '2rem' }}>Use o formulário para conversar sobre aplicação em frotas, uso no seu veículo ou interesse em instalar e revender Flat Free.</p>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
                   {[
                     { icon: 'fa-user-gear', title: 'Consultoria Técnica Especializada', desc: 'Análise direta com engenheiros focados na redução de custos operacionais da sua frota.' },
@@ -484,7 +484,7 @@ export default function HomePage() {
                 </div>
               </div>
               <div className="card">
-                <h3 style={{ fontSize: '1.35rem', fontWeight: 800, marginBottom: '1.5rem' }}>Solicitar Proposta B2B</h3>
+                <h3 style={{ fontSize: '1.35rem', fontWeight: 800, marginBottom: '1.5rem' }}>Entrar em contato</h3>
                 <form onSubmit={handleSubmit}>
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
                     <div className="form-group">
