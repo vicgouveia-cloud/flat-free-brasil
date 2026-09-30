@@ -1,5 +1,6 @@
 'use client'
 import { useEffect, useState } from 'react'
+import VehicleTopView, { type VehicleMountedTire } from '@/components/VehicleTopView'
 import {
   getTires, saveTires, getApplications, saveApplications,
   getReadings, getPositionHistory, getTirePositionAtDate,
@@ -66,6 +67,7 @@ export default function PneusPage() {
   const [posHistory, setPosHistory] = useState<TirePositionHistory[]>([])
   const [vehicles, setVehicles] = useState(getVehicles())
   const [units, setUnits] = useState<Unit[]>(getUnits())
+  const [historyPreview, setHistoryPreview] = useState<TirePositionHistory | null>(null)
 
   // Application form
   const [showAppForm, setShowAppForm] = useState(false)
@@ -193,6 +195,7 @@ export default function PneusPage() {
       : null
 
     setSelected(t)
+    setHistoryPreview(null)
     setShowForm(false)
     setApplications(getApplications())
     setReadings(getReadings())
@@ -539,6 +542,16 @@ export default function PneusPage() {
                             {getUnitNameByVehicleId(h.vehicleId)} · {h.dataInicial} → {h.dataFinal || 'atual'}
                             {slotId && <span> · {slotId}</span>}
                           </div>
+                          {slotId && vehicle && (
+                            <button
+                              type="button"
+                              className="btn btn-outline btn-sm"
+                              style={{ marginTop: '0.65rem' }}
+                              onClick={() => setHistoryPreview(h)}
+                            >
+                              <i className="fas fa-truck" /> Ver no veículo
+                            </button>
+                          )}
                         </div>
                       </div>
                     )
@@ -568,7 +581,50 @@ export default function PneusPage() {
             )}
           </div>
 
-          {/* Flat Free Applications */}
+          {historyPreview && selected && (() => {
+            const previewVehicle = vehicles.find(v => v.id === historyPreview.vehicleId)
+            const previewSlotId = historyPreview.slotId || getSlotIdFromPosition(historyPreview.posicao)
+            if (!previewVehicle || !previewSlotId) return null
+            const previewDate = historyPreview.dataInicial
+            const previewApplication = getApplicationForTireCycleAtDate(
+              selected.id,
+              previewDate,
+              applications,
+              getOccurrences()
+            )
+            const previewMountedTire: VehicleMountedTire = {
+              slotId: previewSlotId,
+              tire: selected,
+              hasFlatFree: Boolean(previewApplication && previewApplication.data <= previewDate),
+            }
+
+            return (
+              <div className="card" style={{ marginBottom: '1.5rem' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '1rem', marginBottom: '1rem', flexWrap: 'wrap' }}>
+                  <div>
+                    <h4 style={{ fontWeight: 700, marginBottom: '0.2rem' }}>Posição no veículo</h4>
+                    <p style={{ color: 'var(--text-muted)', fontSize: '0.8rem', margin: 0 }}>
+                      {getVehicleName(historyPreview.vehicleId)} · {previewDate}
+                    </p>
+                  </div>
+                  <button type="button" className="btn btn-outline btn-sm" onClick={() => setHistoryPreview(null)}>
+                    Fechar visualização
+                  </button>
+                </div>
+                <VehicleTopView
+                  vehicle={previewVehicle}
+                  mountedTires={[previewMountedTire]}
+                  selectedSlotId={previewSlotId}
+                  referenceDate={previewDate}
+                />
+                <p style={{ marginTop: '0.75rem', color: 'var(--text-muted)', fontSize: '0.75rem' }}>
+                  Esta visualização destaca a posição deste pneu no início do período selecionado. Os demais pneus do veículo não são carregados neste recorte.
+                </p>
+              </div>
+            )
+          })()}
+
+                    {/* Flat Free Applications */}
           <div className="card" style={{ marginBottom: '1.5rem' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem' }}>
               <h4 style={{ fontWeight: 700 }}>Aplicação Flat Free</h4>
