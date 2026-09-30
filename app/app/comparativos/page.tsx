@@ -222,6 +222,8 @@ export default function ComparativosPage() {
   useEffect(() => { setProjects(getProjects()) }, [])
 
   function selectProject(p: PilotProject) {
+    if (p.status !== 'ativo' && p.status !== 'concluido') return
+
     setSelected(p)
     const s = computeStats(
       p,
@@ -232,6 +234,10 @@ export default function ComparativosPage() {
     )
     setStats(s)
   }
+
+  const comparableProjects = projects.filter(
+    project => project.status === 'ativo' || project.status === 'concluido'
+  )
 
   // Only include VALID tires in averages
   const validTreated = stats.filter(s => s.grupo === 'tratado' && s.valid)
@@ -286,11 +292,13 @@ export default function ComparativosPage() {
       {!selected ? (
         <div className="card">
           <h3 style={{ fontWeight: 700, marginBottom: '1rem' }}>Selecionar Projeto</h3>
-          {projects.length === 0 ? (
-            <p style={{ color: 'var(--text-muted)' }}>Nenhum projeto encontrado.</p>
+          {comparableProjects.length === 0 ? (
+            <p style={{ color: 'var(--text-muted)' }}>
+              Nenhum projeto ativo ou concluído disponível para comparação.
+            </p>
           ) : (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-              {projects.map(p => (
+              {comparableProjects.map(p => (
                 <button
                   key={p.id}
                   onClick={() => selectProject(p)}
