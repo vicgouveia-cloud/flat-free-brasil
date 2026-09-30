@@ -17,7 +17,11 @@ interface TireStats {
   custoPerKm: number | null
   occurrenceCount: number
   valid: boolean  // true only when a real interval (km > 0, sulco > 0) exists
-  invalidReason?: 'insufficient_data' | 'vehicle_transfer' | 'missing_application_vehicle'
+  invalidReason?:
+    | 'insufficient_data'
+    | 'vehicle_transfer'
+    | 'missing_application_vehicle'
+    | 'missing_project_baseline'
 }
 
 /**
@@ -30,7 +34,8 @@ interface TireStats {
  * Only data inside the project period participates.
  * For TREATED tires: use FlatFreeApplication as baseline only when the
  *   application happened on the project start date; otherwise use project readings.
- * For CONTROL tires: use first and last project readings.
+ * For tires without an application baseline on the project start date:
+ *   require a reading on the project start date, then use the last project reading.
  */
 function computeTireStats(
   pt: { tireId: string; grupo: 'tratado' | 'controle' },
@@ -133,10 +138,32 @@ function computeTireStats(
       finalSulco = last.sulco
     }
   } else {
+    const baselineReading = tireReadings.find(
+      reading => reading.data === projectStartDate
+    )
+
+    if (!baselineReading) {
+      return {
+        tire,
+        grupo: pt.grupo,
+        kmRodados: null,
+        sulcoConsumido: null,
+        kmPerMm: null,
+        custoPerKm: null,
+        occurrenceCount,
+        valid: false,
+        invalidReason: 'missing_project_baseline',
+      }
+    }
+
+    const intervalReadings = tireReadings.filter(
+      reading => reading.data >= baselineReading.data
+    )
+
     // A vehicle odometer is only comparable with readings from that same vehicle.
     if (
-      tireReadings.length >= 2 &&
-      new Set(tireReadings.map(r => r.vehicleId)).size > 1
+      intervalReadings.length >= 2 &&
+      new Set(intervalReadings.map(r => r.vehicleId)).size > 1
     ) {
       return {
         tire,
@@ -151,12 +178,10 @@ function computeTireStats(
       }
     }
 
-    // Use first and last readings as interval
-    if (tireReadings.length >= 2) {
-      const first = tireReadings[0]
-      const last = tireReadings[tireReadings.length - 1]
-      baseKm = first.quilometragemVeiculo
-      baseSulco = first.sulco
+    if (intervalReadings.length >= 2) {
+      const last = intervalReadings[intervalReadings.length - 1]
+      baseKm = baselineReading.quilometragemVeiculo
+      baseSulco = baselineReading.sulco
       finalKm = last.quilometragemVeiculo
       finalSulco = last.sulco
     }
@@ -285,6 +310,7 @@ export default function ComparativosPage() {
   function invalidReasonLabel(reason?: TireStats['invalidReason']) {
     if (reason === 'vehicle_transfer') return 'Troca de veículo no intervalo'
     if (reason === 'missing_application_vehicle') return 'Aplicação antiga sem veículo-base'
+    if (reason === 'missing_project_baseline') return 'Sem leitura na data inicial'
     return 'Dados insuficientes'
   }
 
