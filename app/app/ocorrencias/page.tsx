@@ -63,10 +63,24 @@ export default function OcorrenciasPage() {
 
     if (form.tipo === 'recapagem') {
       const tire = tires.find(item => item.id === form.tireId)
+      const latestRecapReturn = occurrences
+        .filter(
+          occurrence =>
+            occurrence.tireId === form.tireId &&
+            occurrence.tipo === 'retorno_recapagem'
+        )
+        .sort((a, b) => b.data.localeCompare(a.data))[0]
 
       if (!tire || tire.status === 'recapagem') {
         setSaveError(
           'Este pneu já está em recapagem. Registre o Retorno da recapagem antes de iniciar um novo ciclo de recapagem.'
+        )
+        return
+      }
+
+      if (latestRecapReturn && form.data < latestRecapReturn.data) {
+        setSaveError(
+          'A nova recapagem não pode ser registrada antes do último Retorno da recapagem.'
         )
         return
       }
