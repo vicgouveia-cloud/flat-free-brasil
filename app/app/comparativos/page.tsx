@@ -16,6 +16,7 @@ interface TireStats {
   kmPerMm: number | null
   custoPerKm: number | null
   occurrenceCount: number
+  cycleEndDate?: string
   valid: boolean  // true only when a real interval (km > 0, sulco > 0) exists
   invalidReason?:
     | 'insufficient_data'
@@ -54,6 +55,12 @@ function computeTireStats(
     projectStartDate,
     occurrences
   )
+
+  const cycleEndDate =
+    cycleBounds.endDate &&
+    (!projectEndDate || cycleBounds.endDate <= projectEndDate)
+      ? cycleBounds.endDate
+      : undefined
 
   const tireReadings = readings
     .filter(
@@ -105,6 +112,7 @@ function computeTireStats(
       kmPerMm: null,
       custoPerKm: null,
       occurrenceCount,
+      cycleEndDate,
       valid: false,
       invalidReason: 'missing_application_vehicle',
     }
@@ -197,7 +205,7 @@ function computeTireStats(
     return {
       tire, grupo: pt.grupo,
       kmRodados: null, sulcoConsumido: null, kmPerMm: null,
-      custoPerKm: null, occurrenceCount, valid: false,
+      custoPerKm: null, occurrenceCount, cycleEndDate, valid: false,
       invalidReason: 'insufficient_data',
     }
   }
@@ -217,6 +225,7 @@ function computeTireStats(
     kmPerMm,
     custoPerKm,
     occurrenceCount,
+    cycleEndDate,
     valid: true,
   }
 }
@@ -350,7 +359,7 @@ export default function ComparativosPage() {
           </button>
           <h2 style={{ fontWeight: 800, marginBottom: '0.25rem' }}>{selected.nome}</h2>
           <p style={{ color: 'var(--text-secondary)', fontSize: '0.875rem', marginBottom: '1.5rem' }}>
-            Dados calculados com base nas leituras registradas. Apenas pneus com intervalo válido entram nas médias. Hodômetros de veículos diferentes não são somados entre si.
+            Dados calculados com base nas leituras registradas. Apenas pneus com intervalo válido entram nas médias. Hodômetros de veículos diferentes não são somados entre si. Se houver recapagem durante o projeto, os dados daquele pneu ficam limitados ao ciclo encerrado nessa data.
           </p>
 
           {(allTreated.length > 0 || allControl.length > 0) && (
@@ -443,6 +452,8 @@ export default function ComparativosPage() {
                     <td>
                       {!s.valid
                         ? <span className="badge badge-gray">{invalidReasonLabel(s.invalidReason)}</span>
+                        : s.cycleEndDate
+                        ? <span className="badge badge-orange">Ciclo encerrado em {s.cycleEndDate}</span>
                         : <span className="badge badge-green">OK</span>}
                     </td>
                   </tr>
