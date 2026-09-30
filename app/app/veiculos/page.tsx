@@ -38,6 +38,7 @@ const EMPTY_VEHICLE: Omit<Vehicle, 'id'> = {
   tipo: 'Caminhão 6x4',
   fabricanteModelo: '',
   configuracaoEixos: '',
+  axleCount: 3,
   axleTireConfigurations: [],
   status: 'ativo',
 }
@@ -191,6 +192,7 @@ export default function VeiculosPage() {
       tipo: v.tipo,
       fabricanteModelo: v.fabricanteModelo || '',
       configuracaoEixos: v.configuracaoEixos || '',
+      axleCount: v.axleCount ?? getVehicleLayout(v).axleCount,
       axleTireConfigurations: v.axleTireConfigurations || [],
       status: v.status,
     })
@@ -280,6 +282,25 @@ export default function VeiculosPage() {
                 <input type="text" className="form-control" value={(form as Record<string, string>)[field]} onChange={e => setForm(p => ({ ...p, [field]: e.target.value }))} />
               </div>
             ))}
+            <div className="form-group">
+              <label className="form-label">Quantidade de eixos *</label>
+              <input
+                type="number"
+                min={1}
+                max={8}
+                className="form-control"
+                value={form.axleCount ?? ''}
+                onChange={e =>
+                  setForm(p => ({
+                    ...p,
+                    axleCount: e.target.value ? Math.max(1, Math.min(8, Number(e.target.value))) : undefined,
+                  }))
+                }
+              />
+              <span style={{ display: 'block', marginTop: '0.35rem', color: 'var(--text-muted)', fontSize: '0.7rem' }}>
+                Veículos legados sem este campo continuam usando a configuração textual como referência.
+              </span>
+            </div>
             <div className="form-group">
               <label className="form-label">Tipo de layout *</label>
               <select

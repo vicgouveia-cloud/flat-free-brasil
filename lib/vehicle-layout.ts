@@ -38,7 +38,17 @@ export function inferVehicleLayoutType(vehicle: Pick<Vehicle, 'layoutType' | 'ti
   return 'other'
 }
 
-function getAxleCount(vehicle: Pick<Vehicle, 'configuracaoEixos' | 'layoutType' | 'tipo'>) {
+function getAxleCount(
+  vehicle: Pick<Vehicle, 'axleCount' | 'configuracaoEixos' | 'layoutType' | 'tipo'>
+) {
+  if (
+    vehicle.axleCount !== undefined &&
+    Number.isFinite(vehicle.axleCount) &&
+    vehicle.axleCount >= 1
+  ) {
+    return Math.max(1, Math.round(vehicle.axleCount))
+  }
+
   const configuration = vehicle.configuracaoEixos?.toLowerCase() || ''
 
   const driveConfiguration = configuration.match(/(\d+)\s*x\s*\d+/)

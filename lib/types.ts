@@ -34,6 +34,7 @@ export interface Vehicle {
   tipo: string
   fabricanteModelo?: string
   configuracaoEixos?: string
+  axleCount?: number
   axleTireConfigurations?: VehicleAxleTireConfiguration[]
   status: VehicleStatus
 }
