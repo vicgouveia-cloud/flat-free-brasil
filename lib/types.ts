@@ -22,6 +22,7 @@ export interface Unit {
 
 export type VehicleStatus = 'ativo' | 'inativo' | 'em_manutencao'
 export type VehicleLayoutType = 'truck' | 'tractor' | 'semi_trailer' | 'trailer' | 'other'
+export type VehicleAxleTireConfiguration = 'auto' | 'single' | 'dual'
 
 export interface Vehicle {
   id: string
@@ -33,6 +34,7 @@ export interface Vehicle {
   tipo: string
   fabricanteModelo?: string
   configuracaoEixos?: string
+  axleTireConfigurations?: VehicleAxleTireConfiguration[]
   status: VehicleStatus
 }
 

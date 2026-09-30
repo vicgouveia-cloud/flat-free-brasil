@@ -13,9 +13,21 @@ import {
   uuid,
 } from '@/lib/storage'
 import VehicleTopView, { type VehicleMountedTire } from '@/components/VehicleTopView'
-import { VEHICLE_LAYOUT_LABELS, getSlotIdFromPosition, inferVehicleLayoutType } from '@/lib/vehicle-layout'
+import {
+  VEHICLE_LAYOUT_LABELS,
+  getSlotIdFromPosition,
+  getVehicleLayout,
+  inferVehicleLayoutType,
+} from '@/lib/vehicle-layout'
 import { getApplicationForTireCycleAtDate } from '@/lib/tire-lifecycle'
-import type { Tire, Unit, Vehicle, VehicleLayoutType, VehicleStatus } from '@/lib/types'
+import type {
+  Tire,
+  Unit,
+  Vehicle,
+  VehicleAxleTireConfiguration,
+  VehicleLayoutType,
+  VehicleStatus,
+} from '@/lib/types'
 
 const EMPTY_VEHICLE: Omit<Vehicle, 'id'> = {
   companyId: 'demo-company-1',
@@ -26,6 +38,7 @@ const EMPTY_VEHICLE: Omit<Vehicle, 'id'> = {
   tipo: 'Caminhão 6x4',
   fabricanteModelo: '',
   configuracaoEixos: '',
+  axleTireConfigurations: [],
   status: 'ativo',
 }
 
@@ -49,6 +62,7 @@ export default function VeiculosPage() {
   const [mountDate, setMountDate] = useState(new Date().toISOString().split('T')[0])
   const [viewDate, setViewDate] = useState(new Date().toISOString().split('T')[0])
   const [mountError, setMountError] = useState('')
+  const [vehicleSaveError, setVehicleSaveError] = useState('')
 
   useEffect(() => {
     setVehicles(getVehicles())
@@ -58,6 +72,7 @@ export default function VeiculosPage() {
 
   function openNew() {
     setEditing(null)
+    setVehicleSaveError('')
     setForm(EMPTY_VEHICLE)
     setShowForm(true)
     setVisualizing(null)
@@ -166,6 +181,7 @@ export default function VeiculosPage() {
 
   function openEdit(v: Vehicle) {
     setEditing(v)
+    setVehicleSaveError('')
     setForm({
       companyId: v.companyId,
       unitId: v.unitId || '',
@@ -175,14 +191,51 @@ export default function VeiculosPage() {
       tipo: v.tipo,
       fabricanteModelo: v.fabricanteModelo || '',
       configuracaoEixos: v.configuracaoEixos || '',
+      axleTireConfigurations: v.axleTireConfigurations || [],
       status: v.status,
     })
     setShowForm(true)
     setVisualizing(null)
   }
 
+  const formLayout = getVehicleLayout({ id: editing?.id || 'draft', ...form } as Vehicle)
+
+  function updateAxleTireConfiguration(
+    axleIndex: number,
+    value: VehicleAxleTireConfiguration
+  ) {
+    setForm(prev => {
+      const next = [...(prev.axleTireConfigurations || [])]
+      next[axleIndex] = value
+      return { ...prev, axleTireConfigurations: next }
+    })
+  }
+
   function handleSave() {
     if (!form.identificacaoInterna.trim() || !form.unitId) return
+
+    if (editing) {
+      const validSlotIds = new Set(
+        formLayout.axles.flatMap(axle => axle.slots.map(slot => slot.id))
+      )
+      const incompatibleSlots = Array.from(
+        new Set(
+          getPositionHistory()
+            .filter(entry => entry.vehicleId === editing.id)
+            .map(entry => entry.slotId || getSlotIdFromPosition(entry.posicao))
+            .filter((slotId): slotId is string => Boolean(slotId))
+            .filter(slotId => !validSlotIds.has(slotId))
+        )
+      )
+
+      if (incompatibleSlots.length > 0) {
+        setVehicleSaveError(
+          `A nova configuração removeria posições já usadas no histórico deste veículo (${incompatibleSlots.join(', ')}). Preserve a configuração desses eixos para manter o histórico visual íntegro.`
+        )
+        return
+      }
+    }
+
     let updated: Vehicle[]
     if (editing) {
       updated = vehicles.map(v => v.id === editing.id ? { ...editing, ...form } : v)
@@ -191,6 +244,7 @@ export default function VeiculosPage() {
     }
     saveVehicles(updated)
     setVehicles(updated)
+    setVehicleSaveError('')
     setShowForm(false)
   }
 
@@ -261,10 +315,50 @@ export default function VeiculosPage() {
                 <option value="em_manutencao">Em Manutenção</option>
               </select>
             </div>
+            <div className="form-group" style={{ gridColumn: '1 / -1' }}>
+              <label className="form-label">Rodagem por eixo</label>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: '0.75rem' }}>
+                {formLayout.axles.map((axle, index) => (
+                  <div key={axle.axle}>
+                    <label className="form-label" style={{ fontSize: '0.72rem' }}>Eixo {axle.axle}</label>
+                    <select
+                      className="form-control"
+                      value={form.axleTireConfigurations?.[index] || 'auto'}
+                      onChange={e =>
+                        updateAxleTireConfiguration(
+                          index,
+                          e.target.value as VehicleAxleTireConfiguration
+                        )
+                      }
+                    >
+                      <option value="auto">Automático</option>
+                      <option value="single">Simples</option>
+                      <option value="dual">Duplo</option>
+                    </select>
+                  </div>
+                ))}
+              </div>
+              <p style={{ marginTop: '0.5rem', color: 'var(--text-muted)', fontSize: '0.75rem' }}>
+                Use Automático para manter a inferência atual. Selecione Simples ou Duplo quando a configuração real do eixo for diferente.
+              </p>
+            </div>
           </div>
+          {vehicleSaveError && (
+            <p style={{ marginTop: '0.75rem', color: '#dc2626', fontSize: '0.8rem' }}>
+              {vehicleSaveError}
+            </p>
+          )}
           <div style={{ display: 'flex', gap: '0.75rem', marginTop: '1rem' }}>
             <button onClick={handleSave} className="btn btn-primary"><i className="fas fa-check" /> Salvar</button>
-            <button onClick={() => setShowForm(false)} className="btn btn-outline">Cancelar</button>
+            <button
+              onClick={() => {
+                setVehicleSaveError('')
+                setShowForm(false)
+              }}
+              className="btn btn-outline"
+            >
+              Cancelar
+            </button>
           </div>
         </div>
       )}

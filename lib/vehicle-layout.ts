@@ -80,10 +80,17 @@ export function getVehicleLayout(vehicle: Vehicle): VehicleLayoutDefinition {
 
   const axles = Array.from({ length: axleCount }, (_, index) => {
     const axle = index + 1
-    const dual =
+    const configured = vehicle.axleTireConfigurations?.[index]
+    const automaticDual =
       type === 'semi_trailer' ||
       type === 'trailer' ||
       (type !== 'other' && axle > 1)
+    const dual =
+      configured === 'dual'
+        ? true
+        : configured === 'single'
+        ? false
+        : automaticDual
 
     return {
       axle,
