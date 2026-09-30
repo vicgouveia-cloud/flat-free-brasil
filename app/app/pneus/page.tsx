@@ -258,6 +258,44 @@ export default function PneusPage() {
       !appForm.doseAplicada
     ) return
 
+    const vehicleReadings = readings.filter(
+      reading => reading.vehicleId === position.vehicleId
+    )
+    const previousReading = vehicleReadings
+      .filter(reading => reading.data < appForm.data)
+      .sort(
+        (a, b) =>
+          b.data.localeCompare(a.data) ||
+          b.quilometragemVeiculo - a.quilometragemVeiculo
+      )[0]
+    const nextReading = vehicleReadings
+      .filter(reading => reading.data > appForm.data)
+      .sort(
+        (a, b) =>
+          a.data.localeCompare(b.data) ||
+          a.quilometragemVeiculo - b.quilometragemVeiculo
+      )[0]
+
+    if (
+      previousReading &&
+      appForm.quilometragemAplicacao < previousReading.quilometragemVeiculo
+    ) {
+      setApplicationError(
+        `A quilometragem da aplicação não pode ser menor que a leitura anterior deste veículo (${previousReading.quilometragemVeiculo.toLocaleString('pt-BR')} km em ${previousReading.data}).`
+      )
+      return
+    }
+
+    if (
+      nextReading &&
+      appForm.quilometragemAplicacao > nextReading.quilometragemVeiculo
+    ) {
+      setApplicationError(
+        `A quilometragem da aplicação não pode ser maior que a leitura posterior deste veículo (${nextReading.quilometragemVeiculo.toLocaleString('pt-BR')} km em ${nextReading.data}).`
+      )
+      return
+    }
+
     const newApp: FlatFreeApplication = {
       id: uuid(),
       ...appForm,
