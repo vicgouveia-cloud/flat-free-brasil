@@ -510,19 +510,61 @@ export default function PneusPage() {
             {tirePosHistory.length === 0 ? (
               <p style={{ color: 'var(--text-muted)', fontSize: '0.875rem' }}>Nenhuma posição registrada.</p>
             ) : (
-              <table className="table">
-                <thead><tr><th>Veículo</th><th>Posição</th><th>Início</th><th>Fim</th></tr></thead>
-                <tbody>
-                  {tirePosHistory.map(h => (
-                    <tr key={h.id}>
-                      <td>{getVehicleName(h.vehicleId)}</td>
-                      <td>{h.posicao}</td>
-                      <td>{h.dataInicial}</td>
-                      <td>{h.dataFinal ?? <span className="badge badge-green">Atual</span>}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+              <>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', marginBottom: '1rem' }}>
+                  {tirePosHistory.map((h, index) => {
+                    const vehicle = vehicles.find(v => v.id === h.vehicleId)
+                    const slotId = h.slotId || getSlotIdFromPosition(h.posicao)
+                    const slot = vehicle && slotId
+                      ? getVehicleLayout(vehicle).axles
+                          .flatMap(axle => axle.slots)
+                          .find(item => item.id === slotId)
+                      : null
+                    const positionLabel = slot ? getVehicleSlotLabel(slot) : h.posicao
+
+                    return (
+                      <div key={h.id} style={{ display: 'grid', gridTemplateColumns: '24px 1fr', gap: '0.75rem' }}>
+                        <div style={{ position: 'relative', display: 'flex', justifyContent: 'center' }}>
+                          {index < tirePosHistory.length - 1 && (
+                            <span style={{ position: 'absolute', top: '18px', bottom: '-0.9rem', width: '2px', background: 'var(--border-color)' }} />
+                          )}
+                          <span style={{ width: '12px', height: '12px', marginTop: '4px', borderRadius: '999px', background: h.dataFinal ? 'var(--text-muted)' : 'var(--color-safety-orange)', border: '2px solid var(--bg-primary)', boxShadow: '0 0 0 2px var(--border-color)', zIndex: 1 }} />
+                        </div>
+                        <div style={{ border: '1px solid var(--border-color)', borderRadius: '10px', padding: '0.75rem 0.9rem', background: 'var(--bg-surface-elevated)' }}>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', gap: '0.75rem', flexWrap: 'wrap' }}>
+                            <strong>{getVehicleName(h.vehicleId)} · {positionLabel}</strong>
+                            {!h.dataFinal && <span className="badge badge-green">Atual</span>}
+                          </div>
+                          <div style={{ marginTop: '0.3rem', color: 'var(--text-muted)', fontSize: '0.75rem' }}>
+                            {getUnitNameByVehicleId(h.vehicleId)} · {h.dataInicial} → {h.dataFinal || 'atual'}
+                            {slotId && <span> · {slotId}</span>}
+                          </div>
+                        </div>
+                      </div>
+                    )
+                  })}
+                </div>
+                <details>
+                  <summary style={{ cursor: 'pointer', color: 'var(--text-secondary)', fontSize: '0.8rem', fontWeight: 700 }}>
+                    Ver histórico em tabela
+                  </summary>
+                  <div style={{ marginTop: '0.75rem', overflowX: 'auto' }}>
+                    <table className="table">
+                      <thead><tr><th>Veículo</th><th>Posição</th><th>Início</th><th>Fim</th></tr></thead>
+                      <tbody>
+                        {tirePosHistory.map(h => (
+                          <tr key={h.id}>
+                            <td>{getVehicleName(h.vehicleId)}</td>
+                            <td>{h.posicao}</td>
+                            <td>{h.dataInicial}</td>
+                            <td>{h.dataFinal ?? <span className="badge badge-green">Atual</span>}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </details>
+              </>
             )}
           </div>
 
