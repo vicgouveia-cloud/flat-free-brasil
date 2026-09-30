@@ -1,17 +1,35 @@
 'use client'
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
-import { getOrders, getTires, getProjects, getReadings, getVehicles } from '@/lib/storage'
+import {
+  getApplications,
+  getOccurrences,
+  getOrders,
+  getProjects,
+  getReadings,
+  getTires,
+  getVehicles,
+} from '@/lib/storage'
 
 export default function DashboardPage() {
-  const [stats, setStats] = useState({ orders: 0, tires: 0, projects: 0, readings: 0, vehicles: 0 })
+  const [stats, setStats] = useState({
+    orders: 0,
+    tires: 0,
+    projects: 0,
+    applications: 0,
+    readings: 0,
+    occurrences: 0,
+    vehicles: 0,
+  })
 
   useEffect(() => {
     setStats({
       orders: getOrders().length,
       tires: getTires().filter(t => t.status === 'em_operacao').length,
       projects: getProjects().filter(p => p.status === 'ativo').length,
+      applications: getApplications().length,
       readings: getReadings().length,
+      occurrences: getOccurrences().length,
       vehicles: getVehicles().filter(v => v.status === 'ativo').length,
     })
   }, [])
@@ -20,7 +38,9 @@ export default function DashboardPage() {
     { label: 'Pedidos', value: stats.orders, icon: 'fa-box', href: '/app/pedidos', color: '#3b82f6' },
     { label: 'Projetos Ativos', value: stats.projects, icon: 'fa-flask', href: '/app/projetos', color: '#f59e0b' },
     { label: 'Pneus Acompanhados', value: stats.tires, icon: 'fa-circle-dot', href: '/app/pneus', color: 'var(--color-safety-orange)' },
+    { label: 'Aplicações Flat Free', value: stats.applications, icon: 'fa-fill-drip', href: '/app/pneus', color: '#f97316' },
     { label: 'Leituras Registradas', value: stats.readings, icon: 'fa-ruler', href: '/app/leituras', color: '#10b981' },
+    { label: 'Ocorrências', value: stats.occurrences, icon: 'fa-triangle-exclamation', href: '/app/ocorrencias', color: '#ef4444' },
     { label: 'Veículos Ativos', value: stats.vehicles, icon: 'fa-truck', href: '/app/veiculos', color: '#8b5cf6' },
   ]
 
