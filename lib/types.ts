@@ -129,6 +129,7 @@ export interface PilotProject {
   nome: string
   descricao?: string
   dataInicio: string
+  dataFim?: string
   status: PilotProjectStatus
   criteriosComparacao?: string
   observacoes?: string

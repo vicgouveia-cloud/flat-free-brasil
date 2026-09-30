@@ -27,7 +27,7 @@ interface TireStats {
  *   - final km > baseline km
  *   - baseline sulco > final sulco (sulcoConsumido > 0)
  *
- * Only data on or after the project start date participates.
+ * Only data inside the project period participates.
  * For TREATED tires: use FlatFreeApplication as baseline only when the
  *   application happened on the project start date; otherwise use project readings.
  * For CONTROL tires: use first and last project readings.
@@ -35,6 +35,7 @@ interface TireStats {
 function computeTireStats(
   pt: { tireId: string; grupo: 'tratado' | 'controle' },
   projectStartDate: string,
+  projectEndDate: string | undefined,
   tires: Tire[],
   applications: FlatFreeApplication[],
   readings: TireReading[],
@@ -54,6 +55,7 @@ function computeTireStats(
       r =>
         r.tireId === pt.tireId &&
         r.data >= projectStartDate &&
+        (!projectEndDate || r.data <= projectEndDate) &&
         isDateInTireCycle(r.data, cycleBounds)
     )
     .sort(
@@ -73,6 +75,7 @@ function computeTireStats(
     o =>
       o.tireId === pt.tireId &&
       o.data >= projectStartDate &&
+      (!projectEndDate || o.data <= projectEndDate) &&
       o.tipo !== 'recapagem' &&
       o.tipo !== 'retorno_recapagem' &&
       isDateInTireCycle(o.data, cycleBounds)
@@ -205,6 +208,7 @@ function computeStats(
       computeTireStats(
         pt,
         project.dataInicio,
+        project.status === 'concluido' ? project.dataFim : undefined,
         tires,
         applications,
         readings,

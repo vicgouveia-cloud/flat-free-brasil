@@ -60,6 +60,21 @@ export default function ProjetosPage() {
     return t ? `${t.identificacaoInterna} (${t.medida})` : id
   }
 
+  function concludeProject(id: string) {
+    const project = projects.find(p => p.id === id)
+    if (!project || project.status !== 'ativo') return
+
+    const updated = projects.map(p =>
+      p.id === id
+        ? { ...p, status: 'concluido' as PilotProjectStatus, dataFim: today }
+        : p
+    )
+    saveProjects(updated)
+    setProjects(updated)
+    setActivationError(null)
+    if (selected?.id === id) setSelected(updated.find(p => p.id === id) || null)
+  }
+
   function activateProject(id: string) {
     const project = projects.find(p => p.id === id)
     if (!project) return
@@ -191,6 +206,9 @@ export default function ProjetosPage() {
               {selected.status === 'planejamento' && (
                 <button onClick={() => activateProject(selected.id)} className="btn btn-primary btn-sm">Ativar</button>
               )}
+              {selected.status === 'ativo' && (
+                <button onClick={() => concludeProject(selected.id)} className="btn btn-outline btn-sm">Concluir</button>
+              )}
             </div>
           </div>
           {activationError && selected.status === 'planejamento' && (
@@ -208,8 +226,9 @@ export default function ProjetosPage() {
               <strong style={{ color: '#d97706' }}>Antes de ativar:</strong> {activationError}
             </div>
           )}
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '1rem', marginBottom: '1.5rem' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: '1rem', marginBottom: '1.5rem' }}>
             <div><span style={{ fontSize: '0.7rem', color: 'var(--text-muted)', fontWeight: 700, textTransform: 'uppercase', display: 'block' }}>Início</span><span>{selected.dataInicio}</span></div>
+            <div><span style={{ fontSize: '0.7rem', color: 'var(--text-muted)', fontWeight: 700, textTransform: 'uppercase', display: 'block' }}>Fim</span><span>{selected.dataFim || '—'}</span></div>
             <div><span style={{ fontSize: '0.7rem', color: 'var(--text-muted)', fontWeight: 700, textTransform: 'uppercase', display: 'block' }}>Tratados</span><span style={{ fontWeight: 700, color: 'var(--color-safety-orange)' }}>{selected.pneus.filter(p => p.grupo === 'tratado').length} pneus</span></div>
             <div><span style={{ fontSize: '0.7rem', color: 'var(--text-muted)', fontWeight: 700, textTransform: 'uppercase', display: 'block' }}>Controle</span><span style={{ fontWeight: 700, color: '#3b82f6' }}>{selected.pneus.filter(p => p.grupo === 'controle').length} pneus</span></div>
           </div>
