@@ -84,6 +84,25 @@ export default function ProjetosPage() {
     if (selected?.id === id) setSelected(updated.find(p => p.id === id) || null)
   }
 
+  function cancelProject(id: string) {
+    const project = projects.find(p => p.id === id)
+    if (!project || project.status !== 'planejamento') return
+
+    if (!window.confirm(`Cancelar o projeto "${project.nome}"? Esta ação encerra o planejamento sem iniciar o piloto.`)) {
+      return
+    }
+
+    const updated = projects.map(p =>
+      p.id === id
+        ? { ...p, status: 'cancelado' as PilotProjectStatus }
+        : p
+    )
+    saveProjects(updated)
+    setProjects(updated)
+    setActivationError(null)
+    if (selected?.id === id) setSelected(updated.find(p => p.id === id) || null)
+  }
+
   function activateProject(id: string) {
     const project = projects.find(p => p.id === id)
     if (!project) return
@@ -278,7 +297,16 @@ export default function ProjetosPage() {
             <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
               <span className={`badge ${statusLabels[selected.status].cls}`}>{statusLabels[selected.status].label}</span>
               {selected.status === 'planejamento' && (
-                <button onClick={() => activateProject(selected.id)} className="btn btn-primary btn-sm">Ativar</button>
+                <>
+                  <button onClick={() => activateProject(selected.id)} className="btn btn-primary btn-sm">Ativar</button>
+                  <button
+                    onClick={() => cancelProject(selected.id)}
+                    className="btn btn-outline btn-sm"
+                    style={{ color: '#dc2626' }}
+                  >
+                    Cancelar projeto
+                  </button>
+                </>
               )}
               {selected.status === 'ativo' && (
                 <button onClick={() => concludeProject(selected.id)} className="btn btn-outline btn-sm">Concluir</button>
