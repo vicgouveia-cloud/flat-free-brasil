@@ -49,6 +49,14 @@ const statusLabels: Record<VehicleStatus, { label: string; cls: string }> = {
   em_manutencao: { label: 'Em Manutenção', cls: 'badge-orange' },
 }
 
+const VEHICLE_TEXT_FIELDS = [
+  ['identificacaoInterna', 'Identificação Interna *'],
+  ['placa', 'Placa (opcional)'],
+  ['tipo', 'Tipo de Veículo'],
+  ['fabricanteModelo', 'Fabricante / Modelo'],
+  ['configuracaoEixos', 'Configuração de Eixos'],
+] as const
+
 export default function VeiculosPage() {
   const [vehicles, setVehicles] = useState<Vehicle[]>([])
   const [units, setUnits] = useState<Unit[]>([])
@@ -283,16 +291,17 @@ export default function VeiculosPage() {
         <div className="card" style={{ marginBottom: '1.5rem' }}>
           <h3 style={{ fontWeight: 700, marginBottom: '1.25rem' }}>{editing ? 'Editar Veículo' : 'Novo Veículo'}</h3>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
-            {[
-              ['identificacaoInterna', 'Identificação Interna *', 'text'],
-              ['placa', 'Placa (opcional)', 'text'],
-              ['tipo', 'Tipo de Veículo', 'text'],
-              ['fabricanteModelo', 'Fabricante / Modelo', 'text'],
-              ['configuracaoEixos', 'Configuração de Eixos', 'text'],
-            ].map(([field, label]) => (
+            {VEHICLE_TEXT_FIELDS.map(([field, label]) => (
               <div key={field} className="form-group">
                 <label className="form-label">{label}</label>
-                <input type="text" className="form-control" value={(form as Record<string, string>)[field]} onChange={e => setForm(p => ({ ...p, [field]: e.target.value }))} />
+                <input
+                  type="text"
+                  className="form-control"
+                  value={form[field] ?? ''}
+                  onChange={e =>
+                    setForm(prev => ({ ...prev, [field]: e.target.value }))
+                  }
+                />
               </div>
             ))}
             <div className="form-group">
