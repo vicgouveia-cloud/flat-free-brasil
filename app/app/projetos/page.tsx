@@ -11,6 +11,8 @@ const statusLabels: Record<PilotProjectStatus, { label: string; cls: string }> =
   cancelado: { label: 'Cancelado', cls: 'badge-red' },
 }
 
+const today = new Date().toISOString().split('T')[0]
+
 export default function ProjetosPage() {
   const [projects, setProjects] = useState<PilotProject[]>([])
   const [tires, setTires] = useState(getTires())
@@ -61,6 +63,23 @@ export default function ProjetosPage() {
   function activateProject(id: string) {
     const project = projects.find(p => p.id === id)
     if (!project) return
+
+    if (project.dataInicio > today) {
+      setActivationError(
+        `Este projeto está planejado para iniciar em ${project.dataInicio}. Ele só pode ser ativado nessa data ou depois.`
+      )
+      return
+    }
+
+    const treatedCount = project.pneus.filter(pt => pt.grupo === 'tratado').length
+    const controlCount = project.pneus.filter(pt => pt.grupo === 'controle').length
+
+    if (treatedCount === 0 || controlCount === 0) {
+      setActivationError(
+        'Para ativar o projeto, selecione pelo menos um pneu Tratado e um pneu Controle.'
+      )
+      return
+    }
 
     const applications = getApplications()
     const occurrences = getOccurrences()
