@@ -28,18 +28,75 @@ export default function ProjetosPage() {
   const [tires, setTires] = useState(getTires())
   const [selected, setSelected] = useState<PilotProject | null>(null)
   const [showForm, setShowForm] = useState(false)
+  const [editingProjectId, setEditingProjectId] = useState<string | null>(null)
   const [activationError, setActivationError] = useState<string | null>(null)
   const [form, setForm] = useState({ nome: '', descricao: '', dataInicio: new Date().toISOString().split('T')[0], criterios: '' })
   const [projectTires, setProjectTires] = useState<{ tireId: string; grupo: TireGroup }[]>([])
 
   useEffect(() => { setProjects(getProjects()); setTires(getTires()) }, [])
 
-  function handleCreate() {
+  function resetProjectForm() {
+    setShowForm(false)
+    setEditingProjectId(null)
+    setForm({ nome: '', descricao: '', dataInicio: today, criterios: '' })
+    setProjectTires([])
+  }
+
+  function openNewProjectForm() {
+    setActivationError(null)
+    setEditingProjectId(null)
+    setForm({ nome: '', descricao: '', dataInicio: today, criterios: '' })
+    setProjectTires([])
+    setShowForm(true)
+  }
+
+  function editPlanningProject(project: PilotProject) {
+    if (project.status !== 'planejamento') return
+
+    setActivationError(null)
+    setEditingProjectId(project.id)
+    setForm({
+      nome: project.nome,
+      descricao: project.descricao || '',
+      dataInicio: project.dataInicio,
+      criterios: project.criteriosComparacao || '',
+    })
+    setProjectTires(project.pneus.map(item => ({ ...item })))
+    setShowForm(true)
+  }
+
+  function handleSaveProject() {
     if (!form.nome.trim() || !form.dataInicio) return
+
+    if (editingProjectId) {
+      const current = projects.find(project => project.id === editingProjectId)
+      if (!current || current.status !== 'planejamento') return
+
+      const updated = projects.map(project =>
+        project.id === editingProjectId
+          ? {
+              ...project,
+              nome: form.nome.trim(),
+              descricao: form.descricao || undefined,
+              dataInicio: form.dataInicio,
+              criteriosComparacao: form.criterios || undefined,
+              pneus: projectTires,
+            }
+          : project
+      )
+      saveProjects(updated)
+      setProjects(updated)
+      if (selected?.id === editingProjectId) {
+        setSelected(updated.find(project => project.id === editingProjectId) || null)
+      }
+      resetProjectForm()
+      return
+    }
+
     const project: PilotProject = {
       id: uuid(),
       companyId: 'demo-company-1',
-      nome: form.nome,
+      nome: form.nome.trim(),
       descricao: form.descricao || undefined,
       dataInicio: form.dataInicio,
       status: 'planejamento',
@@ -49,9 +106,7 @@ export default function ProjetosPage() {
     const updated = [...projects, project]
     saveProjects(updated)
     setProjects(updated)
-    setShowForm(false)
-    setForm({ nome: '', descricao: '', dataInicio: new Date().toISOString().split('T')[0], criterios: '' })
-    setProjectTires([])
+    resetProjectForm()
   }
 
   function toggleTire(tireId: string, grupo: TireGroup) {
@@ -268,12 +323,14 @@ export default function ProjetosPage() {
           <h1 style={{ fontSize: '1.5rem', fontWeight: 800, marginBottom: '0.25rem' }}>Projetos Piloto</h1>
           <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem' }}>Fluxo: Empresa → Projeto → Pneus → Tratado/Controle → Leituras → Comparativo</p>
         </div>
-        <button onClick={() => setShowForm(true)} className="btn btn-primary btn-sm"><i className="fas fa-plus" /> Novo Projeto</button>
+        <button onClick={openNewProjectForm} className="btn btn-primary btn-sm"><i className="fas fa-plus" /> Novo Projeto</button>
       </div>
 
       {showForm && (
         <div className="card" style={{ marginBottom: '1.5rem' }}>
-          <h3 style={{ fontWeight: 700, marginBottom: '1.25rem' }}>Novo Projeto Piloto</h3>
+          <h3 style={{ fontWeight: 700, marginBottom: '1.25rem' }}>
+            {editingProjectId ? 'Editar Projeto em Planejamento' : 'Novo Projeto Piloto'}
+          </h3>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1.25rem' }}>
             <div className="form-group" style={{ gridColumn: '1 / -1' }}>
               <label className="form-label">Nome do Projeto *</label>
@@ -317,8 +374,10 @@ export default function ProjetosPage() {
           </div>
 
           <div style={{ display: 'flex', gap: '0.75rem' }}>
-            <button onClick={handleCreate} className="btn btn-primary"><i className="fas fa-check" /> Criar Projeto</button>
-            <button onClick={() => setShowForm(false)} className="btn btn-outline">Cancelar</button>
+            <button onClick={handleSaveProject} className="btn btn-primary">
+              <i className="fas fa-check" /> {editingProjectId ? 'Salvar alterações' : 'Criar Projeto'}
+            </button>
+            <button onClick={resetProjectForm} className="btn btn-outline">Cancelar</button>
           </div>
         </div>
       )}
@@ -335,6 +394,12 @@ export default function ProjetosPage() {
               <span className={`badge ${statusLabels[selected.status].cls}`}>{statusLabels[selected.status].label}</span>
               {selected.status === 'planejamento' && (
                 <>
+                  <button
+                    onClick={() => editPlanningProject(selected)}
+                    className="btn btn-outline btn-sm"
+                  >
+                    Editar planejamento
+                  </button>
                   <button onClick={() => activateProject(selected.id)} className="btn btn-primary btn-sm">Ativar</button>
                   <button
                     onClick={() => cancelProject(selected.id)}
