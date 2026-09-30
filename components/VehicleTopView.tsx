@@ -21,7 +21,7 @@ function TireSlot({
   onSelect?: () => void
 }) {
   const title = mounted
-    ? `${label} • ${mounted.tire.identificacaoInterna} • ${mounted.hasFlatFree ? 'Com Flat Free' : 'Sem aplicação Flat Free no ciclo atual'}`
+    ? `${label} • ${mounted.tire.identificacaoInterna} • ${mounted.hasFlatFree ? 'Com Flat Free na data exibida' : 'Sem aplicação Flat Free na data exibida'}`
     : `${label} • posição livre`
 
   const content = (
@@ -83,11 +83,13 @@ export default function VehicleTopView({
   mountedTires = [],
   selectedSlotId,
   onSelectFreeSlot,
+  referenceDate,
 }: {
   vehicle: Vehicle
   mountedTires?: VehicleMountedTire[]
   selectedSlotId?: string | null
   onSelectFreeSlot?: (slotId: string) => void
+  referenceDate?: string
 }) {
   const layout = getVehicleLayout(vehicle)
   const isTrailer = layout.type === 'semi_trailer' || layout.type === 'trailer'
@@ -112,7 +114,7 @@ export default function VehicleTopView({
           </span>
         </div>
         <span style={{ color: 'var(--text-muted)', fontSize: '0.72rem' }}>
-          Vista superior • montagem atual
+          Vista superior • montagem em {referenceDate || 'hoje'}
         </span>
       </div>
 
@@ -128,11 +130,11 @@ export default function VehicleTopView({
       >
         <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}>
           <span style={{ width: '12px', height: '12px', borderRadius: '3px', border: '2px solid var(--color-safety-orange)', background: 'rgba(255,92,0,0.10)' }} />
-          Com Flat Free no ciclo atual
+          Com Flat Free na data exibida
         </span>
         <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}>
           <span style={{ width: '12px', height: '12px', borderRadius: '3px', border: '2px solid var(--text-secondary)', background: 'var(--bg-surface)' }} />
-          Sem aplicação no ciclo atual
+          Sem aplicação na data exibida
         </span>
         <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}>
           <span style={{ width: '12px', height: '12px', borderRadius: '3px', border: '2px dashed var(--border-color)' }} />
@@ -245,7 +247,7 @@ export default function VehicleTopView({
       </div>
 
       <p style={{ marginTop: '0.85rem', color: 'var(--text-muted)', fontSize: '0.75rem' }}>
-        A montagem é derivada do histórico de posições. Clique em uma posição livre para montar ou remanejar um pneu. O destaque Flat Free considera somente a aplicação válida no ciclo atual do pneu.
+        A montagem é derivada do histórico de posições. Clique em uma posição livre para montar ou remanejar um pneu. O destaque Flat Free considera somente a aplicação válida no ciclo do pneu na data exibida.
       </p>
     </div>
   )

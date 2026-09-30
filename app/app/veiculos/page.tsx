@@ -458,6 +458,7 @@ export default function VeiculosPage() {
           <VehicleTopView
             vehicle={visualizing}
             mountedTires={mountedTires}
+            referenceDate={viewDate}
             selectedSlotId={viewDate === new Date().toISOString().split('T')[0] ? selectedSlotId : null}
             onSelectFreeSlot={
               viewDate === new Date().toISOString().split('T')[0]
