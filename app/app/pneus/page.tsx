@@ -16,6 +16,7 @@ import type {
 } from '@/lib/types'
 import { DOSAGE_CATALOG, findCatalogEntry, getDosageOz, normalizeMeasure } from '@/lib/dosage'
 import { getApplicationForTireCycleAtDate } from '@/lib/tire-lifecycle'
+import { getVehicleOdometerBoundsAtDate } from '@/lib/odometer'
 import {
   getSlotIdFromPosition,
   getVehicleLayout,
@@ -258,40 +259,23 @@ export default function PneusPage() {
       !appForm.doseAplicada
     ) return
 
-    const vehicleReadings = readings.filter(
-      reading => reading.vehicleId === position.vehicleId
+    const { previous, next } = getVehicleOdometerBoundsAtDate(
+      position.vehicleId,
+      appForm.data,
+      readings,
+      applications
     )
-    const previousReading = vehicleReadings
-      .filter(reading => reading.data < appForm.data)
-      .sort(
-        (a, b) =>
-          b.data.localeCompare(a.data) ||
-          b.quilometragemVeiculo - a.quilometragemVeiculo
-      )[0]
-    const nextReading = vehicleReadings
-      .filter(reading => reading.data > appForm.data)
-      .sort(
-        (a, b) =>
-          a.data.localeCompare(b.data) ||
-          a.quilometragemVeiculo - b.quilometragemVeiculo
-      )[0]
 
-    if (
-      previousReading &&
-      appForm.quilometragemAplicacao < previousReading.quilometragemVeiculo
-    ) {
+    if (previous && appForm.quilometragemAplicacao < previous.km) {
       setApplicationError(
-        `A quilometragem da aplicação não pode ser menor que a leitura anterior deste veículo (${previousReading.quilometragemVeiculo.toLocaleString('pt-BR')} km em ${previousReading.data}).`
+        `A quilometragem da aplicação não pode ser menor que o registro anterior deste veículo (${previous.km.toLocaleString('pt-BR')} km em ${previous.date}).`
       )
       return
     }
 
-    if (
-      nextReading &&
-      appForm.quilometragemAplicacao > nextReading.quilometragemVeiculo
-    ) {
+    if (next && appForm.quilometragemAplicacao > next.km) {
       setApplicationError(
-        `A quilometragem da aplicação não pode ser maior que a leitura posterior deste veículo (${nextReading.quilometragemVeiculo.toLocaleString('pt-BR')} km em ${nextReading.data}).`
+        `A quilometragem da aplicação não pode ser maior que o registro posterior deste veículo (${next.km.toLocaleString('pt-BR')} km em ${next.date}).`
       )
       return
     }
