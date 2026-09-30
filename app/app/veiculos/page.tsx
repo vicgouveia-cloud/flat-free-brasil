@@ -215,6 +215,16 @@ export default function VeiculosPage() {
   function handleSave() {
     if (!form.identificacaoInterna.trim() || !form.unitId) return
 
+    if (
+      form.axleCount === undefined ||
+      !Number.isInteger(form.axleCount) ||
+      form.axleCount < 1 ||
+      form.axleCount > 8
+    ) {
+      setVehicleSaveError('Informe uma quantidade de eixos válida entre 1 e 8.')
+      return
+    }
+
     if (editing) {
       const hasPositionHistory = getPositionHistory().some(
         entry => entry.vehicleId === editing.id
@@ -291,6 +301,8 @@ export default function VeiculosPage() {
                 type="number"
                 min={1}
                 max={8}
+                step={1}
+                required
                 className="form-control"
                 value={form.axleCount ?? ''}
                 onChange={e =>
