@@ -20,17 +20,28 @@ export default function DashboardPage() {
     readings: 0,
     occurrences: 0,
     vehicles: 0,
+    treatedTires: 0,
+    tiresWithoutReadings: 0,
   })
 
   useEffect(() => {
+    const tires = getTires()
+    const applications = getApplications()
+    const readings = getReadings()
+    const operatingTires = tires.filter(t => t.status === 'em_operacao')
+    const treatedTireIds = new Set(applications.map(a => a.tireId))
+    const tireIdsWithReadings = new Set(readings.map(r => r.tireId))
+
     setStats({
       orders: getOrders().length,
-      tires: getTires().filter(t => t.status === 'em_operacao').length,
+      tires: operatingTires.length,
       projects: getProjects().filter(p => p.status === 'ativo').length,
-      applications: getApplications().length,
-      readings: getReadings().length,
+      applications: applications.length,
+      readings: readings.length,
       occurrences: getOccurrences().length,
       vehicles: getVehicles().filter(v => v.status === 'ativo').length,
+      treatedTires: operatingTires.filter(t => treatedTireIds.has(t.id)).length,
+      tiresWithoutReadings: operatingTires.filter(t => !tireIdsWithReadings.has(t.id)).length,
     })
   }, [])
 
@@ -46,8 +57,26 @@ export default function DashboardPage() {
 
   return (
     <div>
-      <h1 style={{ fontSize: '1.5rem', fontWeight: 800, marginBottom: '0.25rem' }}>Painel</h1>
-      <p style={{ color: 'var(--text-secondary)', marginBottom: '2rem', fontSize: '0.9rem' }}>Visão geral da operação em modo demonstração.</p>
+      <h1 style={{ fontSize: '1.5rem', fontWeight: 800, marginBottom: '0.25rem' }}>Painel da Frota</h1>
+      <p style={{ color: 'var(--text-secondary)', marginBottom: '2rem', fontSize: '0.9rem' }}>Acompanhe a operação dos pneus e identifique onde vale aprofundar a análise.</p>
+
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '1rem', marginBottom: '2rem' }}>
+        <Link href="/app/pneus" className="card" style={{ textDecoration: 'none', borderLeft: '4px solid var(--color-safety-orange)' }}>
+          <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)', marginBottom: '0.4rem' }}>PNEUS EM OPERAÇÃO</div>
+          <div style={{ fontSize: '1.8rem', fontWeight: 900 }}>{stats.tires}</div>
+          <div style={{ fontSize: '0.82rem', color: 'var(--text-secondary)' }}>{stats.treatedTires} com registro de aplicação Flat Free</div>
+        </Link>
+        <Link href="/app/leituras" className="card" style={{ textDecoration: 'none' }}>
+          <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)', marginBottom: '0.4rem' }}>ACOMPANHAMENTO</div>
+          <div style={{ fontSize: '1.8rem', fontWeight: 900 }}>{stats.readings}</div>
+          <div style={{ fontSize: '0.82rem', color: 'var(--text-secondary)' }}>leituras registradas na base</div>
+        </Link>
+        <Link href="/app/leituras" className="card" style={{ textDecoration: 'none', borderLeft: stats.tiresWithoutReadings ? '4px solid #f59e0b' : undefined }}>
+          <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)', marginBottom: '0.4rem' }}>ATENÇÃO DE DADOS</div>
+          <div style={{ fontSize: '1.8rem', fontWeight: 900 }}>{stats.tiresWithoutReadings}</div>
+          <div style={{ fontSize: '0.82rem', color: 'var(--text-secondary)' }}>pneus em operação ainda sem leitura</div>
+        </Link>
+      </div>
 
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: '1rem', marginBottom: '2.5rem' }}>
         {cards.map(card => (
