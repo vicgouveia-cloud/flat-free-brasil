@@ -96,6 +96,41 @@ export default function ProjetosPage() {
       return
     }
 
+    const overlappingProjects = projects.filter(other => {
+      if (
+        other.id === project.id ||
+        (other.status !== 'ativo' && other.status !== 'concluido')
+      ) return false
+
+      const sharesTire = other.pneus.some(otherTire =>
+        project.pneus.some(projectTire => projectTire.tireId === otherTire.tireId)
+      )
+      if (!sharesTire) return false
+
+      if (other.status === 'ativo') return true
+      if (!other.dataFim) return true
+
+      return other.dataFim >= project.dataInicio
+    })
+
+    if (overlappingProjects.length > 0) {
+      const issues = overlappingProjects.map(other => {
+        const sharedTires = other.pneus
+          .filter(otherTire =>
+            project.pneus.some(projectTire => projectTire.tireId === otherTire.tireId)
+          )
+          .map(otherTire => getTireName(otherTire.tireId))
+          .join(', ')
+
+        return `${other.nome}: ${sharedTires}`
+      })
+
+      setActivationError(
+        `Há pneus já vinculados a outro projeto no mesmo período. Encerre o projeto anterior ou ajuste a seleção. ${issues.join(' ')}`
+      )
+      return
+    }
+
     const applications = getApplications()
     const occurrences = getOccurrences()
     const applicationInProjectCycle = (tireId: string) =>
