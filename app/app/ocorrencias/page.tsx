@@ -61,6 +61,17 @@ export default function OcorrenciasPage() {
 
     let updatedPositionHistory = getPositionHistory()
 
+    if (form.tipo === 'recapagem') {
+      const tire = tires.find(item => item.id === form.tireId)
+
+      if (!tire || tire.status === 'recapagem') {
+        setSaveError(
+          'Este pneu já está em recapagem. Registre o Retorno da recapagem antes de iniciar um novo ciclo de recapagem.'
+        )
+        return
+      }
+    }
+
     if (form.tipo === 'retorno_recapagem') {
       const tire = tires.find(item => item.id === form.tireId)
       const latestRecap = occurrences
