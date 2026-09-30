@@ -172,7 +172,6 @@ export default function VeiculosPage() {
     }
 
     savePositionHistory(result.history)
-    const today = new Date().toISOString().split('T')[0]
     setViewDate(today)
     setMountedTires(getMountedTiresAtDate(visualizing, today))
     setSelectedSlotId(null)
