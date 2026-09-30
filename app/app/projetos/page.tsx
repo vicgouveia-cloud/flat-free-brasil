@@ -1,6 +1,15 @@
 'use client'
 import { useEffect, useState } from 'react'
-import { getProjects, saveProjects, getTires, getApplications, getOccurrences, uuid } from '@/lib/storage'
+import {
+  getProjects,
+  saveProjects,
+  getTires,
+  getApplications,
+  getOccurrences,
+  getPositionHistory,
+  getTirePositionAtDate,
+  uuid,
+} from '@/lib/storage'
 import type { PilotProject, PilotProjectStatus, TireGroup } from '@/lib/types'
 import { getApplicationForTireCycleAtDate } from '@/lib/tire-lifecycle'
 
@@ -93,6 +102,29 @@ export default function ProjetosPage() {
       setActivationError(
         'Para ativar o projeto, selecione pelo menos um pneu Tratado e um pneu Controle.'
       )
+      return
+    }
+
+    const currentTires = getTires()
+    const positionHistory = getPositionHistory()
+    const unavailableTires = project.pneus.filter(pt => {
+      const tire = currentTires.find(item => item.id === pt.tireId)
+      return !tire || tire.status !== 'em_operacao'
+    })
+    const unmountedAtStart = project.pneus.filter(
+      pt => !getTirePositionAtDate(pt.tireId, project.dataInicio, positionHistory)
+    )
+
+    if (unavailableTires.length > 0 || unmountedAtStart.length > 0) {
+      const issues = [
+        ...unavailableTires.map(
+          pt => `${getTireName(pt.tireId)} não está com status Em operação.`
+        ),
+        ...unmountedAtStart.map(
+          pt => `${getTireName(pt.tireId)} não possui montagem registrada em ${project.dataInicio}.`
+        ),
+      ]
+      setActivationError(issues.join(' '))
       return
     }
 
