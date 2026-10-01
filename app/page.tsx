@@ -284,7 +284,7 @@ export default function HomePage() {
                   { n: 1, title: 'Aplicação Direta sem Desmontar', desc: 'Injetado pela válvula com o pneu montado na roda. Rápido, sem necessidade de parar a oficina por longos períodos.' },
                   { n: 2, title: 'Revestimento por Força Centrífuga', desc: 'Com o rodar do veículo, o fluido cobre homogeneamente a camada interna de borracha, criando uma barreira contínua.' },
                   { n: 3, title: 'Vedação Instantânea até 6mm', desc: 'Em caso de furo por prego ou parafuso, a pressão força as microfibras sintéticas para o orifício, selando-o instantaneamente.' },
-                  { n: 4, title: 'Dissipação Térmica & Não Corrosivo', desc: 'Reduz a temperatura interna da carcaça em até 20%. Fórmula 100% solúvel em água, sem agredir rodas, aros ou sensores TPMS.' },
+                  { n: 4, title: 'Produto em circulação no pneu', desc: 'O produto permanece distribuído na região interna de rodagem durante o uso. Características técnicas e compatibilidades devem seguir a documentação oficial do produto.' },
                 ].map(step => (
                   <div key={step.n} style={{ display: 'flex', gap: '1rem', padding: '1rem', background: 'var(--bg-surface)', borderRadius: '10px', border: '1px solid var(--border-color)' }}>
                     <div style={{ width: '2rem', height: '2rem', background: 'var(--color-safety-orange)', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontWeight: 800, fontSize: '0.85rem', flexShrink: 0 }}>{step.n}</div>
@@ -448,14 +448,8 @@ export default function HomePage() {
                 <img src="/images/flat_free_product.jpg" alt="Balde Flat Free B2B" style={{ borderRadius: '8px', width: '100%', height: '160px', objectFit: 'cover' }} />
                 <h4 style={{ fontWeight: 700 }}>Flat Free B2B Industrial</h4>
                 <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>Embalagem corporativa projetada para atendimento em grande escala para frotistas e concessionárias.</p>
-                <ul style={{ listStyle: 'none', display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
-                  {['Fórmula química não tóxica','100% Solúvel em água','Aprovado para sensores TPMS','Validade de 5 anos na carcaça'].map(f => (
-                    <li key={f} style={{ fontSize: '0.85rem', display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
-                      <i className="fas fa-check-circle" style={{ color: 'var(--color-industrial-lime)' }} />{f}
-                    </li>
-                  ))}
-                </ul>
-                <a href="#contato" className="btn btn-outline" style={{ justifyContent: 'center' }}><i className="fas fa-download" /> Baixar Ficha Técnica</a>
+                <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>Consulte a dosagem pela medida do pneu ou fale com a equipe para confirmar a aplicação adequada ao seu uso.</p>
+                <Link href="/calculadora" className="btn btn-outline" style={{ justifyContent: 'center' }}><i className="fas fa-calculator" /> Consultar Dosagem</Link>
               </aside>
             </div>
           </div>
@@ -471,9 +465,9 @@ export default function HomePage() {
                 <p style={{ color: 'var(--text-secondary)', marginBottom: '2rem' }}>Use o formulário para conversar sobre aplicação em frotas, uso no seu veículo ou interesse em instalar e revender Flat Free.</p>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
                   {[
-                    { icon: 'fa-user-gear', title: 'Consultoria Técnica Especializada', desc: 'Análise direta com engenheiros focados na redução de custos operacionais da sua frota.' },
-                    { icon: 'fa-chart-pie', title: 'Estudo de ROI Personalizado', desc: 'Cálculo detalhado da estimativa de economia de diesel e vida útil dos pneus.' },
-                    { icon: 'fa-vial-circle-check', title: 'Plano de Teste Piloto', desc: 'Possibilidade de teste e validação técnica prévia em veículos selecionados.' },
+                    { icon: 'fa-user-gear', title: 'Orientação de aplicação', desc: 'Atendimento para entender veículos, medidas de pneus, quantidade necessária e forma de uso.' },
+                    { icon: 'fa-chart-line', title: 'Gestão para frotas', desc: 'Ferramentas para registrar pneus, posições, aplicações, leituras, ocorrências e histórico operacional.' },
+                    { icon: 'fa-screwdriver-wrench', title: 'Instalação e parceria', desc: 'Canal para oficinas, borracharias, concessionárias e prestadores interessados em instalar ou revender Flat Free.' },
                   ].map(c => (
                     <div key={c.title} className="card" style={{ display: 'flex', gap: '1rem', alignItems: 'start' }}>
                       <div style={{ width: '2.5rem', height: '2.5rem', background: 'rgba(255,92,0,0.1)', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
@@ -574,11 +568,11 @@ export default function HomePage() {
               </ul>
             </div>
             <div>
-              <h4 style={{ fontSize: '0.85rem', fontWeight: 700, marginBottom: '1rem', textTransform: 'uppercase', letterSpacing: '0.1em', color: '#64748b' }}>Certificações</h4>
+              <h4 style={{ fontSize: '0.85rem', fontWeight: 700, marginBottom: '1rem', textTransform: 'uppercase', letterSpacing: '0.1em', color: '#64748b' }}>Atendimento</h4>
               <ul style={{ listStyle: 'none', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-                <li style={{ fontSize: '0.875rem', color: '#64748b' }}><i className="fas fa-award" style={{ color: 'var(--color-safety-orange)', marginRight: '0.4rem' }} />ISO 9001:2015</li>
-                <li style={{ fontSize: '0.875rem', color: '#64748b' }}><i className="fas fa-leaf" style={{ color: 'var(--color-industrial-lime)', marginRight: '0.4rem' }} />100% Ecológico</li>
-                <li style={{ fontSize: '0.875rem', color: '#64748b' }}><i className="fas fa-shield" style={{ color: 'var(--color-safety-orange)', marginRight: '0.4rem' }} />Garantia de Fábrica</li>
+                <li><Link href="/calculadora" style={{ color: '#64748b', fontSize: '0.875rem' }}>Consultar aplicação</Link></li>
+                <li><Link href="/solicitar" style={{ color: '#64748b', fontSize: '0.875rem' }}>Falar sobre Flat Free</Link></li>
+                <li><a href="#contato" style={{ color: '#64748b', fontSize: '0.875rem' }}>Quero ser parceiro</a></li>
               </ul>
             </div>
           </div>
