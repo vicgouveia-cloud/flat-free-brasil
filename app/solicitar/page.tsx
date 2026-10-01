@@ -257,10 +257,12 @@ function SolicitarForm() {
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '1rem' }}>
           {([
             ['nomeEmpresa', form.perfil === 'particular' ? 'Nome *' : 'Empresa / estabelecimento *', 'text', true],
-            ...(form.perfil !== 'particular' ? [
-              ['razaoSocial', 'Razão Social (opcional)', 'text', false],
-              ['cnpj', 'CNPJ (opcional)', 'text', false],
-            ] : []),
+            ...(form.perfil !== 'particular'
+              ? ([
+                  ['razaoSocial', 'Razão Social (opcional)', 'text', false],
+                  ['cnpj', 'CNPJ (opcional)', 'text', false],
+                ] as const)
+              : []),
             ['nomeResponsavel', 'Nome do Responsável *', 'text', true],
             ['email', 'E-mail *', 'email', true],
             ['telefone', 'Telefone *', 'tel', true],
