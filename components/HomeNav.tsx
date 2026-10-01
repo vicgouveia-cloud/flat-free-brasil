@@ -43,12 +43,10 @@ export default function HomeNav() {
         </Link>
 
         <nav className={`home-nav-menu${menuOpen ? ' is-open' : ''}`}>
-          <a href="#inicio" onClick={() => setMenuOpen(false)}>Início</a>
-          <a href="#tecnologia" onClick={() => setMenuOpen(false)}>Como funciona</a>
-          <a href="#beneficios" onClick={() => setMenuOpen(false)}>Benefícios</a>
-          <Link href="/calculadora" onClick={() => setMenuOpen(false)}>Dosagem</Link>
-          <Link href="/app" onClick={() => setMenuOpen(false)}>Para frotas</Link>
-          <a href="#contato" onClick={() => setMenuOpen(false)}>Contato</a>
+          <a href="#inicio" onClick={() => setMenuOpen(false)}>Flat Free</a>
+          <a href="#gestao" onClick={() => setMenuOpen(false)}>Gestão de pneus</a>
+          <a href="#artigos" onClick={() => setMenuOpen(false)}>Conteúdo</a>
+          <a href="#contato" onClick={() => setMenuOpen(false)}>Para parceiros</a>
         </nav>
 
         <div className="home-nav-actions">
@@ -60,9 +58,6 @@ export default function HomeNav() {
           </Link>
           <Link href="/solicitar" className="btn btn-primary btn-sm">
             Quero Flat Free
-          </Link>
-          <Link href="/app" className="btn btn-sm home-nav-fleet">
-            Gestão da Frota
           </Link>
           <button className="home-nav-toggle" onClick={() => setMenuOpen(open => !open)} aria-label={menuOpen ? 'Fechar menu' : 'Abrir menu'} aria-expanded={menuOpen}>
             <i className={menuOpen ? 'fas fa-xmark' : 'fas fa-bars'} />
