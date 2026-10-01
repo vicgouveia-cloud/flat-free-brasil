@@ -2,9 +2,19 @@ import type { Metadata } from 'next'
 import './globals.css'
 
 export const metadata: Metadata = {
-  title: 'FLAT FREE B2B - Selante & Blindagem Industrial de Pneus para Frotas',
-  description: 'Solução B2B em selantes e extensores de vida útil de pneus para frotas comerciais, logísticas e industriais. Reduza o consumo de combustível e elimine paradas imprevistas.',
-  keywords: 'selante de pneus, blindagem de pneu frota, pneu caminhão B2B, redução de downtime, economia combustível diesel, Flat Free',
+  title: {
+    default: 'Flat Free Brasil | Proteção e Gestão de Pneus',
+    template: '%s | Flat Free Brasil',
+  },
+  description: 'Flat Free combina proteção preventiva contra perfurações com ferramentas para acompanhar aplicações, posições, leituras e histórico dos pneus de veículos e frotas.',
+  keywords: [
+    'Flat Free',
+    'selante de pneus',
+    'proteção contra perfurações',
+    'gestão de pneus',
+    'gestão de pneus de frota',
+    'dosagem de selante para pneus',
+  ],
   other: {
     'google-site-verification': 'google1f0a646a60421833',
   },
