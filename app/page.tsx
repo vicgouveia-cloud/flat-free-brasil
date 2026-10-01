@@ -339,21 +339,21 @@ export default function HomePage() {
             <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '2rem' }}>
               <article className="card" style={{ padding: 0, overflow: 'hidden' }}>
                 <div style={{ position: 'relative' }}>
-                  <img src="/images/hero_trucks_fleet.jpg" alt="Custo Oculto do Pneu Furado na Logística B2B" style={{ width: '100%', height: '220px', objectFit: 'cover', display: 'block' }} />
-                  <span style={{ position: 'absolute', top: '1rem', left: '1rem', background: 'var(--color-safety-orange)', color: '#fff', padding: '0.25rem 0.75rem', borderRadius: '50px', fontSize: '0.75rem', fontWeight: 700 }}>Logística &amp; Performance</span>
+                  <img src="/images/hero_trucks_fleet.jpg" alt="Caminhões em operação de frota" style={{ width: '100%', height: '220px', objectFit: 'cover', display: 'block' }} />
+                  <span style={{ position: 'absolute', top: '1rem', left: '1rem', background: 'var(--color-safety-orange)', color: '#fff', padding: '0.25rem 0.75rem', borderRadius: '50px', fontSize: '0.75rem', fontWeight: 700 }}>Operação &amp; prevenção</span>
                 </div>
                 <div style={{ padding: '1.5rem' }}>
                   <div style={{ display: 'flex', gap: '1rem', fontSize: '0.8rem', color: 'var(--text-muted)', marginBottom: '0.75rem' }}>
                     <span><i className="far fa-clock" /> 5 min de leitura</span>
                     <span><i className="far fa-calendar-alt" /> Atualizado em 2026</span>
                   </div>
-                  <h3 style={{ fontWeight: 800, marginBottom: '0.75rem', fontSize: '1.2rem' }}>O Custo Oculto do Pneu Furado na Logística B2B</h3>
-                  <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', marginBottom: '1.25rem', lineHeight: 1.6 }}>Na engenharia logística moderna, a precisão é a métrica principal. No entanto, um componente analógico frequentemente desestabiliza a cadeia: o pneu. Um único furo em transporte pesado desencadeia um efeito cascata de perdas financeiras.</p>
+                  <h3 style={{ fontWeight: 800, marginBottom: '0.75rem', fontSize: '1.2rem' }}>Por que acompanhar pneus e ocorrências na operação</h3>
+                  <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', marginBottom: '1.25rem', lineHeight: 1.6 }}>Perfurações, paradas, trocas e movimentações fazem parte da rotina de pneus. Registrar essas ocorrências junto com leituras e posições ajuda a construir um histórico útil para acompanhar a operação.</p>
                   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '1rem' }}>
                     {[
-                      { icon: 'fa-wrench', title: 'Custos Diretos', desc: 'Socorro mecânico e substituição prematura da carcaça comprometida.' },
-                      { icon: 'fa-clock', title: 'Custos Indiretos', desc: 'Multas contratuais por atraso e horas ociosas de motoristas.' },
-                      { icon: 'fa-chart-line', title: 'Oportunidade', desc: 'Perda de SLAs estratégicos e reputação perante clientes corporativos.' },
+                      { icon: 'fa-wrench', title: 'Ocorrências', desc: 'Registre perfurações, intervenções e outros eventos relevantes ao longo do uso.' },
+                      { icon: 'fa-ruler-vertical', title: 'Leituras', desc: 'Acompanhe sulco, quilometragem e outros dados registrados nas inspeções.' },
+                      { icon: 'fa-route', title: 'Histórico', desc: 'Relacione veículo, posição, aplicações e movimentações de cada pneu.' },
                     ].map(b => (
                       <div key={b.title} style={{ background: 'var(--bg-surface-elevated)', borderRadius: '8px', padding: '1rem' }}>
                         <h5 style={{ marginBottom: '0.4rem', fontSize: '0.85rem' }}><i className={`fas ${b.icon}`} style={{ color: 'var(--color-safety-orange)', marginRight: '0.4rem' }} />{b.title}</h5>
@@ -364,9 +364,9 @@ export default function HomePage() {
                 </div>
               </article>
               <aside className="card" style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-                <img src="/images/flat_free_product.jpg" alt="Balde Flat Free B2B" style={{ borderRadius: '8px', width: '100%', height: '160px', objectFit: 'cover' }} />
-                <h4 style={{ fontWeight: 700 }}>Flat Free B2B Industrial</h4>
-                <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>Embalagem corporativa projetada para atendimento em grande escala para frotistas e concessionárias.</p>
+                <img src="/images/flat_free_product.jpg" alt="Embalagem do produto Flat Free" style={{ borderRadius: '8px', width: '100%', height: '160px', objectFit: 'cover' }} />
+                <h4 style={{ fontWeight: 700 }}>Flat Free</h4>
+                <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>Consulte a aplicação conforme a medida do pneu e a necessidade do veículo ou da frota.</p>
                 <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>Consulte a dosagem pela medida do pneu ou fale com a equipe para confirmar a aplicação adequada ao seu uso.</p>
                 <Link href="/calculadora" className="btn btn-outline" style={{ justifyContent: 'center' }}><i className="fas fa-calculator" /> Consultar Dosagem</Link>
               </aside>
@@ -483,7 +483,7 @@ export default function HomePage() {
                 <li><Link href="/calculadora" style={{ color: '#64748b', fontSize: '0.875rem' }}>Calcular Dosagem</Link></li>
                 <li><Link href="/solicitar" style={{ color: '#64748b', fontSize: '0.875rem' }}>Solicitar Flat Free</Link></li>
                 <li><Link href="/app" style={{ color: '#64748b', fontSize: '0.875rem' }}>Acessar Plataforma</Link></li>
-                <li><a href="#contato" style={{ color: '#64748b', fontSize: '0.875rem' }}>Solicitar Demonstração</a></li>
+                <li><a href="#contato" style={{ color: '#64748b', fontSize: '0.875rem' }}>Conhecer gestão da frota</a></li>
               </ul>
             </div>
             <div>
