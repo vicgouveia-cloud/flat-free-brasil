@@ -15,7 +15,7 @@ export default function HomePage() {
   const animRef = useRef<number>(0)
   const nailYRef = useRef(-40)
   const sealantPulseRef = useRef(0)
-  const [simStatus, setSimStatus] = useState('Clique para simular furo de prego 6mm em tempo real.')
+  const [simStatus, setSimStatus] = useState('Clique para visualizar, de forma ilustrativa, a sequência de uma perfuração.')
 
   const drawCanvas = useCallback(() => {
     const canvas = canvasRef.current
@@ -40,7 +40,7 @@ export default function HomePage() {
     // Air chamber
     ctx.fillStyle = '#0f172a'; ctx.fillRect(45,203,w-90,45)
     ctx.fillStyle = '#94a3b8'; ctx.font = '11px Inter'
-    ctx.fillText('CÂMARA DE AR INTERNA (PRESSÃO 110 PSI)',100,230)
+    ctx.fillText('REGIÃO INTERNA DO PNEU',100,230)
     // Particles
     ctx.fillStyle = '#60a5fa'
     for (let i = 0; i < 15; i++) {
@@ -65,7 +65,7 @@ export default function HomePage() {
         const r = Math.min(18, 8 + Math.sin(sealantPulseRef.current)*4)
         ctx.fillStyle = '#009668'; ctx.beginPath(); ctx.arc(nailX,175,r,0,Math.PI*2); ctx.fill()
         ctx.fillStyle = '#34d399'; ctx.font = 'bold 12px Inter'
-        ctx.fillText('✓ VEDAÇÃO COMPACTA 6MM ATIVA',nailX-100,110)
+        ctx.fillText('REPRESENTAÇÃO DA VEDAÇÃO',nailX-100,110)
       }
     }
   }, [])
@@ -75,10 +75,10 @@ export default function HomePage() {
       nailYRef.current += 4
       if (nailYRef.current >= 95) {
         simStateRef.current = 'sealing'
-        setSimStatus('Selante Reagindo: Fibras e micro-polímeros fluindo para a perfuração...')
+        setSimStatus('Representação ilustrativa: produto direcionado para a região da perfuração...')
         setTimeout(() => {
           simStateRef.current = 'sealed'
-          setSimStatus('✓ Perfuração Vedada Instantaneamente! Pressão mantida em 110 PSI.')
+          setSimStatus('Sequência ilustrativa concluída. Consulte a especificação técnica para limites de aplicação e desempenho.')
         }, 1200)
       }
     }
@@ -95,7 +95,7 @@ export default function HomePage() {
     if (simStateRef.current !== 'idle') return
     simStateRef.current = 'puncturing'
     nailYRef.current = 0
-    setSimStatus('Perfurando pneu com prego de aço 6mm...')
+    setSimStatus('Representando a entrada de um objeto perfurante...')
     cancelAnimationFrame(animRef.current)
     animate()
   }
@@ -242,7 +242,7 @@ export default function HomePage() {
         <section id="tecnologia" className="section tech-section" style={{ background: 'var(--bg-surface-elevated)' }}>
           <div className="container">
             <div className="section-header">
-              <span className="section-tag">Ação Polimérica em Tempo Real</span>
+              <span className="section-tag">Como o produto atua</span>
               <h2 className="section-title">Como Funciona a Tecnologia Flat Free</h2>
               <p className="section-description">O selante é aplicado diretamente pela válvula do pneu. Através da força centrífuga, cria uma película protetora uniforme na área interna da banda de rodagem.</p>
             </div>
@@ -254,7 +254,7 @@ export default function HomePage() {
                 {[
                   { n: 1, title: 'Aplicação Direta sem Desmontar', desc: 'Injetado pela válvula com o pneu montado na roda. Rápido, sem necessidade de parar a oficina por longos períodos.' },
                   { n: 2, title: 'Revestimento por Força Centrífuga', desc: 'Com o rodar do veículo, o fluido cobre homogeneamente a camada interna de borracha, criando uma barreira contínua.' },
-                  { n: 3, title: 'Vedação Instantânea até 6mm', desc: 'Em caso de furo por prego ou parafuso, a pressão força as microfibras sintéticas para o orifício, selando-o instantaneamente.' },
+                  { n: 3, title: 'Ação na região da perfuração', desc: 'Em uma perfuração compatível com a especificação do produto, o Flat Free é direcionado para a região afetada. Os limites técnicos devem seguir a documentação oficial.' },
                   { n: 4, title: 'Produto em circulação no pneu', desc: 'O produto permanece distribuído na região interna de rodagem durante o uso. Características técnicas e compatibilidades devem seguir a documentação oficial do produto.' },
                 ].map(step => (
                   <div key={step.n} style={{ display: 'flex', gap: '1rem', padding: '1rem', background: 'var(--bg-surface)', borderRadius: '10px', border: '1px solid var(--border-color)' }}>
@@ -268,17 +268,17 @@ export default function HomePage() {
             {/* Simulator */}
             <div style={{ background: 'linear-gradient(135deg, #0a0f1e, #1e293b)', borderRadius: '16px', padding: '2rem', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '2rem', alignItems: 'center' }}>
               <div>
-                <h3 style={{ color: '#fff', fontWeight: 800, marginBottom: '0.75rem' }}>Simulador Interativo de Perfuração</h3>
-                <p style={{ color: '#94a3b8', marginBottom: '1.5rem', fontSize: '0.9rem' }}>Veja a física em tempo real: simule a penetração de um objeto perfurante (prego de aço 6mm) e observe a ação imediata do gel protetor.</p>
+                <h3 style={{ color: '#fff', fontWeight: 800, marginBottom: '0.75rem' }}>Visualização ilustrativa de perfuração</h3>
+                <p style={{ color: '#94a3b8', marginBottom: '1.5rem', fontSize: '0.9rem' }}>A animação abaixo ajuda a visualizar o conceito de funcionamento do produto. Ela não representa um ensaio técnico, medição de pressão ou comprovação de desempenho.</p>
                 <div style={{ display: 'flex', gap: '0.75rem', marginBottom: '1rem' }}>
-                  <button className="btn btn-primary" onClick={startSim}><i className="fas fa-play" /> Simular Furo de Prego 6mm</button>
+                  <button className="btn btn-primary" onClick={startSim}><i className="fas fa-play" /> Iniciar visualização</button>
                   <button className="btn btn-outline" onClick={resetSim} style={{ color: '#fff', borderColor: 'rgba(255,255,255,0.3)' }}><i className="fas fa-rotate" /> Reiniciar</button>
                 </div>
                 <p style={{ color: '#cbd5e1', fontSize: '0.85rem' }}>{simStatus}</p>
               </div>
               <div style={{ background: '#0f172a', borderRadius: '10px', padding: '1rem', border: '1px solid rgba(255,255,255,0.08)' }}>
                 <canvas ref={canvasRef} width={460} height={260} style={{ width: '100%', display: 'block' }} />
-                <p style={{ textAlign: 'center', fontSize: '0.75rem', color: '#475569', marginTop: '0.5rem' }}><i className="fas fa-info-circle" /> Renderização do perfil transversal do pneu tratado com Flat Free</p>
+                <p style={{ textAlign: 'center', fontSize: '0.75rem', color: '#475569', marginTop: '0.5rem' }}><i className="fas fa-info-circle" /> Ilustração conceitual do perfil transversal de um pneu com Flat Free</p>
               </div>
             </div>
           </div>
