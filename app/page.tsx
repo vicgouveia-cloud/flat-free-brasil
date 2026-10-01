@@ -383,7 +383,7 @@ export default function HomePage() {
         </section>
 
         {/* PLATFORM / FLEET LIFECYCLE BRIDGE */}
-        <section className="section home-fleet-section" aria-labelledby="home-fleet-title">
+        <section id="gestao" className="section home-fleet-section" aria-labelledby="home-fleet-title">
           <div className="container">
             <div className="home-fleet-header">
               <span className="section-tag">Gestão de pneus · Histórico &amp; comparação</span>
