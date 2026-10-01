@@ -341,8 +341,8 @@ export default function SolicitarPage() {
       <main style={{ minHeight: '100vh', background: 'var(--bg-primary)', padding: '3rem 0' }}>
         <div className="container" style={{ maxWidth: '800px' }}>
           <div style={{ marginBottom: '2rem' }}>
-            <span className="section-tag">{interest === 'gestao' ? 'Gestão de pneus' : interest === 'produto' ? 'Flat Free para frotas' : 'Quero Flat Free'}</span>
-            <h1 style={{ fontSize: '2rem', fontWeight: 900, fontFamily: 'Montserrat', marginTop: '0.5rem', marginBottom: '0.5rem' }}>{interest === 'gestao' ? 'Solicite acesso à área de gestão' : interest === 'produto' ? 'Conte como é sua frota e o teste que deseja fazer' : 'Vamos entender sua necessidade'}</h1>
+            <span className="section-tag">Quero Flat Free</span>
+            <h1 style={{ fontSize: '2rem', fontWeight: 900, fontFamily: 'Montserrat', marginTop: '0.5rem', marginBottom: '0.5rem' }}>Vamos entender sua necessidade</h1>
             <p style={{ color: 'var(--text-secondary)' }}>Você pode chegar como empresa, proprietário de veículo ou futuro parceiro. Informe sua necessidade para iniciarmos o atendimento. Nenhum pagamento é processado nesta etapa.</p>
           </div>
           <Suspense fallback={<div>Carregando...</div>}>
