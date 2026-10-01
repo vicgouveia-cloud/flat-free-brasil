@@ -296,3 +296,28 @@ a {
   .grid-4 { grid-template-columns: 1fr; }
   .app-sidebar { padding: 0.75rem 0; }
 }
+
+/* Public home responsive layout */
+.public-content-grid {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 2rem;
+}
+.public-footer-grid {
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr 1fr;
+  gap: 2rem;
+}
+.public-footer-bottom {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+}
+@media (max-width: 900px) {
+  .public-content-grid { grid-template-columns: 1fr; }
+  .public-footer-grid { grid-template-columns: 1fr 1fr; }
+}
+@media (max-width: 600px) {
+  .public-footer-grid { grid-template-columns: 1fr; }
+  .public-footer-bottom { flex-direction: column; }
+}
