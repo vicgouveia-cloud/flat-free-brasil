@@ -11,7 +11,6 @@ import type {
   PendingDosageReason,
   OrderDosageSource,
 } from '@/lib/types'
-import DemoBanner from '@/components/DemoBanner'
 
 interface CalcItem {
   medida: string
@@ -206,8 +205,8 @@ function SolicitarForm() {
         <h2 style={{ fontWeight: 800, marginBottom: '0.75rem' }}>Solicitação registrada!</h2>
         <p style={{ color: 'var(--text-secondary)', marginBottom: '2rem' }}>Recebemos seus dados para iniciar o atendimento. Nossa equipe poderá confirmar aplicação, quantidade, disponibilidade e próximos passos.</p>
         <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center' }}>
-          <Link href="/app/pedidos" className="btn btn-primary">Ver Pedidos</Link>
-          <Link href="/" className="btn btn-outline">Voltar ao Início</Link>
+          <Link href="/" className="btn btn-primary">Voltar ao Início</Link>
+          <Link href="/calculadora" className="btn btn-outline">Nova consulta de dosagem</Link>
         </div>
       </div>
     )
@@ -319,7 +318,6 @@ function SolicitarForm() {
 export default function SolicitarPage() {
   return (
     <>
-      <DemoBanner />
       <header style={{ background: '#0a0f1e', padding: '1rem 0', borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
         <div className="container" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <Link href="/" style={{ fontFamily: 'Montserrat', fontWeight: 900, color: '#fff', fontSize: '1.1rem' }}>FLAT <span style={{ color: 'var(--color-safety-orange)' }}>FREE</span></Link>
