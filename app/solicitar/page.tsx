@@ -49,6 +49,7 @@ function SolicitarForm() {
   const searchParams = useSearchParams()
   const [calcItems, setCalcItems] = useState<CalcItem[]>([])
   const [submitted, setSubmitted] = useState(false)
+  const [interest, setInterest] = useState<'geral' | 'produto' | 'gestao'>('geral')
   const [form, setForm] = useState({
     perfil: 'frota',
     nomeEmpresa: '', razaoSocial: '', cnpj: '',
@@ -58,6 +59,15 @@ function SolicitarForm() {
   })
 
   useEffect(() => {
+    const perfil = searchParams.get('perfil')
+    const interesse = searchParams.get('interesse')
+    if (perfil === 'frota' || perfil === 'particular' || perfil === 'parceiro') {
+      setForm(prev => ({ ...prev, perfil }))
+    }
+    if (interesse === 'produto' || interesse === 'gestao') {
+      setInterest(interesse)
+    }
+
     const calc = searchParams.get('calc')
     if (calc) {
       try {
@@ -176,6 +186,7 @@ function SolicitarForm() {
           _subject: '[FLAT FREE] Novo interesse pelo site',
           _template: 'table',
           Perfil: form.perfil === 'frota' ? 'Empresa / frota' : form.perfil === 'particular' ? 'Veículo particular' : 'Instalador / revendedor',
+          Interesse_inicial: interest === 'produto' ? 'Produto / teste na frota' : interest === 'gestao' ? 'Acesso à gestão de pneus' : 'Atendimento geral',
           Nome_ou_empresa: form.nomeEmpresa,
           Razao_social: form.razaoSocial || 'Não informado',
           CNPJ: form.cnpj || 'Não informado',
@@ -330,8 +341,8 @@ export default function SolicitarPage() {
       <main style={{ minHeight: '100vh', background: 'var(--bg-primary)', padding: '3rem 0' }}>
         <div className="container" style={{ maxWidth: '800px' }}>
           <div style={{ marginBottom: '2rem' }}>
-            <span className="section-tag">Quero Flat Free</span>
-            <h1 style={{ fontSize: '2rem', fontWeight: 900, fontFamily: 'Montserrat', marginTop: '0.5rem', marginBottom: '0.5rem' }}>Vamos entender sua necessidade</h1>
+            <span className="section-tag">{interest === 'gestao' ? 'Gestão de pneus' : interest === 'produto' ? 'Flat Free para frotas' : 'Quero Flat Free'}</span>
+            <h1 style={{ fontSize: '2rem', fontWeight: 900, fontFamily: 'Montserrat', marginTop: '0.5rem', marginBottom: '0.5rem' }}>{interest === 'gestao' ? 'Solicite acesso à área de gestão' : interest === 'produto' ? 'Conte como é sua frota e o teste que deseja fazer' : 'Vamos entender sua necessidade'}</h1>
             <p style={{ color: 'var(--text-secondary)' }}>Você pode chegar como empresa, proprietário de veículo ou futuro parceiro. Informe sua necessidade para iniciarmos o atendimento. Nenhum pagamento é processado nesta etapa.</p>
           </div>
           <Suspense fallback={<div>Carregando...</div>}>
