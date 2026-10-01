@@ -168,7 +168,7 @@ export default function HomePage() {
               <h2 className="section-title">Como você quer usar o Flat Free?</h2>
               <p className="section-description">Escolha o caminho mais próximo da sua necessidade. A mesma solução conecta proteção, acompanhamento e serviço.</p>
             </div>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '1.5rem' }}>
+            <div className="grid-3">
               {[
                 {
                   icon: 'fa-truck',
@@ -210,7 +210,7 @@ export default function HomePage() {
         {/* PLATFORM */}
         <section className="section" style={{ background: 'var(--bg-surface-elevated)' }}>
           <div className="container">
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '3rem', alignItems: 'center' }}>
+            <div className="grid-2" style={{ alignItems: 'center' }}>
               <div>
                 <span className="section-tag">Flat Free Fleet</span>
                 <h2 className="section-title" style={{ textAlign: 'left', marginTop: '0.8rem' }}>O pneu passa a ter histórico, não apenas cadastro.</h2>
@@ -246,7 +246,7 @@ export default function HomePage() {
               <h2 className="section-title">Como Funciona a Tecnologia Flat Free</h2>
               <p className="section-description">O selante é aplicado diretamente pela válvula do pneu. Através da força centrífuga, cria uma película protetora uniforme na área interna da banda de rodagem.</p>
             </div>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '3rem', alignItems: 'start', marginBottom: '3rem' }}>
+            <div className="grid-2" style={{ alignItems: 'start', marginBottom: '3rem' }}>
               <div style={{ borderRadius: '12px', overflow: 'hidden', border: '1px solid var(--border-color)' }}>
                 <img src="/images/tire_diagram_3d.jpg" alt="Diagrama 3D Corte Transversal Pneu com Selante Flat Free" style={{ width: '100%', display: 'block' }} />
               </div>
@@ -292,7 +292,7 @@ export default function HomePage() {
               <h2 className="section-title">Produto e gestão trabalhando juntos</h2>
               <p className="section-description">A proteção contra perfurações se soma ao acompanhamento de pressão, desgaste, posição e histórico do pneu ao longo da operação.</p>
             </div>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '1.5rem' }}>
+            <div className="grid-3">
               {[
                 { icon: 'fa-gauge-high', title: 'Pressão e condição sob acompanhamento', desc: 'Registre leituras ao longo da operação e mantenha o histórico do pneu disponível para apoiar inspeções e decisões de manutenção.', tag: 'Histórico operacional' },
                 { icon: 'fa-ruler-vertical', title: 'Desgaste acompanhado por leitura', desc: 'Sulco, quilometragem, posição e movimentações formam uma linha do tempo que ajuda a entender como cada pneu está sendo utilizado.', tag: 'Gestão de desgaste' },
@@ -336,7 +336,7 @@ export default function HomePage() {
               <h2 className="section-title">Gestão de pneus na prática</h2>
               <p className="section-description">Conteúdo para apoiar frotistas, instaladores e usuários na aplicação do produto e no acompanhamento dos pneus.</p>
             </div>
-            <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '2rem' }}>
+            <div className="public-content-grid">
               <article className="card" style={{ padding: 0, overflow: 'hidden' }}>
                 <div style={{ position: 'relative' }}>
                   <img src="/images/hero_trucks_fleet.jpg" alt="Caminhões em operação de frota" style={{ width: '100%', height: '220px', objectFit: 'cover', display: 'block' }} />
@@ -377,7 +377,7 @@ export default function HomePage() {
         {/* CONTACT */}
         <section id="contato" className="section" style={{ background: 'var(--bg-surface-elevated)' }}>
           <div className="container">
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '3rem', alignItems: 'start' }}>
+            <div className="grid-2" style={{ alignItems: 'start' }}>
               <div>
                 <span className="section-tag">Fale com a Flat Free</span>
                 <h3 style={{ fontSize: '1.75rem', fontWeight: 800, margin: '1rem 0' }}>Produto, frota ou parceria: fale com a gente</h3>
@@ -463,7 +463,7 @@ export default function HomePage() {
       {/* FOOTER */}
       <footer style={{ background: '#0a0f1e', color: '#fff', padding: '3rem 0 1.5rem', borderTop: '1px solid rgba(255,255,255,0.05)' }}>
         <div className="container">
-          <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 1fr 1fr', gap: '2rem', marginBottom: '2rem' }}>
+          <div className="public-footer-grid" style={{ marginBottom: '2rem' }}>
             <div>
               <div style={{ fontFamily: 'Montserrat', fontWeight: 900, fontSize: '1.2rem', marginBottom: '0.75rem' }}>FLAT <span style={{ color: 'var(--color-safety-orange)' }}>FREE</span></div>
               <p style={{ fontSize: '0.875rem', color: '#64748b', lineHeight: 1.6 }}>Proteção contra perfurações e ferramentas para acompanhar aplicações, posições, leituras e histórico dos pneus.</p>
@@ -495,7 +495,7 @@ export default function HomePage() {
               </ul>
             </div>
           </div>
-          <div style={{ borderTop: '1px solid rgba(255,255,255,0.05)', paddingTop: '1.5rem', display: 'flex', justifyContent: 'space-between', fontSize: '0.8rem', color: '#64748b' }}>
+          <div className="public-footer-bottom" style={{ borderTop: '1px solid rgba(255,255,255,0.05)', paddingTop: '1.5rem', fontSize: '0.8rem', color: '#64748b' }}>
             <span>© 2026 Flat Free Brasil - Todos os direitos reservados.</span>
             <span>Proteção e gestão de pneus.</span>
           </div>
