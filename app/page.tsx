@@ -166,11 +166,11 @@ export default function HomePage() {
         </section>
 
         {/* BENEFITS */}
-        <section id="beneficios" className="section">
+        <section id="beneficios" className="section" aria-labelledby="home-beneficios-title">
           <div className="container">
             <div className="section-header">
               <span className="section-tag">Objetivos para pneus e operação</span>
-              <h2 className="section-title">Proteção no pneu. Informação para buscar melhor aproveitamento.</h2>
+              <h2 id="home-beneficios-title" className="section-title">Proteção no pneu. Informação para buscar melhor aproveitamento.</h2>
               <p className="section-description">Flat Free atua na proteção preventiva contra perfurações compatíveis. O acompanhamento de pressão, desgaste, posição e histórico ajuda a entender como cada pneu está sendo utilizado ao longo da operação.</p>
             </div>
             <div className="grid-3">
