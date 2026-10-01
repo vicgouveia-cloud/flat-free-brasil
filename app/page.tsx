@@ -166,45 +166,52 @@ export default function HomePage() {
         </section>
 
         {/* AUDIENCES */}
-        <section className="section" style={{ paddingTop: '3.5rem', paddingBottom: '3.5rem' }}>
+        <section className="section home-audiences-section" aria-labelledby="home-audiences-title">
           <div className="container">
             <div className="section-header">
               <span className="section-tag">Uma solução, diferentes necessidades</span>
-              <h2 className="section-title">Como você quer usar o Flat Free?</h2>
+              <h2 id="home-audiences-title" className="section-title">Como você quer usar o Flat Free?</h2>
               <p className="section-description">Escolha o caminho mais próximo da sua necessidade. A mesma solução conecta proteção, acompanhamento e serviço.</p>
             </div>
-            <div className="grid-3">
+            <div className="home-audiences-grid">
               {[
                 {
-                  icon: 'fa-truck',
-                  title: 'Frotas e empresas',
-                  desc: 'Cadastre veículos e pneus, acompanhe posições, aplicações, leituras, ocorrências e histórico para entender melhor o desgaste da frota.',
-                  href: '/app',
-                  cta: 'Gestão de pneus',
-                },
-                {
+                  badge: 'Aplicação direta',
                   icon: 'fa-car-side',
                   title: 'Meu veículo',
-                  desc: 'Entenda a aplicação do Flat Free no seu veículo, consulte a dosagem e prepare-se para localizar um ponto de instalação.',
+                  desc: 'Entenda a aplicação do Flat Free no seu veículo, consulte a dosagem recomendada para as medidas dos pneus e prepare-se para solicitar o produto.',
                   href: '/calculadora',
-                  cta: 'Consultar aplicação',
+                  cta: 'Calcular aplicação',
+                  isPrimary: true,
                 },
                 {
+                  badge: 'Gestão e histórico',
+                  icon: 'fa-truck',
+                  title: 'Frotas e empresas',
+                  desc: 'Cadastre veículos e pneus, acompanhe posições, aplicações, leituras, ocorrências e histórico operacional para entender o ciclo de vida dos pneus.',
+                  href: '/app',
+                  cta: 'Gestão de frotas',
+                  isPrimary: false,
+                },
+                {
+                  badge: 'Rede de atendimento',
                   icon: 'fa-screwdriver-wrench',
-                  title: 'Quero instalar ou revender',
-                  desc: 'Oficinas, borracharias, concessionárias e prestadores poderão integrar a rede de atendimento e comercialização Flat Free.',
+                  title: 'Instalar ou revender',
+                  desc: 'Oficinas, borracharias, concessionárias e prestadores de serviço podem integrar a rede de aplicação e comercialização Flat Free.',
                   href: '#contato',
                   cta: 'Quero ser parceiro',
+                  isPrimary: false,
                 },
               ].map(item => (
-                <div key={item.title} className="card" style={{ display: 'flex', flexDirection: 'column', minHeight: '285px' }}>
-                  <div style={{ width: '3rem', height: '3rem', background: 'rgba(255,92,0,0.1)', borderRadius: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '1rem' }}>
-                    <i className={`fas ${item.icon}`} style={{ color: 'var(--color-safety-orange)', fontSize: '1.2rem' }} />
+                <div key={item.title} className={`home-journey-card${item.isPrimary ? ' home-journey-card-primary' : ''}`}>
+                  <span className="home-journey-badge">{item.badge}</span>
+                  <div className="home-journey-icon">
+                    <i className={`fas ${item.icon}`} aria-hidden="true" />
                   </div>
-                  <h3 style={{ fontWeight: 800, fontSize: '1.1rem', marginBottom: '0.7rem' }}>{item.title}</h3>
-                  <p style={{ color: 'var(--text-secondary)', lineHeight: 1.6, fontSize: '0.9rem', flex: 1 }}>{item.desc}</p>
-                  <Link href={item.href} className="btn btn-outline" style={{ marginTop: '1.25rem', justifyContent: 'center' }}>
-                    {item.cta} <i className="fas fa-arrow-right" />
+                  <h3>{item.title}</h3>
+                  <p>{item.desc}</p>
+                  <Link href={item.href} className={`btn ${item.isPrimary ? 'btn-primary' : 'btn-outline'} home-journey-cta`}>
+                    {item.cta} <i className="fas fa-arrow-right" aria-hidden="true" />
                   </Link>
                 </div>
               ))}
@@ -224,7 +231,7 @@ export default function HomePage() {
                 </p>
                 <Link href="/app" className="btn btn-primary"><i className="fas fa-gauge-high" /> Acessar gestão da frota</Link>
               </div>
-              <div className="card" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+              <div className="card platform-features-grid">
                 {[
                   ['fa-truck-moving', 'Veículos e posições'],
                   ['fa-circle-dot', 'Histórico por pneu'],
@@ -271,11 +278,11 @@ export default function HomePage() {
             </div>
 
             {/* Simulator */}
-            <div style={{ background: 'linear-gradient(135deg, #0a0f1e, #1e293b)', borderRadius: '16px', padding: '2rem', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '2rem', alignItems: 'center' }}>
+            <div className="home-simulator-grid">
               <div>
                 <h3 style={{ color: '#fff', fontWeight: 800, marginBottom: '0.75rem' }}>Visualização ilustrativa de perfuração</h3>
                 <p style={{ color: '#94a3b8', marginBottom: '1.5rem', fontSize: '0.9rem' }}>A animação abaixo ajuda a visualizar o conceito de funcionamento do produto. Ela não representa um ensaio técnico, medição de pressão ou comprovação de desempenho.</p>
-                <div style={{ display: 'flex', gap: '0.75rem', marginBottom: '1rem' }}>
+                <div style={{ display: 'flex', gap: '0.75rem', marginBottom: '1rem', flexWrap: 'wrap' }}>
                   <button className="btn btn-primary" onClick={startSim}><i className="fas fa-play" /> Iniciar visualização</button>
                   <button className="btn btn-outline" onClick={resetSim} style={{ color: '#fff', borderColor: 'rgba(255,255,255,0.3)' }}><i className="fas fa-rotate" /> Reiniciar</button>
                 </div>
@@ -354,7 +361,7 @@ export default function HomePage() {
                   </div>
                   <h3 style={{ fontWeight: 800, marginBottom: '0.75rem', fontSize: '1.2rem' }}>Por que acompanhar pneus e ocorrências na operação</h3>
                   <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', marginBottom: '1.25rem', lineHeight: 1.6 }}>Perfurações, paradas, trocas e movimentações fazem parte da rotina de pneus. Registrar essas ocorrências junto com leituras e posições ajuda a construir um histórico útil para acompanhar a operação.</p>
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '1rem' }}>
+                  <div className="article-subgrid">
                     {[
                       { icon: 'fa-wrench', title: 'Ocorrências', desc: 'Registre perfurações, intervenções e outros eventos relevantes ao longo do uso.' },
                       { icon: 'fa-ruler-vertical', title: 'Leituras', desc: 'Acompanhe sulco, quilometragem e outros dados registrados nas inspeções.' },
@@ -413,7 +420,7 @@ export default function HomePage() {
                       <option value="parceiro">Quero instalar ou revender</option>
                     </select>
                   </div>
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                  <div className="contact-form-grid">
                     <div className="form-group">
                       <label className="form-label">Nome Completo *</label>
                       <input type="text" className="form-control" placeholder="Seu nome" required value={formData.nome} onChange={e => setFormData(p => ({...p, nome: e.target.value}))} />
