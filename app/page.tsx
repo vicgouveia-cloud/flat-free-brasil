@@ -34,7 +34,7 @@ export default function HomePage() {
   // Contact form
   const [formState, setFormState] = useState<'idle'|'sending'|'success'|'error'>('idle')
   const [showModal, setShowModal] = useState(false)
-  const [formData, setFormData] = useState({ nome: '', empresa: '', email: '', frota: '11-50', mensagem: '' })
+  const [formData, setFormData] = useState({ perfil: 'frota', nome: '', empresa: '', email: '', frota: '11-50', mensagem: '' })
 
   // Puncture simulator
   const canvasRef = useRef<HTMLCanvasElement>(null)
@@ -139,7 +139,7 @@ export default function HomePage() {
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
-    if (!formData.nome || !formData.email || !formData.empresa) {
+    if (!formData.nome || !formData.email || (formData.perfil !== 'particular' && !formData.empresa)) {
       alert('Por favor, preencha os campos obrigatórios.')
       return
     }
@@ -149,12 +149,13 @@ export default function HomePage() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
         body: JSON.stringify({
-          _subject: '[FLAT FREE B2B] Nova Solicitação de Orçamento',
+          _subject: '[FLAT FREE] Novo contato pelo site',
           _template: 'table',
+          Perfil: formData.perfil === 'frota' ? 'Empresa / frota' : formData.perfil === 'particular' ? 'Veículo particular' : 'Instalador / revendedor',
           Nome: formData.nome,
-          Empresa: formData.empresa,
+          Empresa: formData.empresa || 'Não informado',
           Email: formData.email,
-          Tamanho_da_Frota: formData.frota,
+          Tamanho_da_Frota: formData.perfil === 'frota' ? formData.frota : 'Não se aplica',
           Mensagem: formData.mensagem || 'Sem mensagem adicional.',
         }),
       })
@@ -486,35 +487,45 @@ export default function HomePage() {
               <div className="card">
                 <h3 style={{ fontSize: '1.35rem', fontWeight: 800, marginBottom: '1.5rem' }}>Entrar em contato</h3>
                 <form onSubmit={handleSubmit}>
+                  <div className="form-group">
+                    <label className="form-label">Como podemos atender você? *</label>
+                    <select className="form-control" value={formData.perfil} onChange={e => setFormData(p => ({...p, perfil: e.target.value}))}>
+                      <option value="frota">Empresa / frota</option>
+                      <option value="particular">Meu veículo</option>
+                      <option value="parceiro">Quero instalar ou revender</option>
+                    </select>
+                  </div>
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
                     <div className="form-group">
                       <label className="form-label">Nome Completo *</label>
                       <input type="text" className="form-control" placeholder="Seu nome" required value={formData.nome} onChange={e => setFormData(p => ({...p, nome: e.target.value}))} />
                     </div>
                     <div className="form-group">
-                      <label className="form-label">Empresa / Razão Social *</label>
-                      <input type="text" className="form-control" placeholder="Nome da empresa" required value={formData.empresa} onChange={e => setFormData(p => ({...p, empresa: e.target.value}))} />
+                      <label className="form-label">{formData.perfil === 'particular' ? 'Empresa (opcional)' : 'Empresa / estabelecimento *'}</label>
+                      <input type="text" className="form-control" placeholder={formData.perfil === 'particular' ? 'Opcional' : 'Nome da empresa ou estabelecimento'} required={formData.perfil !== 'particular'} value={formData.empresa} onChange={e => setFormData(p => ({...p, empresa: e.target.value}))} />
                     </div>
                     <div className="form-group">
-                      <label className="form-label">E-mail Corporativo *</label>
-                      <input type="email" className="form-control" placeholder="nome@empresa.com.br" required value={formData.email} onChange={e => setFormData(p => ({...p, email: e.target.value}))} />
+                      <label className="form-label">E-mail *</label>
+                      <input type="email" className="form-control" placeholder="seu@email.com" required value={formData.email} onChange={e => setFormData(p => ({...p, email: e.target.value}))} />
                     </div>
-                    <div className="form-group">
-                      <label className="form-label">Tamanho da Frota</label>
-                      <select className="form-control" value={formData.frota} onChange={e => setFormData(p => ({...p, frota: e.target.value}))}>
-                        <option value="1-10">1 a 10 veículos</option>
-                        <option value="11-50">11 a 50 veículos</option>
-                        <option value="51-200">51 a 200 veículos</option>
-                        <option value="200+">Mais de 200 veículos</option>
-                      </select>
-                    </div>
+                    {formData.perfil === 'frota' && (
+                      <div className="form-group">
+                        <label className="form-label">Tamanho da Frota</label>
+                        <select className="form-control" value={formData.frota} onChange={e => setFormData(p => ({...p, frota: e.target.value}))}>
+                          <option value="1-10">1 a 10 veículos</option>
+                          <option value="11-50">11 a 50 veículos</option>
+                          <option value="51-200">51 a 200 veículos</option>
+                          <option value="200+">Mais de 200 veículos</option>
+                        </select>
+                      </div>
+                    )}
                   </div>
                   <div className="form-group">
-                    <label className="form-label">Descreva as Necessidades da Sua Frota</label>
-                    <textarea className="form-control" rows={4} placeholder="Descreva o tipo de carga, rotas ou principais desafios com furamento de pneus..." value={formData.mensagem} onChange={e => setFormData(p => ({...p, mensagem: e.target.value}))} />
+                    <label className="form-label">Como podemos ajudar?</label>
+                    <textarea className="form-control" rows={4} placeholder={formData.perfil === 'parceiro' ? 'Conte sobre seu estabelecimento e interesse em instalar ou revender Flat Free...' : formData.perfil === 'particular' ? 'Conte qual veículo, medida dos pneus ou necessidade você quer atender...' : 'Conte sobre sua frota, veículos, pneus ou necessidade...'} value={formData.mensagem} onChange={e => setFormData(p => ({...p, mensagem: e.target.value}))} />
                   </div>
                   <button type="submit" className="btn btn-primary btn-lg" style={{ width: '100%', justifyContent: 'center' }} disabled={formState === 'sending'}>
-                    {formState === 'sending' ? <><i className="fas fa-spinner fa-spin" /> Enviando...</> : <><i className="fas fa-paper-plane" /> Enviar Solicitação de Orçamento</>}
+                    {formState === 'sending' ? <><i className="fas fa-spinner fa-spin" /> Enviando...</> : <><i className="fas fa-paper-plane" /> Enviar Contato</>}
                   </button>
                   <p style={{ fontSize: '0.78rem', color: 'var(--text-muted)', textAlign: 'center', marginTop: '0.75rem' }}><i className="fas fa-lock" /> Seus dados estão seguros e protegidos em conformidade com a LGPD.</p>
                 </form>
