@@ -43,10 +43,10 @@ export default function HomeNav() {
         </Link>
 
         <nav className={`home-nav-menu${menuOpen ? ' is-open' : ''}`}>
-          <a href="#inicio" onClick={() => setMenuOpen(false)}>Flat Free</a>
-          <a href="#gestao" onClick={() => setMenuOpen(false)}>Gestão de pneus</a>
-          <a href="#artigos" onClick={() => setMenuOpen(false)}>Conteúdo</a>
-          <a href="#contato" onClick={() => setMenuOpen(false)}>Para parceiros</a>
+          <Link href="/#inicio" onClick={() => setMenuOpen(false)}>Produto</Link>
+          <Link href="/frotas" onClick={() => setMenuOpen(false)}>Para frotas</Link>
+          <Link href="/#artigos" onClick={() => setMenuOpen(false)}>Conteúdo</Link>
+          <Link href="/#contato" onClick={() => setMenuOpen(false)}>Parceiros</Link>
         </nav>
 
         <div className="home-nav-actions">
