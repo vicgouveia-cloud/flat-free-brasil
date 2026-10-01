@@ -1,6 +1,7 @@
 'use client'
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
+import Image from 'next/image'
 
 export default function HomeNav() {
   const [scrolled, setScrolled] = useState(false)
@@ -38,8 +39,7 @@ export default function HomeNav() {
     >
       <div className="container home-nav-inner">
         <Link href="/" className="home-nav-brand">
-          <span>FLAT <span style={{ color: 'var(--color-safety-orange)' }}>FREE</span></span>
-          <span style={{ fontSize: '0.65rem', fontWeight: 600, letterSpacing: '0.1em', opacity: 0.7 }}>Proteção &amp; Gestão de Pneus</span>
+          <Image src="/images/flat-free-logo.png" alt="Flat Free — início" width={398} height={309} className="home-nav-logo" priority sizes="100px" />
         </Link>
 
         <nav className={`home-nav-menu${menuOpen ? ' is-open' : ''}`}>

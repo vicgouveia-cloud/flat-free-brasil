@@ -1,6 +1,7 @@
 'use client'
 import { useEffect, useRef, useState, useCallback } from 'react'
 import Link from 'next/link'
+import Image from 'next/image'
 import HomeNav from '@/components/HomeNav'
 
 export default function HomePage() {
@@ -140,23 +141,27 @@ export default function HomePage() {
       <HomeNav />
       <main>
         {/* HERO */}
-        <section id="inicio" style={{ background: 'linear-gradient(135deg, #0a0f1e 0%, #0f172a 55%, #1e1a0a 100%)', padding: '6rem 0 5rem' }}>
-          <div className="container">
-            <div style={{ maxWidth: '860px', margin: '0 auto', textAlign: 'center' }}>
-              <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem', background: 'rgba(255,92,0,0.1)', border: '1px solid rgba(255,92,0,0.3)', borderRadius: '50px', padding: '0.35rem 0.9rem', color: 'var(--color-safety-orange)', fontSize: '0.8rem', fontWeight: 700, marginBottom: '1.5rem' }}>
-                <i className="fas fa-shield-halved" /> Produto + gestão de pneus
-              </div>
-              <h1 style={{ fontSize: 'clamp(2.2rem, 5vw, 3.7rem)', fontWeight: 900, fontFamily: 'Montserrat, sans-serif', color: '#fff', lineHeight: 1.08, marginBottom: '1.25rem' }}>
-                Proteção para o pneu. <span style={{ color: 'var(--color-safety-orange)' }}>Informação para prolongar sua vida útil.</span>
-              </h1>
-              <p style={{ color: '#cbd5e1', fontSize: '1.1rem', margin: '0 auto 2rem', lineHeight: 1.7, maxWidth: '760px' }}>
-                Flat Free combina proteção contra perfurações com ferramentas para acompanhar pneus, aplicações, posições, leituras e histórico. Para frotas, veículos particulares e uma futura rede de instalação e revenda.
+        <section id="inicio" className="home-product-hero" aria-labelledby="home-hero-title">
+          <div className="container home-product-hero-grid">
+            <div className="home-product-hero-copy">
+              <span className="home-product-hero-eyebrow">Flat Free Brasil · Produto para pneus</span>
+              <h1 id="home-hero-title">A proteção começa <span>no pneu.</span></h1>
+              <p className="home-product-hero-description">
+                Conheça Flat Free, o produto aplicado no interior dos pneus. Consulte a aplicação para seu veículo ou sua frota e fale com nossa equipe sobre atendimento, instalação ou revenda.
               </p>
-              <div style={{ display: 'flex', justifyContent: 'center', gap: '1rem', flexWrap: 'wrap' }}>
-                <Link href="/app" className="btn btn-primary btn-lg"><i className="fas fa-chart-line" /> Conhecer a plataforma</Link>
-                <Link href="/calculadora" className="btn btn-secondary btn-lg"><i className="fas fa-calculator" /> Calcular dosagem</Link>
+              <div className="home-product-hero-actions">
+                <Link href="/solicitar" className="btn btn-primary btn-lg">Quero Flat Free <i className="fas fa-arrow-right" aria-hidden="true" /></Link>
+                <Link href="/calculadora" className="btn btn-secondary btn-lg"><i className="fas fa-calculator" aria-hidden="true" /> Calcular aplicação</Link>
+              </div>
+              <div className="home-product-hero-fleet">
+                <p>Tem uma frota? Acompanhe aplicações e o histórico dos pneus na plataforma Flat Free.</p>
+                <Link href="/app">Gestão para frotas <i className="fas fa-arrow-right" aria-hidden="true" /></Link>
               </div>
             </div>
+            <figure className="home-product-hero-visual">
+              <Image src="/images/flat-free-product-hero.png" alt="Apresentação comercial do balde azul Flat Free com bomba e mangueira de aplicação, ao lado da identidade da marca." width={1536} height={1024} sizes="(max-width: 900px) calc(100vw - 48px), (max-width: 1280px) 55vw, 660px" priority />
+              <figcaption><span>Balde azul · 5 US gal / 18,9 L</span><span>Apresentação ilustrativa com equipamento de aplicação</span></figcaption>
+            </figure>
           </div>
         </section>
 
