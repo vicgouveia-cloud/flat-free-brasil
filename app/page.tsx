@@ -3,34 +3,7 @@ import { useEffect, useRef, useState, useCallback } from 'react'
 import Link from 'next/link'
 import HomeNav from '@/components/HomeNav'
 
-// ROI Calculator logic (from app.js)
-function calcROI(fleetSize: number, monthlyKm: number, tireCost: number, vehicleType: string) {
-  let tiresPerVehicle = 6
-  let avgKmPerLiter = 2.5
-
-  if (vehicleType === 'urban_vuc') { tiresPerVehicle = 6; avgKmPerLiter = 4.5 }
-  else if (vehicleType === 'bus') { tiresPerVehicle = 6; avgKmPerLiter = 3.0 }
-  else if (vehicleType === 'heavy_truck') { tiresPerVehicle = 10; avgKmPerLiter = 2.2 }
-  else if (vehicleType === 'off_road') { tiresPerVehicle = 8; avgKmPerLiter = 1.5 }
-
-  const dieselPrice = 6.20
-  const annualFuel = fleetSize * (monthlyKm / avgKmPerLiter * dieselPrice * 12) * 0.038
-  const annualTires = fleetSize * tiresPerVehicle * tireCost * 0.5 * 0.20
-  const annualDowntime = fleetSize * 2 * 650
-  const total = annualFuel + annualTires + annualDowntime
-  const investment = fleetSize * tiresPerVehicle * 180
-  const payback = (investment / (total / 12)).toFixed(1)
-  return { fuel: annualFuel, tires: annualTires, downtime: annualDowntime, total, payback }
-}
-
 export default function HomePage() {
-  // ROI Calculator state
-  const [fleetSize, setFleetSize] = useState(20)
-  const [mileage, setMileage] = useState(8000)
-  const [tireCost, setTireCost] = useState(2200)
-  const [vehicleType, setVehicleType] = useState('heavy_truck')
-  const roi = calcROI(fleetSize, mileage, tireCost, vehicleType)
-
   // Contact form
   const [formState, setFormState] = useState<'idle'|'sending'|'success'|'error'>('idle')
   const [showModal, setShowModal] = useState(false)
@@ -134,8 +107,6 @@ export default function HomePage() {
     cancelAnimationFrame(animRef.current)
     drawCanvas()
   }
-
-  const fmt = (n: number) => Math.round(n).toLocaleString('pt-BR')
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -340,70 +311,18 @@ export default function HomePage() {
           </div>
         </section>
 
-        {/* ROI CALCULATOR */}
+        {/* APPLICATION CTA */}
         <section id="calculadora" className="section" style={{ background: 'var(--bg-surface-elevated)' }}>
           <div className="container">
             <div className="section-header">
-              <span className="section-tag">Planejamento para frotas</span>
-              <h2 className="section-title">Simulação operacional da frota</h2>
-              <p className="section-description">Use os parâmetros abaixo como uma simulação inicial. Resultados reais dependem da operação, dos pneus, das rotas, da manutenção e dos dados medidos em cada frota.</p>
+              <span className="section-tag">Aplicação Flat Free</span>
+              <h2 className="section-title">Comece pela medida do pneu</h2>
+              <p className="section-description">Use a calculadora de dosagem para consultar a quantidade de referência por pneu. Depois, você pode levar os itens calculados diretamente para a solicitação de atendimento.</p>
             </div>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '2rem' }}>
-              <div className="card">
-                <div className="form-group">
-                  <div className="form-label" style={{ display: 'flex', justifyContent: 'space-between' }}>
-                    <span>Tamanho da Frota</span>
-                    <span style={{ color: 'var(--color-safety-orange)', fontWeight: 700 }}>{fleetSize} veículos</span>
-                  </div>
-                  <input type="range" min={5} max={300} step={5} value={fleetSize} onChange={e => setFleetSize(+e.target.value)} style={{ width: '100%' }} />
-                </div>
-                <div className="form-group">
-                  <label className="form-label">Tipo de Veículo Dominante</label>
-                  <select className="form-control" value={vehicleType} onChange={e => setVehicleType(e.target.value)}>
-                    <option value="heavy_truck">Caminhão Pesado (6x4 / Bitrem)</option>
-                    <option value="urban_vuc">Caminhão Urbano / VUC</option>
-                    <option value="bus">Ônibus Rodoviário / Urbano</option>
-                    <option value="off_road">Máquinas Industriais / Off-Road</option>
-                  </select>
-                </div>
-                <div className="form-group">
-                  <div className="form-label" style={{ display: 'flex', justifyContent: 'space-between' }}>
-                    <span>Quilometragem Média Mensal / Veículo</span>
-                    <span style={{ color: 'var(--color-safety-orange)', fontWeight: 700 }}>{mileage.toLocaleString('pt-BR')} km/mês</span>
-                  </div>
-                  <input type="range" min={1000} max={25000} step={500} value={mileage} onChange={e => setMileage(+e.target.value)} style={{ width: '100%' }} />
-                </div>
-                <div className="form-group">
-                  <div className="form-label" style={{ display: 'flex', justifyContent: 'space-between' }}>
-                    <span>Custo Médio de Pneu Novo</span>
-                    <span style={{ color: 'var(--color-safety-orange)', fontWeight: 700 }}>R$ {tireCost.toLocaleString('pt-BR')}</span>
-                  </div>
-                  <input type="range" min={800} max={4500} step={100} value={tireCost} onChange={e => setTireCost(+e.target.value)} style={{ width: '100%' }} />
-                </div>
-              </div>
-              <div className="card">
-                <h3 style={{ fontWeight: 700, marginBottom: '0.5rem' }}>Resultado do Retorno Financeiro</h3>
-                <p style={{ color: 'var(--text-secondary)', fontSize: '0.85rem', marginBottom: '1.5rem' }}>Cenário estimativo para planejamento. Não representa garantia de economia ou desempenho.</p>
-                <div style={{ background: 'linear-gradient(135deg, var(--color-safety-orange), #ff8c42)', borderRadius: '12px', padding: '1.5rem', textAlign: 'center', marginBottom: '1.5rem' }}>
-                  <div style={{ color: 'rgba(255,255,255,0.8)', fontSize: '0.85rem', marginBottom: '0.25rem' }}>Economia Total Estimada Anual</div>
-                  <div style={{ color: '#fff', fontSize: '2.5rem', fontWeight: 900, fontFamily: 'Montserrat' }}>R$ {fmt(roi.total)}</div>
-                </div>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', marginBottom: '1.5rem' }}>
-                  {[
-                    { label: 'Economia Estimada em Combustível:', val: `R$ ${fmt(roi.fuel)}` },
-                    { label: 'Economia em Substituição de Pneus:', val: `R$ ${fmt(roi.tires)}` },
-                    { label: 'Redução em Manutenção/Socorro:', val: `R$ ${fmt(roi.downtime)}` },
-                    { label: 'Tempo de Payback do Investimento:', val: `${roi.payback} meses`, highlight: true },
-                  ].map(row => (
-                    <div key={row.label} style={{ display: 'flex', justifyContent: 'space-between', padding: '0.5rem 0', borderBottom: '1px solid var(--border-color)', fontSize: '0.9rem' }}>
-                      <span style={{ color: 'var(--text-secondary)' }}>{row.label}</span>
-                      <span style={{ fontWeight: 700, color: row.highlight ? 'var(--color-industrial-lime)' : undefined }}>{row.val}</span>
-                    </div>
-                  ))}
-                </div>
-                <Link href={`/solicitar`} className="btn btn-primary" style={{ width: '100%', justifyContent: 'center' }}>
-                  <i className="fas fa-file-export" /> Solicitar Flat Free para Minha Frota
-                </Link>
+            <div className="card" style={{ maxWidth: '760px', margin: '0 auto', textAlign: 'center' }}>
+              <div style={{ display: 'flex', justifyContent: 'center', gap: '1rem', flexWrap: 'wrap' }}>
+                <Link href="/calculadora" className="btn btn-primary btn-lg"><i className="fas fa-calculator" /> Calcular dosagem</Link>
+                <Link href="/solicitar" className="btn btn-outline btn-lg"><i className="fas fa-paper-plane" /> Falar com a Flat Free</Link>
               </div>
             </div>
           </div>
@@ -552,7 +471,7 @@ export default function HomePage() {
             <div>
               <h4 style={{ fontSize: '0.85rem', fontWeight: 700, marginBottom: '1rem', textTransform: 'uppercase', letterSpacing: '0.1em', color: '#64748b' }}>Navegação</h4>
               <ul style={{ listStyle: 'none', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-                {['Início:#inicio','Tecnologia 3D:#tecnologia','Benefícios:#beneficios','Calculadora ROI:#calculadora'].map(item => {
+                {['Início:#inicio','Tecnologia 3D:#tecnologia','Benefícios:#beneficios','Calcular aplicação:#calculadora'].map(item => {
                   const [label, href] = item.split(':')
                   return <li key={href}><a href={href} style={{ color: '#64748b', fontSize: '0.875rem' }}>{label}</a></li>
                 })}
