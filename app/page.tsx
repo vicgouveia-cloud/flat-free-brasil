@@ -147,15 +147,15 @@ export default function HomePage() {
               <span className="home-product-hero-eyebrow">Flat Free Brasil · Produto para pneus</span>
               <h1 id="home-hero-title">A proteção começa <span>no pneu.</span></h1>
               <p className="home-product-hero-description">
-                Conheça Flat Free, o produto aplicado no interior dos pneus para proteção preventiva contra perfurações compatíveis. Consulte a aplicação e use o acompanhamento para entender melhor desgaste, uso e histórico dos pneus.
+                Conheça Flat Free, o produto aplicado no interior dos pneus para proteção contra perfurações, preservação da pressão e melhor aproveitamento dos pneus em operação.
               </p>
               <div className="home-product-hero-actions">
                 <Link href="/solicitar" className="btn btn-primary btn-lg">Quero Flat Free <i className="fas fa-arrow-right" aria-hidden="true" /></Link>
                 <Link href="/calculadora" className="btn btn-secondary btn-lg"><i className="fas fa-calculator" aria-hidden="true" /> Calcular aplicação</Link>
               </div>
               <div className="home-product-hero-fleet">
-                <p>Tem uma frota? Acompanhe aplicações e o histórico dos pneus na plataforma Flat Free.</p>
-                <Link href="/app">Gestão para frotas <i className="fas fa-arrow-right" aria-hidden="true" /></Link>
+                <p>Tem uma frota? Conheça a aplicação do produto, possibilidades de teste e a área de acompanhamento de pneus.</p>
+                <Link href="/frotas">Flat Free para frotas <i className="fas fa-arrow-right" aria-hidden="true" /></Link>
               </div>
             </div>
             <figure className="home-product-hero-visual">
@@ -169,15 +169,15 @@ export default function HomePage() {
         <section id="beneficios" className="section" aria-labelledby="home-beneficios-title">
           <div className="container">
             <div className="section-header">
-              <span className="section-tag">Objetivos para pneus e operação</span>
-              <h2 id="home-beneficios-title" className="section-title">Proteção no pneu. Informação para buscar melhor aproveitamento.</h2>
-              <p className="section-description">Flat Free atua na proteção preventiva contra perfurações compatíveis. O acompanhamento de pressão, desgaste, posição e histórico ajuda a entender como cada pneu está sendo utilizado ao longo da operação.</p>
+              <span className="section-tag">Benefícios do produto</span>
+              <h2 id="home-beneficios-title" className="section-title">Proteção, pressão e maior aproveitamento do pneu.</h2>
+              <p className="section-description">Flat Free atua dentro do pneu para ajudar a preservar sua condição de rodagem, reduzir efeitos de perfurações compatíveis e contribuir para maior durabilidade e eficiência operacional.</p>
             </div>
             <div className="grid-3">
               {[
-                { icon: 'fa-shield-halved', title: 'Proteção contra perfurações', desc: 'Flat Free atua como proteção preventiva contra perfurações compatíveis com sua especificação e passa a fazer parte do histórico do pneu quando a aplicação é registrada.', tag: 'Flat Free' },
-                { icon: 'fa-ruler-vertical', title: 'Entender desgaste e condição', desc: 'Sulco, quilometragem, pressão, posição e movimentações formam uma base para observar a evolução do pneu e identificar padrões de uso.', tag: 'Acompanhamento' },
-                { icon: 'fa-chart-line', title: 'Buscar maior aproveitamento', desc: 'Com histórico e comparativos, a frota ganha informação para avaliar práticas de uso, manutenção e testes, inclusive entre pneus tratados e pneus de controle.', tag: 'Objetivo operacional' },
+                { icon: 'fa-shield-halved', title: 'Proteção contra perfurações', desc: 'O produto atua na região interna da banda de rodagem e é direcionado para perfurações compatíveis, ajudando a manter o pneu em operação.', tag: 'Proteção' },
+                { icon: 'fa-gauge-high', title: 'Manutenção da pressão', desc: 'Ao vedar perfurações compatíveis, Flat Free ajuda a preservar a calibragem e a condição de rodagem do pneu.', tag: 'Calibragem' },
+                { icon: 'fa-road', title: 'Maior vida útil e eficiência', desc: 'A manutenção da pressão e a distribuição interna do produto ajudam a reduzir fatores associados ao desgaste prematuro e à resistência ao rolamento.', tag: 'Durabilidade' },
               ].map(card => (
                 <div key={card.title} className="card" style={{ transition: 'transform 0.2s', cursor: 'default' }}>
                   <div style={{ width: '3rem', height: '3rem', background: 'rgba(255,92,0,0.1)', borderRadius: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '1rem' }}>
@@ -227,8 +227,8 @@ export default function HomePage() {
                 {
                   step: '04',
                   icon: 'fa-gauge-high',
-                  title: 'Acompanhar a operação',
-                  desc: 'O pneu segue em rodagem, enquanto a data de aplicação, leituras de desgaste e ocorrências permanecem registradas.',
+                  title: 'Manter a proteção em rodagem',
+                  desc: 'Durante a rodagem, o produto permanece distribuído na região interna do pneu e disponível para atuar em novas perfurações compatíveis.',
                 },
               ].map(item => (
                 <div key={item.step} className="home-tech-step-card">
@@ -351,9 +351,9 @@ export default function HomePage() {
                   badge: 'Gestão e histórico',
                   icon: 'fa-truck',
                   title: 'Frotas e empresas',
-                  desc: 'Acompanhe pneus, posições, aplicações, leituras, ocorrências e histórico operacional.',
-                  href: '/app',
-                  cta: 'Gestão de frotas',
+                  desc: 'Conheça a aplicação para frotas, testes piloto e a área de acompanhamento dos pneus.',
+                  href: '/frotas',
+                  cta: 'Ver solução para frotas',
                   isPrimary: false,
                 },
                 {
@@ -378,90 +378,6 @@ export default function HomePage() {
                   </Link>
                 </div>
               ))}
-            </div>
-          </div>
-        </section>
-
-        {/* PLATFORM / FLEET LIFECYCLE BRIDGE */}
-        <section id="gestao" className="section home-fleet-section" aria-labelledby="home-fleet-title">
-          <div className="container">
-            <div className="home-fleet-header">
-              <span className="section-tag">Gestão de pneus · Histórico &amp; comparação</span>
-              <h2 id="home-fleet-title" className="section-title">Conheça o comportamento dos pneus da sua frota.</h2>
-              <p className="section-description">
-                A plataforma organiza pneus, posições, leituras, ocorrências e ciclos para acompanhar a operação com ou sem aplicação Flat Free. Quando houver tratamento, ele passa a fazer parte do histórico do pneu.
-              </p>
-            </div>
-
-            <div className="home-fleet-cycle-container">
-              <div className="home-fleet-cycle-intro">
-                <span className="home-fleet-cycle-eyebrow">Medir · acompanhar · comparar</span>
-                <h3>Transforme registros de pneus em histórico útil</h3>
-                <p>
-                  Do momento em que o pneu entra em operação até suas recapagens, a plataforma reúne posições, leituras de sulco, ocorrências e aplicações em uma linha do tempo que permite acompanhar e comparar o uso.
-                </p>
-                <div className="home-fleet-actions">
-                  <Link href="/app" className="btn btn-primary">
-                    <i className="fas fa-gauge-high" aria-hidden="true" /> Conhecer a gestão de pneus
-                  </Link>
-                  <Link href="/app/pneus" className="btn btn-outline">
-                    Ver acompanhamento por pneu <i className="fas fa-arrow-right" aria-hidden="true" />
-                  </Link>
-                </div>
-              </div>
-
-              <div className="home-fleet-steps-flow">
-                {[
-                  {
-                    step: '01',
-                    icon: 'fa-circle-plus',
-                    title: 'Cadastrar',
-                    desc: 'Registro do pneu com marca, modelo, medida, número de fogo e condição inicial (novo ou recapado).',
-                  },
-                  {
-                    step: '02',
-                    icon: 'fa-droplet',
-                    title: 'Registrar aplicação',
-                    desc: 'Quando houver Flat Free, registre dose, lote, data, quilometragem e sulco inicial para relacionar a aplicação ao ciclo do pneu.',
-                  },
-                  {
-                    step: '03',
-                    icon: 'fa-truck-moving',
-                    title: 'Posicionar',
-                    desc: 'Vinculação ao veículo e eixo (simples ou duplo), com histórico de montagem e movimentações de rodízio.',
-                  },
-                  {
-                    step: '04',
-                    icon: 'fa-ruler-vertical',
-                    title: 'Medir e inspecionar',
-                    desc: 'Leituras periódicas de sulco e pressão para acompanhar a evolução do desgaste ao longo da quilometragem.',
-                  },
-                  {
-                    step: '05',
-                    icon: 'fa-triangle-exclamation',
-                    title: 'Registrar ocorrências',
-                    desc: 'Apontamento de perfurações atendidas, reparos, perdas de pressão, retiradas ou envio para recapagem.',
-                  },
-                  {
-                    step: '06',
-                    icon: 'fa-timeline',
-                    title: 'Acompanhar histórico',
-                    desc: 'Linha do tempo consolidada relacionando veículos, posições, aplicações de produto e ciclos de vida do pneu.',
-                  },
-                ].map((item, idx) => (
-                  <div key={item.step} className="home-fleet-step-card">
-                    <div className="home-fleet-step-header">
-                      <span className="home-fleet-step-number">{item.step}</span>
-                      <div className="home-fleet-step-icon">
-                        <i className={`fas ${item.icon}`} aria-hidden="true" />
-                      </div>
-                    </div>
-                    <h4>{item.title}</h4>
-                    <p>{item.desc}</p>
-                    {idx < 5 && <div className="home-fleet-step-connector" aria-hidden="true" />}
-                  </div>
-                ))}
-              </div>
             </div>
           </div>
         </section>
