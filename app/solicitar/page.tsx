@@ -110,7 +110,7 @@ function SolicitarForm() {
     setForm(prev => ({ ...prev, [field]: value }))
   }
 
-  function handleSubmit(e: React.FormEvent) {
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     const itens: OrderItem[] = calcItems
       .filter(i => i.doseUnitOz !== null)
@@ -168,7 +168,35 @@ function SolicitarForm() {
     }
     const existing = getOrders()
     saveOrders([...existing, order])
-    setSubmitted(true)
+
+    try {
+      const response = await fetch('https://formsubmit.co/ajax/vicgouveia@gmail.com', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+        body: JSON.stringify({
+          _subject: '[FLAT FREE] Novo interesse pelo site',
+          _template: 'table',
+          Perfil: form.perfil === 'frota' ? 'Empresa / frota' : form.perfil === 'particular' ? 'Veículo particular' : 'Instalador / revendedor',
+          Nome_ou_empresa: form.nomeEmpresa,
+          Razao_social: form.razaoSocial || 'Não informado',
+          CNPJ: form.cnpj || 'Não informado',
+          Responsavel: form.nomeResponsavel,
+          Email: form.email,
+          Telefone: form.telefone,
+          Cidade: form.cidade,
+          Estado: form.estado,
+          Endereco: form.endereco || 'Não informado',
+          CEP: form.cep || 'Não informado',
+          Itens_calculados: calcItems.length ? calcItems.map(i => `${i.quantidade}x ${i.medida}`).join(', ') : 'Nenhum',
+          Quantidade_referencia_oz: totalOz || 'Não calculada',
+          Observacoes: form.observacoes || 'Sem observações',
+        }),
+      })
+      if (!response.ok) throw new Error('Falha no envio')
+      setSubmitted(true)
+    } catch {
+      alert('Sua solicitação foi registrada neste navegador, mas não conseguimos enviá-la para atendimento agora. Tente novamente em instantes.')
+    }
   }
 
   if (submitted) {
@@ -176,7 +204,7 @@ function SolicitarForm() {
       <div style={{ textAlign: 'center', padding: '4rem 2rem' }}>
         <i className="fas fa-circle-check" style={{ fontSize: '3rem', color: 'var(--color-industrial-lime)', display: 'block', marginBottom: '1rem' }} />
         <h2 style={{ fontWeight: 800, marginBottom: '0.75rem' }}>Solicitação registrada!</h2>
-        <p style={{ color: 'var(--text-secondary)', marginBottom: '2rem' }}>Modo demonstração: solicitação salva localmente. Em produção, seria enviada ao backend.</p>
+        <p style={{ color: 'var(--text-secondary)', marginBottom: '2rem' }}>Recebemos seus dados para iniciar o atendimento. Nossa equipe poderá confirmar aplicação, quantidade, disponibilidade e próximos passos.</p>
         <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center' }}>
           <Link href="/app/pedidos" className="btn btn-primary">Ver Pedidos</Link>
           <Link href="/" className="btn btn-outline">Voltar ao Início</Link>
