@@ -36,34 +36,37 @@ export default function HomeNav() {
         transition: 'all 0.3s',
       }}
     >
-      <div className="container" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '1rem 1.5rem' }}>
-        <Link href="/" style={{ display: 'flex', flexDirection: 'column', color: '#fff', fontFamily: 'Montserrat, sans-serif', fontWeight: 900 }}>
+      <div className="container home-nav-inner">
+        <Link href="/" className="home-nav-brand">
           <span>FLAT <span style={{ color: 'var(--color-safety-orange)' }}>FREE</span></span>
           <span style={{ fontSize: '0.65rem', fontWeight: 600, letterSpacing: '0.1em', opacity: 0.7 }}>Proteção &amp; Gestão de Pneus</span>
         </Link>
 
-        <nav style={{ display: menuOpen ? 'flex' : undefined, gap: '0.25rem' }}>
-          <a href="#inicio" style={{ padding: '0.5rem 0.75rem', color: '#cbd5e1', fontSize: '0.9rem' }}>Início</a>
-          <a href="#tecnologia" style={{ padding: '0.5rem 0.75rem', color: '#cbd5e1', fontSize: '0.9rem' }}>Como funciona</a>
-          <a href="#beneficios" style={{ padding: '0.5rem 0.75rem', color: '#cbd5e1', fontSize: '0.9rem' }}>Benefícios</a>
-          <Link href="/calculadora" style={{ padding: '0.5rem 0.75rem', color: '#cbd5e1', fontSize: '0.9rem' }}>Dosagem</Link>
-          <Link href="/app" style={{ padding: '0.5rem 0.75rem', color: '#cbd5e1', fontSize: '0.9rem' }}>Para frotas</Link>
-          <a href="#contato" style={{ padding: '0.5rem 0.75rem', color: '#cbd5e1', fontSize: '0.9rem' }}>Contato</a>
+        <nav className={`home-nav-menu${menuOpen ? ' is-open' : ''}`}>
+          <a href="#inicio" onClick={() => setMenuOpen(false)}>Início</a>
+          <a href="#tecnologia" onClick={() => setMenuOpen(false)}>Como funciona</a>
+          <a href="#beneficios" onClick={() => setMenuOpen(false)}>Benefícios</a>
+          <Link href="/calculadora" onClick={() => setMenuOpen(false)}>Dosagem</Link>
+          <Link href="/app" onClick={() => setMenuOpen(false)}>Para frotas</Link>
+          <a href="#contato" onClick={() => setMenuOpen(false)}>Contato</a>
         </nav>
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-          <button onClick={toggleTheme} style={{ background: 'none', border: 'none', color: '#cbd5e1', cursor: 'pointer', fontSize: '1rem' }}>
+        <div className="home-nav-actions">
+          <button onClick={toggleTheme} className="home-nav-theme" aria-label="Alternar tema">
             <i className={theme === 'dark' ? 'fas fa-sun' : 'fas fa-moon'} />
           </button>
-          <Link href="/calculadora" className="btn btn-outline" style={{ fontSize: '0.8rem', padding: '0.4rem 0.9rem', borderColor: 'var(--color-industrial-lime)', color: 'var(--color-industrial-lime)' }}>
+          <Link href="/calculadora" className="btn btn-outline home-nav-secondary">
             Calcular Aplicação
           </Link>
           <Link href="/solicitar" className="btn btn-primary btn-sm">
             Quero Flat Free
           </Link>
-          <Link href="/app" className="btn btn-sm" style={{ background: 'rgba(255,255,255,0.1)', color: '#fff', border: '1px solid rgba(255,255,255,0.2)' }}>
+          <Link href="/app" className="btn btn-sm home-nav-fleet">
             Gestão da Frota
           </Link>
+          <button className="home-nav-toggle" onClick={() => setMenuOpen(open => !open)} aria-label={menuOpen ? 'Fechar menu' : 'Abrir menu'} aria-expanded={menuOpen}>
+            <i className={menuOpen ? 'fas fa-xmark' : 'fas fa-bars'} />
+          </button>
         </div>
       </div>
     </header>
