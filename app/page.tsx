@@ -219,30 +219,83 @@ export default function HomePage() {
           </div>
         </section>
 
-        {/* PLATFORM */}
-        <section className="section" style={{ background: 'var(--bg-surface-elevated)' }}>
+        {/* PLATFORM / FLEET LIFECYCLE BRIDGE */}
+        <section className="section home-fleet-section" aria-labelledby="home-fleet-title">
           <div className="container">
-            <div className="grid-2" style={{ alignItems: 'center' }}>
-              <div>
-                <span className="section-tag">Flat Free Fleet</span>
-                <h2 className="section-title" style={{ textAlign: 'left', marginTop: '0.8rem' }}>O pneu passa a ter histórico, não apenas cadastro.</h2>
-                <p style={{ color: 'var(--text-secondary)', lineHeight: 1.7, marginBottom: '1.5rem' }}>
-                  A plataforma acompanha cada pneu ao longo da operação: em qual veículo e posição esteve, quando recebeu Flat Free, suas leituras, ocorrências e ciclos de recapagem. Essa base permite transformar manutenção em informação para decisão.
+            <div className="home-fleet-header">
+              <span className="section-tag">Flat Free Fleet · Gestão &amp; Histórico</span>
+              <h2 id="home-fleet-title" className="section-title">O pneu passa a ter histórico, não apenas cadastro.</h2>
+              <p className="section-description">
+                A plataforma conecta a aplicação física do Flat Free ao acompanhamento contínuo de cada pneu da frota. Em vez de uma planilha isolada, cada etapa da operação fica registrada no ciclo de vida do pneu.
+              </p>
+            </div>
+
+            <div className="home-fleet-cycle-container">
+              <div className="home-fleet-cycle-intro">
+                <span className="home-fleet-cycle-eyebrow">Ciclo operacional integrado</span>
+                <h3>Como o produto e a gestão trabalham juntos</h3>
+                <p>
+                  Do momento em que o pneu entra em operação até suas recapagens, a plataforma registra aplicações de Flat Free, posições no veículo, leituras de sulco e ocorrências em uma linha do tempo única.
                 </p>
-                <Link href="/app" className="btn btn-primary"><i className="fas fa-gauge-high" /> Acessar gestão da frota</Link>
+                <div className="home-fleet-actions">
+                  <Link href="/app" className="btn btn-primary">
+                    <i className="fas fa-gauge-high" aria-hidden="true" /> Conhecer a gestão da frota
+                  </Link>
+                  <Link href="/app/pneus" className="btn btn-outline">
+                    Ver acompanhamento por pneu <i className="fas fa-arrow-right" aria-hidden="true" />
+                  </Link>
+                </div>
               </div>
-              <div className="card platform-features-grid">
+
+              <div className="home-fleet-steps-flow">
                 {[
-                  ['fa-truck-moving', 'Veículos e posições'],
-                  ['fa-circle-dot', 'Histórico por pneu'],
-                  ['fa-ruler-vertical', 'Leituras de desgaste'],
-                  ['fa-route', 'Movimentações'],
-                  ['fa-droplet', 'Aplicações Flat Free'],
-                  ['fa-rotate', 'Ciclos e recapagens'],
-                ].map(([icon, label]) => (
-                  <div key={label} style={{ padding: '1rem', border: '1px solid var(--border-color)', borderRadius: '10px', background: 'var(--bg-surface)' }}>
-                    <i className={`fas ${icon}`} style={{ color: 'var(--color-safety-orange)', marginBottom: '0.6rem' }} />
-                    <div style={{ fontSize: '0.85rem', fontWeight: 700 }}>{label}</div>
+                  {
+                    step: '01',
+                    icon: 'fa-circle-plus',
+                    title: 'Cadastrar',
+                    desc: 'Registro do pneu com marca, modelo, medida, número de fogo e condição inicial (novo ou recapado).',
+                  },
+                  {
+                    step: '02',
+                    icon: 'fa-droplet',
+                    title: 'Aplicar Flat Free',
+                    desc: 'Registro da dose aplicada pela válvula, lote, data, quilometragem e sulco inicial no momento da proteção.',
+                  },
+                  {
+                    step: '03',
+                    icon: 'fa-truck-moving',
+                    title: 'Posicionar',
+                    desc: 'Vinculação ao veículo e eixo (simples ou duplo), com histórico de montagem e movimentações de rodízio.',
+                  },
+                  {
+                    step: '04',
+                    icon: 'fa-ruler-vertical',
+                    title: 'Medir e inspecionar',
+                    desc: 'Leituras periódicas de sulco e pressão para acompanhar a evolução do desgaste ao longo da quilometragem.',
+                  },
+                  {
+                    step: '05',
+                    icon: 'fa-triangle-exclamation',
+                    title: 'Registrar ocorrências',
+                    desc: 'Apontamento de perfurações atendidas, reparos, perdas de pressão, retiradas ou envio para recapagem.',
+                  },
+                  {
+                    step: '06',
+                    icon: 'fa-timeline',
+                    title: 'Acompanhar histórico',
+                    desc: 'Linha do tempo consolidada relacionando veículos, posições, aplicações de produto e ciclos de vida do pneu.',
+                  },
+                ].map((item, idx) => (
+                  <div key={item.step} className="home-fleet-step-card">
+                    <div className="home-fleet-step-header">
+                      <span className="home-fleet-step-number">{item.step}</span>
+                      <div className="home-fleet-step-icon">
+                        <i className={`fas ${item.icon}`} aria-hidden="true" />
+                      </div>
+                    </div>
+                    <h4>{item.title}</h4>
+                    <p>{item.desc}</p>
+                    {idx < 5 && <div className="home-fleet-step-connector" aria-hidden="true" />}
                   </div>
                 ))}
               </div>
