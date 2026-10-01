@@ -165,13 +165,168 @@ export default function HomePage() {
           </div>
         </section>
 
-        {/* AUDIENCES */}
+        {/* CAPÍTULO 1 — FLAT FREE / PRODUTO */}
+
+        {/* BENEFÍCIOS */}
+        <section id="beneficios" className="section" aria-labelledby="home-beneficios-title">
+          <div className="container">
+            <div className="section-header">
+              <span className="section-tag">Proteção &amp; acompanhamento</span>
+              <h2 id="home-beneficios-title" className="section-title">O que o Flat Free faz pelo seu pneu</h2>
+              <p className="section-description">A proteção preventiva contra perfurações atua junto com o acompanhamento de pressão e desgaste, buscando maior vida útil e controle da operação.</p>
+            </div>
+            <div className="grid-3">
+              {[
+                { icon: 'fa-shield-halved', title: 'Proteção preventiva contra perfurações', desc: 'Flat Free atua no interior do pneu para vedar furos em rodagem dentro dos limites da especificação, ajudando a evitar paradas imprevistas.', tag: 'Proteção em rodagem' },
+                { icon: 'fa-gauge-high', title: 'Pressão e condição sob acompanhamento', desc: 'Manter a calibragem estável e registrar inspeções ao longo da operação apoia a conservação da carcaça e a previsibilidade das viagens.', tag: 'Histórico operacional' },
+                { icon: 'fa-ruler-vertical', title: 'Desgaste acompanhado por leitura', desc: 'Sulco, quilometragem, posição e movimentações formam uma linha do tempo clara para entender o aproveitamento real de cada pneu.', tag: 'Gestão de desgaste' },
+              ].map(card => (
+                <div key={card.title} className="card" style={{ transition: 'transform 0.2s', cursor: 'default' }}>
+                  <div style={{ width: '3rem', height: '3rem', background: 'rgba(255,92,0,0.1)', borderRadius: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '1rem' }}>
+                    <i className={`fas ${card.icon}`} style={{ fontSize: '1.2rem', color: 'var(--color-safety-orange)' }} />
+                  </div>
+                  <h3 style={{ fontWeight: 700, marginBottom: '0.75rem', fontSize: '1.05rem' }}>{card.title}</h3>
+                  <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', marginBottom: '1rem', lineHeight: 1.6 }}>{card.desc}</p>
+                  <span style={{ background: 'rgba(132,204,22,0.15)', color: 'var(--color-industrial-lime)', padding: '0.25rem 0.75rem', borderRadius: '50px', fontSize: '0.8rem', fontWeight: 700 }}>{card.tag}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        {/* TECNOLOGIA / COMO O PRODUTO ATUA */}
+        <section id="tecnologia" className="section home-tech-section" aria-labelledby="home-tech-title">
+          <div className="container">
+            <div className="section-header">
+              <span className="section-tag">Ação do produto no pneu</span>
+              <h2 id="home-tech-title" className="section-title">Como o Flat Free atua</h2>
+              <p className="section-description">
+                O produto é aplicado diretamente no interior do pneu para criar uma camada preventiva de proteção na região interna da banda de rodagem, sem necessidade de desmontar a roda.
+              </p>
+            </div>
+
+            {/* 4-step sequence: Aplicar -> Distribuir -> Atuar na perfuração -> Acompanhar */}
+            <div className="home-tech-steps-grid">
+              {[
+                {
+                  step: '01',
+                  icon: 'fa-droplet',
+                  title: 'Aplicar pela válvula',
+                  desc: 'Injetado pela haste da válvula com o pneu montado na roda. Processo direto e limpo, sem necessidade de desmontagem da carcaça.',
+                },
+                {
+                  step: '02',
+                  icon: 'fa-arrows-spin',
+                  title: 'Distribuir em rodagem',
+                  desc: 'Com o giro e o rodar do veículo, o produto se distribui de maneira uniforme sobre a região interna da banda de rodagem.',
+                },
+                {
+                  step: '03',
+                  icon: 'fa-shield-halved',
+                  title: 'Atuar na perfuração',
+                  desc: 'Na ocorrência de uma perfuração compatível com a especificação, o produto é direcionado pela pressão para o ponto perfurado.',
+                },
+                {
+                  step: '04',
+                  icon: 'fa-gauge-high',
+                  title: 'Acompanhar a operação',
+                  desc: 'O pneu segue em rodagem, enquanto a data de aplicação, leituras de desgaste e ocorrências permanecem registradas.',
+                },
+              ].map(item => (
+                <div key={item.step} className="home-tech-step-card">
+                  <div className="home-tech-step-top">
+                    <span className="home-tech-step-num">{item.step}</span>
+                    <div className="home-tech-step-icon">
+                      <i className={`fas ${item.icon}`} aria-hidden="true" />
+                    </div>
+                  </div>
+                  <h4>{item.title}</h4>
+                  <p>{item.desc}</p>
+                </div>
+              ))}
+            </div>
+
+            {/* Cutaway diagram & explanatory visualization */}
+            <div className="home-tech-visual-container">
+              <div className="home-tech-diagram-card">
+                <div className="home-tech-diagram-media">
+                  <Image
+                    src="/images/tire_diagram_3d.jpg"
+                    alt="Diagrama ilustrativo do corte transversal do pneu com camada interna protegida por Flat Free"
+                    width={1000}
+                    height={600}
+                    sizes="(max-width: 900px) calc(100vw - 48px), 50vw"
+                    style={{ width: '100%', height: 'auto', display: 'block' }}
+                  />
+                </div>
+                <div className="home-tech-diagram-caption">
+                  <span className="home-tech-caption-badge">Representação esquemática</span>
+                  <p>Corte transversal ilustrando a distribuição do produto na área interna de rodagem sob movimento.</p>
+                </div>
+              </div>
+
+              <div className="home-tech-visualizer-card">
+                <div className="home-tech-visualizer-header">
+                  <span className="home-tech-caption-badge">Visualização conceitual</span>
+                  <h3>Comportamento ilustrativo em perfuração</h3>
+                  <p>
+                    A animação abaixo ajuda a compreender a dinâmica do produto ao encontrar uma perfuração. Ela constitui uma ilustração conceitual e não representa ensaio técnico de laboratório ou medição de pressão.
+                  </p>
+                </div>
+
+                <div className="home-tech-canvas-frame">
+                  <canvas ref={canvasRef} width={460} height={250} className="home-tech-canvas" />
+                  <p className="home-tech-canvas-caption">
+                    <i className="fas fa-info-circle" aria-hidden="true" /> Ilustração conceitual: camada interna em contato com objeto perfurante
+                  </p>
+                </div>
+
+                <div className="home-tech-visualizer-controls">
+                  <div className="home-tech-ctrl-buttons">
+                    <button className="btn btn-primary btn-sm" onClick={startSim}>
+                      <i className="fas fa-play" aria-hidden="true" /> Iniciar visualização
+                    </button>
+                    <button className="btn btn-outline btn-sm" onClick={resetSim} style={{ color: '#cbd5e1', borderColor: 'rgba(255,255,255,0.25)' }}>
+                      <i className="fas fa-rotate" aria-hidden="true" /> Reiniciar
+                    </button>
+                  </div>
+                  <p className="home-tech-status-text">{simStatus}</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* DOSAGEM E AQUISIÇÃO */}
+        <section id="calculadora" className="section" style={{ background: 'var(--bg-surface)' }} aria-labelledby="home-calc-title">
+          <div className="container">
+            <div className="home-tech-journey-cta" style={{ margin: 0 }}>
+              <div className="home-tech-cta-copy">
+                <span className="section-tag" style={{ marginBottom: '0.5rem', display: 'inline-block' }}>Aplicação Flat Free</span>
+                <h3 id="home-calc-title" style={{ fontSize: '1.35rem', fontWeight: 800, margin: '0.25rem 0 0.5rem', color: 'var(--text-primary)' }}>Comece pela medida do pneu</h3>
+                <p>Consulte a dosagem recomendada pela medida ou transfira os itens calculados diretamente para solicitar atendimento com nossa equipe.</p>
+              </div>
+              <div className="home-tech-cta-actions">
+                <Link href="/calculadora" className="btn btn-secondary btn-lg">
+                  <i className="fas fa-calculator" aria-hidden="true" /> Calcular aplicação
+                </Link>
+                <Link href="/solicitar" className="btn btn-primary btn-lg">
+                  Quero Flat Free <i className="fas fa-arrow-right" aria-hidden="true" />
+                </Link>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* CAPÍTULO 2 — CONHEÇA SEUS PNEUS / GESTÃO */}
+
+        {/* JORNADAS / ESCOLHA DE CAMINHO */}
         <section className="section home-audiences-section" aria-labelledby="home-audiences-title">
           <div className="container">
             <div className="section-header">
-              <span className="section-tag">Uma solução, diferentes necessidades</span>
+              <span className="section-tag">Caminhos de atendimento</span>
               <h2 id="home-audiences-title" className="section-title">Como você quer usar o Flat Free?</h2>
-              <p className="section-description">Escolha o caminho mais próximo da sua necessidade. A mesma solução conecta proteção, acompanhamento e serviço.</p>
+              <p className="section-description">Seja para um veículo individual, operação de frota ou parceria comercial, escolha o caminho adequado à sua rotina.</p>
             </div>
             <div className="home-audiences-grid">
               {[
@@ -182,7 +337,7 @@ export default function HomePage() {
                   desc: 'Entenda a aplicação do Flat Free no seu veículo, consulte a dosagem recomendada para as medidas dos pneus e prepare-se para solicitar o produto.',
                   href: '/calculadora',
                   cta: 'Calcular aplicação',
-                  isPrimary: true,
+                  isPrimary: false,
                 },
                 {
                   badge: 'Gestão e histórico',
@@ -191,7 +346,7 @@ export default function HomePage() {
                   desc: 'Cadastre veículos e pneus, acompanhe posições, aplicações, leituras, ocorrências e histórico operacional para entender o ciclo de vida dos pneus.',
                   href: '/app',
                   cta: 'Gestão de frotas',
-                  isPrimary: false,
+                  isPrimary: true,
                 },
                 {
                   badge: 'Rede de atendimento',
@@ -303,171 +458,10 @@ export default function HomePage() {
           </div>
         </section>
 
-        {/* TECHNOLOGY / PRODUCT ACTION */}
-        <section id="tecnologia" className="section home-tech-section" aria-labelledby="home-tech-title">
-          <div className="container">
-            <div className="section-header">
-              <span className="section-tag">Ação do produto no pneu</span>
-              <h2 id="home-tech-title" className="section-title">Como o Flat Free atua</h2>
-              <p className="section-description">
-                O produto é aplicado diretamente no interior do pneu para criar uma camada preventiva de proteção na região interna da banda de rodagem, sem necessidade de desmontar a roda.
-              </p>
-            </div>
-
-            {/* 4-step sequence: Aplicar -> Distribuir -> Atuar na perfuração -> Acompanhar */}
-            <div className="home-tech-steps-grid">
-              {[
-                {
-                  step: '01',
-                  icon: 'fa-droplet',
-                  title: 'Aplicar pela válvula',
-                  desc: 'Injetado pela haste da válvula com o pneu montado na roda. Processo direto e limpo, sem necessidade de desmontagem da carcaça.',
-                },
-                {
-                  step: '02',
-                  icon: 'fa-arrows-spin',
-                  title: 'Distribuir em rodagem',
-                  desc: 'Com o giro e o rodar do veículo, o produto se distribui de maneira uniforme sobre a região interna da banda de rodagem.',
-                },
-                {
-                  step: '03',
-                  icon: 'fa-shield-halved',
-                  title: 'Atuar na perfuração',
-                  desc: 'Na ocorrência de uma perfuração compatível com a especificação, o produto é direcionado pela pressão para o ponto perfurado.',
-                },
-                {
-                  step: '04',
-                  icon: 'fa-gauge-high',
-                  title: 'Acompanhar a operação',
-                  desc: 'O pneu segue em rodagem, enquanto a data de aplicação, leituras de desgaste e ocorrências permanecem registradas.',
-                },
-              ].map(item => (
-                <div key={item.step} className="home-tech-step-card">
-                  <div className="home-tech-step-top">
-                    <span className="home-tech-step-num">{item.step}</span>
-                    <div className="home-tech-step-icon">
-                      <i className={`fas ${item.icon}`} aria-hidden="true" />
-                    </div>
-                  </div>
-                  <h4>{item.title}</h4>
-                  <p>{item.desc}</p>
-                </div>
-              ))}
-            </div>
-
-            {/* Cutaway diagram & explanatory visualization */}
-            <div className="home-tech-visual-container">
-              <div className="home-tech-diagram-card">
-                <div className="home-tech-diagram-media">
-                  <Image
-                    src="/images/tire_diagram_3d.jpg"
-                    alt="Diagrama ilustrativo do corte transversal do pneu com camada interna protegida por Flat Free"
-                    width={1000}
-                    height={600}
-                    sizes="(max-width: 900px) calc(100vw - 48px), 50vw"
-                    style={{ width: '100%', height: 'auto', display: 'block' }}
-                  />
-                </div>
-                <div className="home-tech-diagram-caption">
-                  <span className="home-tech-caption-badge">Representação esquemática</span>
-                  <p>Corte transversal ilustrando a distribuição do produto na área interna de rodagem sob movimento.</p>
-                </div>
-              </div>
-
-              <div className="home-tech-visualizer-card">
-                <div className="home-tech-visualizer-header">
-                  <span className="home-tech-caption-badge">Visualização conceitual</span>
-                  <h3>Comportamento ilustrativo em perfuração</h3>
-                  <p>
-                    A animação abaixo ajuda a compreender a dinâmica do produto ao encontrar uma perfuração. Ela constitui uma ilustração conceitual e não representa ensaio técnico de laboratório ou medição de pressão.
-                  </p>
-                </div>
-
-                <div className="home-tech-canvas-frame">
-                  <canvas ref={canvasRef} width={460} height={250} className="home-tech-canvas" />
-                  <p className="home-tech-canvas-caption">
-                    <i className="fas fa-info-circle" aria-hidden="true" /> Ilustração conceitual: camada interna em contato com objeto perfurante
-                  </p>
-                </div>
-
-                <div className="home-tech-visualizer-controls">
-                  <div className="home-tech-ctrl-buttons">
-                    <button className="btn btn-primary btn-sm" onClick={startSim}>
-                      <i className="fas fa-play" aria-hidden="true" /> Iniciar visualização
-                    </button>
-                    <button className="btn btn-outline btn-sm" onClick={resetSim} style={{ color: '#cbd5e1', borderColor: 'rgba(255,255,255,0.25)' }}>
-                      <i className="fas fa-rotate" aria-hidden="true" /> Reiniciar
-                    </button>
-                  </div>
-                  <p className="home-tech-status-text">{simStatus}</p>
-                </div>
-              </div>
-            </div>
-
-            {/* Natural journey continuation */}
-            <div className="home-tech-journey-cta">
-              <div className="home-tech-cta-copy">
-                <h4>Quer saber a dosagem para seus pneus?</h4>
-                <p>Consulte a dosagem recomendada pela medida ou envie seus dados para solicitar atendimento.</p>
-              </div>
-              <div className="home-tech-cta-actions">
-                <Link href="/calculadora" className="btn btn-secondary">
-                  <i className="fas fa-calculator" aria-hidden="true" /> Calcular aplicação
-                </Link>
-                <Link href="/solicitar" className="btn btn-primary">
-                  Quero Flat Free <i className="fas fa-arrow-right" aria-hidden="true" />
-                </Link>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        {/* BENEFITS */}
-        <section id="beneficios" className="section">
-          <div className="container">
-            <div className="section-header">
-              <span className="section-tag">Proteção &amp; acompanhamento</span>
-              <h2 className="section-title">Produto e gestão trabalhando juntos</h2>
-              <p className="section-description">A proteção contra perfurações se soma ao acompanhamento de pressão, desgaste, posição e histórico do pneu ao longo da operação.</p>
-            </div>
-            <div className="grid-3">
-              {[
-                { icon: 'fa-gauge-high', title: 'Pressão e condição sob acompanhamento', desc: 'Registre leituras ao longo da operação e mantenha o histórico do pneu disponível para apoiar inspeções e decisões de manutenção.', tag: 'Histórico operacional' },
-                { icon: 'fa-ruler-vertical', title: 'Desgaste acompanhado por leitura', desc: 'Sulco, quilometragem, posição e movimentações formam uma linha do tempo que ajuda a entender como cada pneu está sendo utilizado.', tag: 'Gestão de desgaste' },
-                { icon: 'fa-shield-halved', title: 'Proteção contra perfurações', desc: 'Flat Free atua como proteção preventiva contra perfurações compatíveis com sua especificação, enquanto a plataforma registra a aplicação e acompanha o pneu tratado.', tag: 'Produto + plataforma' },
-              ].map(card => (
-                <div key={card.title} className="card" style={{ transition: 'transform 0.2s', cursor: 'default' }}>
-                  <div style={{ width: '3rem', height: '3rem', background: 'rgba(255,92,0,0.1)', borderRadius: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '1rem' }}>
-                    <i className={`fas ${card.icon}`} style={{ fontSize: '1.2rem', color: 'var(--color-safety-orange)' }} />
-                  </div>
-                  <h3 style={{ fontWeight: 700, marginBottom: '0.75rem', fontSize: '1.05rem' }}>{card.title}</h3>
-                  <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', marginBottom: '1rem', lineHeight: 1.6 }}>{card.desc}</p>
-                  <span style={{ background: 'rgba(132,204,22,0.15)', color: 'var(--color-industrial-lime)', padding: '0.25rem 0.75rem', borderRadius: '50px', fontSize: '0.8rem', fontWeight: 700 }}>{card.tag}</span>
-                </div>
-              ))}
-            </div>
-          </div>
-        </section>
-
-        {/* APPLICATION CTA */}
-        <section id="calculadora" className="section" style={{ background: 'var(--bg-surface-elevated)' }}>
-          <div className="container">
-            <div className="section-header">
-              <span className="section-tag">Aplicação Flat Free</span>
-              <h2 className="section-title">Comece pela medida do pneu</h2>
-              <p className="section-description">Use a calculadora de dosagem para consultar a quantidade de referência por pneu. Depois, você pode levar os itens calculados diretamente para a solicitação de atendimento.</p>
-            </div>
-            <div className="card" style={{ maxWidth: '760px', margin: '0 auto', textAlign: 'center' }}>
-              <div style={{ display: 'flex', justifyContent: 'center', gap: '1rem', flexWrap: 'wrap' }}>
-                <Link href="/calculadora" className="btn btn-primary btn-lg"><i className="fas fa-calculator" /> Calcular dosagem</Link>
-                <Link href="/solicitar" className="btn btn-outline btn-lg"><i className="fas fa-paper-plane" /> Falar com a Flat Free</Link>
-              </div>
-            </div>
-          </div>
-        </section>
+        {/* CAPÍTULO 3 — CONHECIMENTO */}
 
         {/* ARTICLES */}
-        <section id="artigos" className="section">
+        <section id="artigos" className="section" style={{ background: 'var(--bg-primary)' }}>
           <div className="container">
             <div className="section-header">
               <span className="section-tag">Conteúdo e conhecimento</span>
@@ -501,12 +495,27 @@ export default function HomePage() {
                   </div>
                 </div>
               </article>
-              <aside className="card" style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-                <img src="/images/flat_free_product.jpg" alt="Embalagem do produto Flat Free" style={{ borderRadius: '8px', width: '100%', height: '160px', objectFit: 'cover' }} />
-                <h4 style={{ fontWeight: 700 }}>Flat Free</h4>
-                <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>Consulte a aplicação conforme a medida do pneu e a necessidade do veículo ou da frota.</p>
-                <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>Consulte a dosagem pela medida do pneu ou fale com a equipe para confirmar a aplicação adequada ao seu uso.</p>
-                <Link href="/calculadora" className="btn btn-outline" style={{ justifyContent: 'center' }}><i className="fas fa-calculator" /> Consultar Dosagem</Link>
+              <aside className="card" style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem', justifyContent: 'center' }}>
+                <div style={{ width: '3.25rem', height: '3.25rem', background: 'rgba(255, 92, 0, 0.1)', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-safety-orange)', fontSize: '1.35rem' }}>
+                  <i className="fas fa-calculator" aria-hidden="true" />
+                </div>
+                <div>
+                  <span className="section-tag" style={{ fontSize: '0.72rem', marginBottom: '0.5rem', display: 'inline-block' }}>Orientação técnica</span>
+                  <h4 style={{ fontWeight: 800, fontSize: '1.15rem', marginBottom: '0.5rem' }}>Calculadora de Dosagem</h4>
+                  <p style={{ fontSize: '0.875rem', color: 'var(--text-secondary)', lineHeight: 1.6 }}>Consulte a dosagem recomendada pela medida do pneu antes da aplicação ou transfira os dados para solicitar seu pedido.</p>
+                </div>
+                <div style={{ borderTop: '1px solid var(--border-color)', paddingTop: '1rem' }}>
+                  <ul style={{ listStyle: 'none', display: 'flex', flexDirection: 'column', gap: '0.5rem', padding: 0, margin: '0 0 1.25rem' }}>
+                    {['Doses catalogadas e empíricas', 'Cálculo para múltiplos pneus', 'Conversão direta em baldes 18,9L'].map(f => (
+                      <li key={f} style={{ fontSize: '0.825rem', display: 'flex', gap: '0.5rem', alignItems: 'center', color: 'var(--text-secondary)' }}>
+                        <i className="fas fa-check-circle" style={{ color: 'var(--color-industrial-lime)' }} aria-hidden="true" /> {f}
+                      </li>
+                    ))}
+                  </ul>
+                  <Link href="/calculadora" className="btn btn-outline" style={{ width: '100%', justifyContent: 'center' }}>
+                    <i className="fas fa-calculator" aria-hidden="true" /> Consultar Dosagem
+                  </Link>
+                </div>
               </aside>
             </div>
           </div>
