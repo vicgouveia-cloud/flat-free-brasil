@@ -440,7 +440,7 @@ export default function HomePage() {
                   <button type="submit" className="btn btn-primary btn-lg" style={{ width: '100%', justifyContent: 'center' }} disabled={formState === 'sending'}>
                     {formState === 'sending' ? <><i className="fas fa-spinner fa-spin" /> Enviando...</> : <><i className="fas fa-paper-plane" /> Enviar Contato</>}
                   </button>
-                  <p style={{ fontSize: '0.78rem', color: 'var(--text-muted)', textAlign: 'center', marginTop: '0.75rem' }}><i className="fas fa-lock" /> Seus dados estão seguros e protegidos em conformidade com a LGPD.</p>
+                  <p style={{ fontSize: '0.78rem', color: 'var(--text-muted)', textAlign: 'center', marginTop: '0.75rem' }}><i className="fas fa-lock" /> Usaremos seus dados para responder ao seu contato e dar continuidade ao atendimento solicitado.</p>
                 </form>
               </div>
             </div>
@@ -454,7 +454,7 @@ export default function HomePage() {
           <div style={{ background: 'var(--bg-surface)', borderRadius: '16px', padding: '2.5rem', maxWidth: '420px', width: '90%', textAlign: 'center' }} onClick={e => e.stopPropagation()}>
             <i className="fas fa-circle-check" style={{ fontSize: '3rem', color: 'var(--color-industrial-lime)', marginBottom: '1rem', display: 'block' }} />
             <h3 style={{ fontSize: '1.5rem', marginBottom: '0.75rem' }}>Solicitação enviada com sucesso.</h3>
-            <p style={{ color: 'var(--text-secondary)', marginBottom: '1.5rem', fontSize: '0.9rem' }}>Obrigado pelo contato. Os detalhes foram encaminhados ao nosso time de especialistas.</p>
+            <p style={{ color: 'var(--text-secondary)', marginBottom: '1.5rem', fontSize: '0.9rem' }}>Obrigado pelo contato. Os detalhes foram encaminhados à nossa equipe de atendimento.</p>
             <button className="btn btn-primary" onClick={() => setShowModal(false)}>Concluir</button>
           </div>
         </div>
@@ -466,19 +466,19 @@ export default function HomePage() {
           <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 1fr 1fr', gap: '2rem', marginBottom: '2rem' }}>
             <div>
               <div style={{ fontFamily: 'Montserrat', fontWeight: 900, fontSize: '1.2rem', marginBottom: '0.75rem' }}>FLAT <span style={{ color: 'var(--color-safety-orange)' }}>FREE</span></div>
-              <p style={{ fontSize: '0.875rem', color: '#64748b', lineHeight: 1.6 }}>Engenharia e tecnologia avançada em selantes de pneus para frotas comerciais, agrícolas e industriais de alta exigência.</p>
+              <p style={{ fontSize: '0.875rem', color: '#64748b', lineHeight: 1.6 }}>Proteção contra perfurações e ferramentas para acompanhar aplicações, posições, leituras e histórico dos pneus.</p>
             </div>
             <div>
               <h4 style={{ fontSize: '0.85rem', fontWeight: 700, marginBottom: '1rem', textTransform: 'uppercase', letterSpacing: '0.1em', color: '#64748b' }}>Navegação</h4>
               <ul style={{ listStyle: 'none', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-                {['Início:#inicio','Tecnologia 3D:#tecnologia','Benefícios:#beneficios','Calcular aplicação:#calculadora'].map(item => {
+                {['Início:#inicio','Como funciona:#tecnologia','Benefícios:#beneficios','Calcular aplicação:#calculadora'].map(item => {
                   const [label, href] = item.split(':')
                   return <li key={href}><a href={href} style={{ color: '#64748b', fontSize: '0.875rem' }}>{label}</a></li>
                 })}
               </ul>
             </div>
             <div>
-              <h4 style={{ fontSize: '0.85rem', fontWeight: 700, marginBottom: '1rem', textTransform: 'uppercase', letterSpacing: '0.1em', color: '#64748b' }}>Recursos B2B</h4>
+              <h4 style={{ fontSize: '0.85rem', fontWeight: 700, marginBottom: '1rem', textTransform: 'uppercase', letterSpacing: '0.1em', color: '#64748b' }}>Flat Free</h4>
               <ul style={{ listStyle: 'none', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
                 <li><Link href="/calculadora" style={{ color: '#64748b', fontSize: '0.875rem' }}>Calcular Dosagem</Link></li>
                 <li><Link href="/solicitar" style={{ color: '#64748b', fontSize: '0.875rem' }}>Solicitar Flat Free</Link></li>
@@ -496,8 +496,8 @@ export default function HomePage() {
             </div>
           </div>
           <div style={{ borderTop: '1px solid rgba(255,255,255,0.05)', paddingTop: '1.5rem', display: 'flex', justifyContent: 'space-between', fontSize: '0.8rem', color: '#64748b' }}>
-            <span>© 2026 FLAT FREE B2B Tire Sealant - Todos os direitos reservados.</span>
-            <span>Desenvolvido com excelência em engenharia industrial B2B.</span>
+            <span>© 2026 Flat Free Brasil - Todos os direitos reservados.</span>
+            <span>Proteção e gestão de pneus.</span>
           </div>
         </div>
       </footer>
