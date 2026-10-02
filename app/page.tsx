@@ -1,5 +1,5 @@
 'use client'
-import { useEffect, useRef, useState, useCallback } from 'react'
+import { useState } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
 import HomeNav from '@/components/HomeNav'
@@ -9,105 +9,6 @@ export default function HomePage() {
   const [formState, setFormState] = useState<'idle'|'sending'|'success'|'error'>('idle')
   const [showModal, setShowModal] = useState(false)
   const [formData, setFormData] = useState({ perfil: 'frota', nome: '', empresa: '', email: '', frota: '11-50', mensagem: '' })
-
-  // Puncture simulator
-  const canvasRef = useRef<HTMLCanvasElement>(null)
-  const simStateRef = useRef<'idle'|'puncturing'|'sealing'|'sealed'>('idle')
-  const animRef = useRef<number>(0)
-  const nailYRef = useRef(-40)
-  const sealantPulseRef = useRef(0)
-  const [simStatus, setSimStatus] = useState('Clique para visualizar, de forma ilustrativa, a sequência de uma perfuração.')
-
-  const drawCanvas = useCallback(() => {
-    const canvas = canvasRef.current
-    if (!canvas) return
-    const ctx = canvas.getContext('2d')
-    if (!ctx) return
-    const w = canvas.width, h = canvas.height
-    ctx.clearRect(0, 0, w, h)
-    // Background grid
-    ctx.strokeStyle = 'rgba(255,255,255,0.05)'
-    ctx.lineWidth = 1
-    for (let x = 0; x < w; x += 30) { ctx.beginPath(); ctx.moveTo(x,0); ctx.lineTo(x,h); ctx.stroke() }
-    for (let y = 0; y < h; y += 30) { ctx.beginPath(); ctx.moveTo(0,y); ctx.lineTo(w,y); ctx.stroke() }
-    // Outer rubber
-    ctx.fillStyle = '#1e293b'; ctx.fillRect(40,140,w-80,50)
-    // Steel belts
-    ctx.fillStyle = '#475569'; ctx.fillRect(40,175,w-80,10)
-    ctx.fillStyle = '#ff5c00'
-    for (let i = 50; i < w-50; i += 20) { ctx.fillRect(i,177,10,6) }
-    // Sealant layer
-    ctx.fillStyle = 'rgba(0,150,255,0.75)'; ctx.fillRect(45,185,w-90,18)
-    // Air chamber
-    ctx.fillStyle = '#0f172a'; ctx.fillRect(45,203,w-90,45)
-    ctx.fillStyle = '#94a3b8'; ctx.font = '11px Inter'
-    ctx.fillText('REGIÃO INTERNA DO PNEU',100,230)
-    // Particles
-    ctx.fillStyle = '#60a5fa'
-    for (let i = 0; i < 15; i++) {
-      const px = 60 + i*25 + Math.sin(Date.now()*0.003+i)*5
-      ctx.beginPath(); ctx.arc(px,194,3,0,Math.PI*2); ctx.fill()
-    }
-    // Nail and effects
-    const state = simStateRef.current
-    if (state !== 'idle') {
-      const nailX = w/2, nailY = nailYRef.current
-      ctx.fillStyle = '#94a3b8'
-      ctx.beginPath(); ctx.moveTo(nailX-6,nailY); ctx.lineTo(nailX+6,nailY)
-      ctx.lineTo(nailX+3,nailY+90); ctx.lineTo(nailX-3,nailY+90); ctx.closePath(); ctx.fill()
-      if (nailY > 80) { ctx.fillStyle = '#ef4444'; ctx.fillRect(nailX-4,140,8,50) }
-      if (state === 'puncturing') {
-        ctx.fillStyle = 'rgba(255,255,255,0.7)'
-        ctx.beginPath(); ctx.arc(nailX-10,130-Math.random()*20,4,0,Math.PI*2)
-        ctx.arc(nailX+12,120-Math.random()*20,5,0,Math.PI*2); ctx.fill()
-      }
-      if (state === 'sealing' || state === 'sealed') {
-        sealantPulseRef.current += 0.05
-        const r = Math.min(18, 8 + Math.sin(sealantPulseRef.current)*4)
-        ctx.fillStyle = '#009668'; ctx.beginPath(); ctx.arc(nailX,175,r,0,Math.PI*2); ctx.fill()
-        ctx.fillStyle = '#34d399'; ctx.font = 'bold 12px Inter'
-        ctx.fillText('REPRESENTAÇÃO DA VEDAÇÃO',nailX-100,110)
-      }
-    }
-  }, [])
-
-  const animate = useCallback(() => {
-    if (simStateRef.current === 'puncturing') {
-      nailYRef.current += 4
-      if (nailYRef.current >= 95) {
-        simStateRef.current = 'sealing'
-        setSimStatus('Representação ilustrativa: produto direcionado para a região da perfuração...')
-        setTimeout(() => {
-          simStateRef.current = 'sealed'
-          setSimStatus('Sequência ilustrativa concluída. Consulte a especificação técnica para limites de aplicação e desempenho.')
-        }, 1200)
-      }
-    }
-    drawCanvas()
-    animRef.current = requestAnimationFrame(animate)
-  }, [drawCanvas])
-
-  useEffect(() => {
-    drawCanvas()
-    return () => cancelAnimationFrame(animRef.current)
-  }, [drawCanvas])
-
-  function startSim() {
-    if (simStateRef.current !== 'idle') return
-    simStateRef.current = 'puncturing'
-    nailYRef.current = 0
-    setSimStatus('Representando a entrada de um objeto perfurante...')
-    cancelAnimationFrame(animRef.current)
-    animate()
-  }
-
-  function resetSim() {
-    simStateRef.current = 'idle'
-    nailYRef.current = -40
-    setSimStatus('Clique para visualizar, de forma ilustrativa, a sequência de uma perfuração.')
-    cancelAnimationFrame(animRef.current)
-    drawCanvas()
-  }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -150,12 +51,8 @@ export default function HomePage() {
                 Conheça Flat Free, o produto aplicado no interior dos pneus para proteção contra perfurações, preservação da pressão e melhor aproveitamento dos pneus em operação.
               </p>
               <div className="home-product-hero-actions">
-                <Link href="/solicitar" className="btn btn-primary btn-lg">Quero Flat Free <i className="fas fa-arrow-right" aria-hidden="true" /></Link>
+                <a href="#caminhos" className="btn btn-primary btn-lg">Quero Flat Free <i className="fas fa-arrow-right" aria-hidden="true" /></a>
                 <Link href="/calculadora" className="btn btn-secondary btn-lg"><i className="fas fa-calculator" aria-hidden="true" /> Calcular aplicação</Link>
-              </div>
-              <div className="home-product-hero-fleet">
-                <p>Tem uma frota? Conheça a aplicação do produto, possibilidades de teste e a área de acompanhamento de pneus.</p>
-                <Link href="/frotas">Flat Free para frotas <i className="fas fa-arrow-right" aria-hidden="true" /></Link>
               </div>
             </div>
             <figure className="home-product-hero-visual">
@@ -244,97 +141,33 @@ export default function HomePage() {
               ))}
             </div>
 
-            {/* Cutaway diagram & explanatory visualization */}
-            <div className="home-tech-visual-container">
-              <div className="home-tech-diagram-card">
-                <div className="home-tech-diagram-media">
-                  <Image
-                    src="/images/tire_diagram_3d.jpg"
-                    alt="Diagrama ilustrativo do corte transversal do pneu com camada interna protegida por Flat Free"
-                    width={1000}
-                    height={600}
-                    sizes="(max-width: 900px) calc(100vw - 48px), 50vw"
-                    style={{ width: '100%', height: 'auto', display: 'block' }}
-                  />
-                </div>
-                <div className="home-tech-diagram-caption">
-                  <span className="home-tech-caption-badge">Representação esquemática</span>
-                  <p>Corte transversal ilustrando a distribuição do produto na área interna de rodagem sob movimento.</p>
-                </div>
+            <div className="home-tech-diagram-card" style={{ maxWidth: '760px', margin: '0 auto' }}>
+              <div className="home-tech-diagram-media">
+                <Image
+                  src="/images/tire_diagram_3d.jpg"
+                  alt="Diagrama ilustrativo do corte transversal do pneu com camada interna protegida por Flat Free"
+                  width={1000}
+                  height={600}
+                  sizes="(max-width: 900px) calc(100vw - 48px), 760px"
+                  style={{ width: '100%', height: 'auto', display: 'block' }}
+                />
               </div>
-
-              <div className="home-tech-visualizer-card">
-                <div className="home-tech-visualizer-header">
-                  <span className="home-tech-caption-badge">Visualização conceitual</span>
-                  <h3>Comportamento ilustrativo em perfuração</h3>
-                  <p>
-                    A animação abaixo ajuda a compreender a dinâmica do produto ao encontrar uma perfuração. Ela constitui uma ilustração conceitual e não representa ensaio técnico de laboratório ou medição de pressão.
-                  </p>
-                </div>
-
-                <div className="home-tech-canvas-frame">
-                  <canvas ref={canvasRef} width={460} height={250} className="home-tech-canvas" />
-                  <p className="home-tech-canvas-caption">
-                    <i className="fas fa-info-circle" aria-hidden="true" /> Ilustração conceitual: camada interna em contato com objeto perfurante
-                  </p>
-                </div>
-
-                <div className="home-tech-visualizer-controls">
-                  <div className="home-tech-ctrl-buttons">
-                    <button className="btn btn-primary btn-sm" onClick={startSim}>
-                      <i className="fas fa-play" aria-hidden="true" /> Iniciar visualização
-                    </button>
-                    <button className="btn btn-outline btn-sm" onClick={resetSim} style={{ color: '#cbd5e1', borderColor: 'rgba(255,255,255,0.25)' }}>
-                      <i className="fas fa-rotate" aria-hidden="true" /> Reiniciar
-                    </button>
-                  </div>
-                  <p className="home-tech-status-text">{simStatus}</p>
-                </div>
+              <div className="home-tech-diagram-caption">
+                <span className="home-tech-caption-badge">Como atua no pneu</span>
+                <p>Representação esquemática da distribuição do produto na região interna da banda de rodagem durante o uso.</p>
               </div>
             </div>
 
-            {/* Natural journey continuation */}
-            <div className="home-tech-journey-cta">
-              <div className="home-tech-cta-copy">
-                <h4>Quer saber a dosagem para seus pneus?</h4>
-                <p>Consulte a dosagem recomendada pela medida ou envie seus dados para solicitar atendimento.</p>
-              </div>
-              <div className="home-tech-cta-actions">
-                <Link href="/calculadora" className="btn btn-secondary">
-                  <i className="fas fa-calculator" aria-hidden="true" /> Calcular aplicação
-                </Link>
-                <Link href="/solicitar" className="btn btn-primary">
-                  Quero Flat Free <i className="fas fa-arrow-right" aria-hidden="true" />
-                </Link>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        {/* APPLICATION CTA */}
-        <section id="calculadora" className="section" style={{ background: 'var(--bg-surface-elevated)' }}>
-          <div className="container">
-            <div className="section-header">
-              <span className="section-tag">Aplicação Flat Free</span>
-              <h2 className="section-title">Comece pela medida do pneu</h2>
-              <p className="section-description">Use a calculadora de dosagem para consultar a quantidade de referência por pneu. Depois, você pode levar os itens calculados diretamente para a solicitação de atendimento.</p>
-            </div>
-            <div className="card" style={{ maxWidth: '760px', margin: '0 auto', textAlign: 'center' }}>
-              <div style={{ display: 'flex', justifyContent: 'center', gap: '1rem', flexWrap: 'wrap' }}>
-                <Link href="/calculadora" className="btn btn-primary btn-lg"><i className="fas fa-calculator" /> Calcular dosagem</Link>
-                <Link href="/solicitar" className="btn btn-outline btn-lg"><i className="fas fa-paper-plane" /> Falar com a Flat Free</Link>
-              </div>
-            </div>
           </div>
         </section>
 
         {/* AUDIENCES */}
-        <section className="section home-audiences-section" aria-labelledby="home-audiences-title">
+        <section id="caminhos" className="section home-audiences-section" aria-labelledby="home-audiences-title">
           <div className="container">
             <div className="section-header">
               <span className="section-tag">Próximo passo</span>
               <h2 id="home-audiences-title" className="section-title">Escolha como seguir com o Flat Free</h2>
-              <p className="section-description">Depois de conhecer o produto e consultar a aplicação, siga pelo caminho que combina com sua necessidade.</p>
+              <p className="section-description">Escolha o caminho que corresponde ao seu uso. Cada página aprofunda somente o que faz sentido para aquele perfil.</p>
             </div>
             <div className="home-audiences-grid">
               {[
@@ -387,8 +220,8 @@ export default function HomePage() {
           <div className="container">
             <div className="section-header">
               <span className="section-tag">Conteúdo e conhecimento</span>
-              <h2 className="section-title">Gestão de pneus na prática</h2>
-              <p className="section-description">Conteúdo para apoiar frotistas, instaladores e usuários na aplicação do produto e no acompanhamento dos pneus.</p>
+              <h2 className="section-title">Entenda melhor pneus, aplicação e operação.</h2>
+              <p className="section-description">Conteúdo para quem quer conhecer melhor perfurações, pressão, desgaste, aplicação do produto e gestão de pneus.</p>
             </div>
             <div style={{ maxWidth: '920px', margin: '0 auto' }}>
               <article className="card" style={{ padding: 0, overflow: 'hidden' }}>
@@ -430,19 +263,10 @@ export default function HomePage() {
                 <span className="section-tag">Fale com a Flat Free</span>
                 <h3 style={{ fontSize: '1.75rem', fontWeight: 800, margin: '1rem 0' }}>Produto, frota ou parceria: fale com a gente</h3>
                 <p style={{ color: 'var(--text-secondary)', marginBottom: '2rem' }}>Use o formulário para conversar sobre aplicação em frotas, uso no seu veículo ou interesse em instalar e revender Flat Free.</p>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-                  {[
-                    { icon: 'fa-user-gear', title: 'Orientação de aplicação', desc: 'Atendimento para entender veículos, medidas de pneus, quantidade necessária e forma de uso.' },
-                    { icon: 'fa-chart-line', title: 'Gestão para frotas', desc: 'Ferramentas para registrar pneus, posições, aplicações, leituras, ocorrências e histórico operacional.' },
-                    { icon: 'fa-screwdriver-wrench', title: 'Instalação e parceria', desc: 'Canal para oficinas, borracharias, concessionárias e prestadores interessados em instalar ou revender Flat Free.' },
-                  ].map(c => (
-                    <div key={c.title} className="card" style={{ display: 'flex', gap: '1rem', alignItems: 'start' }}>
-                      <div style={{ width: '2.5rem', height: '2.5rem', background: 'rgba(255,92,0,0.1)', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                        <i className={`fas ${c.icon}`} style={{ color: 'var(--color-safety-orange)' }} />
-                      </div>
-                      <div><h4 style={{ fontWeight: 700, marginBottom: '0.25rem', fontSize: '0.95rem' }}>{c.title}</h4><p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>{c.desc}</p></div>
-                    </div>
-                  ))}
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '.75rem', color: 'var(--text-secondary)', fontSize: '.9rem' }}>
+                  <Link href="/meu-veiculo">Meu veículo <i className="fas fa-arrow-right" aria-hidden="true" /></Link>
+                  <Link href="/frotas">Frotas e empresas <i className="fas fa-arrow-right" aria-hidden="true" /></Link>
+                  <Link href="/parceiros">Instalar ou revender <i className="fas fa-arrow-right" aria-hidden="true" /></Link>
                 </div>
               </div>
               <div className="card">
@@ -514,12 +338,12 @@ export default function HomePage() {
           <div className="public-footer-grid" style={{ marginBottom: '2rem' }}>
             <div>
               <div style={{ fontFamily: 'Montserrat', fontWeight: 900, fontSize: '1.2rem', marginBottom: '0.75rem' }}>FLAT <span style={{ color: 'var(--color-safety-orange)' }}>FREE</span></div>
-              <p style={{ fontSize: '0.875rem', color: '#64748b', lineHeight: 1.6 }}>Proteção contra perfurações e ferramentas para acompanhar aplicações, posições, leituras e histórico dos pneus.</p>
+              <p style={{ fontSize: '0.875rem', color: '#64748b', lineHeight: 1.6 }}>Proteção contra perfurações, preservação da pressão e melhor aproveitamento dos pneus.</p>
             </div>
             <div>
               <h4 style={{ fontSize: '0.85rem', fontWeight: 700, marginBottom: '1rem', textTransform: 'uppercase', letterSpacing: '0.1em', color: '#64748b' }}>Navegação</h4>
               <ul style={{ listStyle: 'none', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-                {['Início:#inicio','Como funciona:#tecnologia','Benefícios:#beneficios','Calcular aplicação:#calculadora'].map(item => {
+                {['Início:#inicio','Benefícios:#beneficios','Como atua:#tecnologia','Escolha seu caminho:#caminhos'].map(item => {
                   const [label, href] = item.split(':')
                   return <li key={href}><a href={href} style={{ color: '#64748b', fontSize: '0.875rem' }}>{label}</a></li>
                 })}
@@ -528,10 +352,10 @@ export default function HomePage() {
             <div>
               <h4 style={{ fontSize: '0.85rem', fontWeight: 700, marginBottom: '1rem', textTransform: 'uppercase', letterSpacing: '0.1em', color: '#64748b' }}>Flat Free</h4>
               <ul style={{ listStyle: 'none', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-                <li><Link href="/calculadora" style={{ color: '#64748b', fontSize: '0.875rem' }}>Calcular Dosagem</Link></li>
-                <li><Link href="/solicitar" style={{ color: '#64748b', fontSize: '0.875rem' }}>Solicitar Flat Free</Link></li>
-                <li><Link href="/app" style={{ color: '#64748b', fontSize: '0.875rem' }}>Acessar Plataforma</Link></li>
-                <li><a href="#contato" style={{ color: '#64748b', fontSize: '0.875rem' }}>Conhecer gestão da frota</a></li>
+                <li><Link href="/meu-veiculo" style={{ color: '#64748b', fontSize: '0.875rem' }}>Meu veículo</Link></li>
+                <li><Link href="/frotas" style={{ color: '#64748b', fontSize: '0.875rem' }}>Para frotas</Link></li>
+                <li><Link href="/parceiros" style={{ color: '#64748b', fontSize: '0.875rem' }}>Parceiros</Link></li>
+                <li><Link href="/calculadora" style={{ color: '#64748b', fontSize: '0.875rem' }}>Calcular dosagem</Link></li>
               </ul>
             </div>
             <div>
@@ -539,13 +363,13 @@ export default function HomePage() {
               <ul style={{ listStyle: 'none', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
                 <li><Link href="/calculadora" style={{ color: '#64748b', fontSize: '0.875rem' }}>Consultar aplicação</Link></li>
                 <li><Link href="/solicitar" style={{ color: '#64748b', fontSize: '0.875rem' }}>Falar sobre Flat Free</Link></li>
-                <li><a href="#contato" style={{ color: '#64748b', fontSize: '0.875rem' }}>Quero ser parceiro</a></li>
+                <li><Link href="/parceiros" style={{ color: '#64748b', fontSize: '0.875rem' }}>Quero ser parceiro</Link></li>
               </ul>
             </div>
           </div>
           <div className="public-footer-bottom" style={{ borderTop: '1px solid rgba(255,255,255,0.05)', paddingTop: '1.5rem', fontSize: '0.8rem', color: '#64748b' }}>
             <span>© 2026 Flat Free Brasil - Todos os direitos reservados.</span>
-            <span>Proteção e gestão de pneus.</span>
+            <span>Proteção e melhor aproveitamento dos pneus.</span>
           </div>
         </div>
       </footer>
