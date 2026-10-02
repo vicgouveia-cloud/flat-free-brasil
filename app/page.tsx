@@ -339,12 +339,12 @@ export default function HomePage() {
             <div className="home-audiences-grid">
               {[
                 {
-                  badge: 'Aplicação direta',
+                  badge: 'Uso no dia a dia',
                   icon: 'fa-car-side',
                   title: 'Meu veículo',
-                  desc: 'Consulte a dosagem pela medida do pneu e prepare sua solicitação.',
-                  href: '/calculadora',
-                  cta: 'Calcular aplicação',
+                  desc: 'Conheça os benefícios, consulte a dosagem e veja como seguir para compra e aplicação.',
+                  href: '/meu-veiculo',
+                  cta: 'Ver para meu veículo',
                   isPrimary: true,
                 },
                 {
