@@ -10,6 +10,29 @@ export const metadata: Metadata = {
     template: '%s | Flat Free Brasil',
   },
   description: 'Flat Free é aplicado no interior dos pneus para proteção contra perfurações compatíveis, preservação da pressão e melhor aproveitamento dos pneus em veículos e frotas.',
+  alternates: {
+    canonical: '/',
+  },
+  openGraph: {
+    type: 'website',
+    locale: 'pt_BR',
+    url: '/',
+    siteName: 'Flat Free Brasil',
+    title: 'Flat Free Brasil | Proteção para Pneus',
+    description: 'Flat Free é aplicado no interior dos pneus para proteção contra perfurações compatíveis, preservação da pressão e melhor aproveitamento dos pneus.',
+    images: [
+      {
+        url: '/images/flat-free-product-hero.png',
+        alt: 'Flat Free Brasil',
+      },
+    ],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Flat Free Brasil | Proteção para Pneus',
+    description: 'Proteção contra perfurações compatíveis, preservação da pressão e melhor aproveitamento dos pneus.',
+    images: ['/images/flat-free-product-hero.png'],
+  },
   keywords: [
     'Flat Free',
     'selante de pneus',
