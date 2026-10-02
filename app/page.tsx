@@ -4,6 +4,34 @@ import Link from 'next/link'
 import Image from 'next/image'
 import HomeNav from '@/components/HomeNav'
 
+const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://flat-free-brasil.vercel.app'
+
+const structuredData = {
+  '@context': 'https://schema.org',
+  '@graph': [
+    {
+      '@type': 'WebSite',
+      '@id': `${siteUrl}/#website`,
+      url: siteUrl,
+      name: 'Flat Free Brasil',
+      inLanguage: 'pt-BR',
+    },
+    {
+      '@type': 'Product',
+      '@id': `${siteUrl}/#flat-free`,
+      name: 'Flat Free',
+      brand: {
+        '@type': 'Brand',
+        name: 'Flat Free',
+      },
+      image: `${siteUrl}/images/flat-free-product-hero.png`,
+      description: 'Produto aplicado no interior dos pneus para proteção contra perfurações compatíveis, preservação da pressão e melhor aproveitamento dos pneus.',
+      category: 'Proteção para pneus',
+      url: siteUrl,
+    },
+  ],
+}
+
 export default function HomePage() {
   // Contact form
   const [formState, setFormState] = useState<'idle'|'sending'|'success'|'error'>('idle')
@@ -39,6 +67,10 @@ export default function HomePage() {
 
   return (
     <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
+      />
       <HomeNav />
       <main>
         {/* HERO */}
