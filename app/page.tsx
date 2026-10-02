@@ -280,6 +280,11 @@ export default function HomePage() {
                       </div>
                     ))}
                   </div>
+                  <div style={{ marginTop: '1.25rem' }}>
+                    <Link href="/conteudo/acompanhar-pneus-e-ocorrencias" className="btn btn-outline">
+                      Ler conteúdo <i className="fas fa-arrow-right" aria-hidden="true" />
+                    </Link>
+                  </div>
                 </div>
               </article>
 
