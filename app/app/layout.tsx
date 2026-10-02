@@ -3,6 +3,10 @@ import DemoBanner from '@/components/DemoBanner'
 
 export const metadata = {
   title: 'Plataforma Flat Free - Modo Demonstração',
+  robots: {
+    index: false,
+    follow: false,
+  },
 }
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
