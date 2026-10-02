@@ -57,7 +57,7 @@ export default function HomeNav() {
           <Link href="/calculadora" className="btn btn-outline home-nav-secondary">
             Calcular Aplicação
           </Link>
-          <Link href="/solicitar" className="btn btn-primary btn-sm">
+          <Link href="/#caminhos" className="btn btn-primary btn-sm">
             Quero Flat Free
           </Link>
           <button className="home-nav-toggle" onClick={() => setMenuOpen(open => !open)} aria-label={menuOpen ? 'Fechar menu' : 'Abrir menu'} aria-expanded={menuOpen}>
