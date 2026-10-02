@@ -29,5 +29,15 @@ export default function sitemap(): MetadataRoute.Sitemap {
       changeFrequency: 'monthly',
       priority: 0.8,
     },
+    {
+      url: `${siteUrl}/conteudo`,
+      changeFrequency: 'weekly',
+      priority: 0.8,
+    },
+    {
+      url: `${siteUrl}/conteudo/acompanhar-pneus-e-ocorrencias`,
+      changeFrequency: 'monthly',
+      priority: 0.7,
+    },
   ]
 }
