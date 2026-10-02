@@ -3,16 +3,17 @@ import './globals.css'
 
 export const metadata: Metadata = {
   title: {
-    default: 'Flat Free Brasil | Proteção e Gestão de Pneus',
+    default: 'Flat Free Brasil | Proteção para Pneus',
     template: '%s | Flat Free Brasil',
   },
-  description: 'Flat Free combina proteção preventiva contra perfurações com ferramentas para acompanhar aplicações, posições, leituras e histórico dos pneus de veículos e frotas.',
+  description: 'Flat Free é aplicado no interior dos pneus para proteção contra perfurações compatíveis, preservação da pressão e melhor aproveitamento dos pneus em veículos e frotas.',
   keywords: [
     'Flat Free',
     'selante de pneus',
     'proteção contra perfurações',
-    'gestão de pneus',
-    'gestão de pneus de frota',
+    'proteção de pneus',
+    'aplicação em pneus',
+    'Flat Free para frotas',
     'dosagem de selante para pneus',
   ],
   other: {
