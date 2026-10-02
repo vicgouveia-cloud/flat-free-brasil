@@ -49,7 +49,7 @@ function SolicitarForm() {
   const searchParams = useSearchParams()
   const [calcItems, setCalcItems] = useState<CalcItem[]>([])
   const [submitted, setSubmitted] = useState(false)
-  const [interest, setInterest] = useState<'geral' | 'produto' | 'gestao'>('geral')
+  const [interest, setInterest] = useState<'geral' | 'produto' | 'gestao' | 'compra'>('geral')
   const [form, setForm] = useState({
     perfil: 'frota',
     nomeEmpresa: '', razaoSocial: '', cnpj: '',
@@ -64,7 +64,7 @@ function SolicitarForm() {
     if (perfil === 'frota' || perfil === 'particular' || perfil === 'parceiro') {
       setForm(prev => ({ ...prev, perfil }))
     }
-    if (interesse === 'produto' || interesse === 'gestao') {
+    if (interesse === 'produto' || interesse === 'gestao' || interesse === 'compra') {
       setInterest(interesse)
     }
 
@@ -186,7 +186,7 @@ function SolicitarForm() {
           _subject: '[FLAT FREE] Novo interesse pelo site',
           _template: 'table',
           Perfil: form.perfil === 'frota' ? 'Empresa / frota' : form.perfil === 'particular' ? 'Veículo particular' : 'Instalador / revendedor',
-          Interesse_inicial: interest === 'produto' ? 'Produto / teste na frota' : interest === 'gestao' ? 'Acesso à gestão de pneus' : 'Atendimento geral',
+          Interesse_inicial: interest === 'produto' ? 'Produto / teste na frota' : interest === 'gestao' ? 'Acesso à gestão de pneus' : interest === 'compra' ? 'Compra / aplicação no veículo' : 'Atendimento geral',
           Nome_ou_empresa: form.nomeEmpresa,
           Razao_social: form.razaoSocial || 'Não informado',
           CNPJ: form.cnpj || 'Não informado',
