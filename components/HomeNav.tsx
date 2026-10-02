@@ -46,7 +46,7 @@ export default function HomeNav() {
           <Link href="/#inicio" onClick={() => setMenuOpen(false)}>Produto</Link>
           <Link href="/meu-veiculo" onClick={() => setMenuOpen(false)}>Meu veículo</Link>
           <Link href="/frotas" onClick={() => setMenuOpen(false)}>Para frotas</Link>
-          <Link href="/#artigos" onClick={() => setMenuOpen(false)}>Conteúdo</Link>
+          <Link href="/conteudo" onClick={() => setMenuOpen(false)}>Conteúdo</Link>
           <Link href="/parceiros" onClick={() => setMenuOpen(false)}>Parceiros</Link>
         </nav>
 
