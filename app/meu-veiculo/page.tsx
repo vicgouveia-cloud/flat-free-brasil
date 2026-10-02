@@ -33,8 +33,8 @@ const steps = [
   },
   {
     step: '03',
-    title: 'Solicite atendimento',
-    desc: 'Envie seus dados para confirmar disponibilidade, aplicação e orientação de compra.',
+    title: 'Encontre atendimento',
+    desc: 'Envie sua cidade e os dados do veículo para receber orientação sobre revenda ou aplicação na sua região.',
   },
 ]
 
@@ -55,8 +55,8 @@ export default function MeuVeiculoPage() {
                 <Link href="/calculadora" className="btn btn-primary btn-lg">
                   <i className="fas fa-calculator" aria-hidden="true" /> Calcular aplicação
                 </Link>
-                <Link href="/solicitar?perfil=particular&interesse=compra" className="btn btn-secondary btn-lg">
-                  Quero Flat Free
+                <Link href="/solicitar?perfil=particular&interesse=onde-aplicar" className="btn btn-secondary btn-lg">
+                  Onde comprar ou aplicar
                 </Link>
               </div>
             </div>
@@ -124,8 +124,8 @@ export default function MeuVeiculoPage() {
                 <Link href="/calculadora" className="btn btn-outline">
                   Calcular dosagem
                 </Link>
-                <Link href="/solicitar?perfil=particular&interesse=compra" className="btn btn-primary">
-                  Solicitar atendimento
+                <Link href="/solicitar?perfil=particular&interesse=onde-aplicar" className="btn btn-primary">
+                  Onde comprar ou aplicar
                 </Link>
               </div>
             </div>
@@ -136,14 +136,14 @@ export default function MeuVeiculoPage() {
           <div className="container" style={{ maxWidth: '820px' }}>
             <div className="section-header">
               <span className="section-tag">Compra e aplicação</span>
-              <h2 id="vehicle-application-title" className="section-title">Quer saber onde comprar ou aplicar Flat Free?</h2>
+              <h2 id="vehicle-application-title" className="section-title">Encontre quem vende ou aplica Flat Free.</h2>
               <p className="section-description">
-                Envie sua cidade, veículo e medida dos pneus. A equipe poderá orientar disponibilidade, quantidade e opções de atendimento conforme sua região.
+                Para veículos de passeio, a compra e a aplicação acontecem por revendedores, aplicadores, oficinas, borracharias, concessionárias e outros pontos de serviço. Envie sua cidade, veículo e medida dos pneus para receber orientação de atendimento na sua região.
               </p>
             </div>
             <div style={{ display: 'flex', justifyContent: 'center' }}>
-              <Link href="/solicitar?perfil=particular&interesse=compra" className="btn btn-primary btn-lg">
-                Quero Flat Free <i className="fas fa-arrow-right" aria-hidden="true" />
+              <Link href="/solicitar?perfil=particular&interesse=onde-aplicar" className="btn btn-primary btn-lg">
+                Onde comprar ou aplicar <i className="fas fa-arrow-right" aria-hidden="true" />
               </Link>
             </div>
           </div>
