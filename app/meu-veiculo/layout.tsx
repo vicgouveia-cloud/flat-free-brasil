@@ -2,7 +2,7 @@ import type { Metadata } from 'next'
 
 export const metadata: Metadata = {
   title: 'Flat Free para Meu Veículo',
-  description: 'Conheça Flat Free para seu veículo, consulte a dosagem pela medida dos pneus e solicite orientação para compra e aplicação.',
+  description: 'Conheça Flat Free para seu veículo, consulte a dosagem e saiba como encontrar revenda ou aplicação na sua região.',
 }
 
 export default function MeuVeiculoLayout({ children }: { children: React.ReactNode }) {
