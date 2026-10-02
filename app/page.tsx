@@ -360,9 +360,9 @@ export default function HomePage() {
                   badge: 'Rede de atendimento',
                   icon: 'fa-screwdriver-wrench',
                   title: 'Instalar ou revender',
-                  desc: 'Converse sobre instalação, atendimento e revenda Flat Free.',
-                  href: '#contato',
-                  cta: 'Quero ser parceiro',
+                  desc: 'Conheça o produto, a aplicação e como conversar com a Flat Free Brasil sobre fornecimento e parceria.',
+                  href: '/parceiros',
+                  cta: 'Ver para parceiros',
                   isPrimary: false,
                 },
               ].map(item => (
