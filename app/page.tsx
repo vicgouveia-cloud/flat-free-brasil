@@ -125,16 +125,18 @@ export default function HomePage() {
                   desc: 'O produto foi submetido a testes de estabilidade em temperaturas extremas.',
                 },
               ].map(item => (
-                <article key={item.title} className="card">
+                <article key={item.title} className={`card${item.image ? ' home-highlight-card-image' : ''}`}>
                   {item.image ? (
-                    <Image
-                      src={item.image}
-                      alt="Equipamento real de aplicação Flat Free"
-                      width={371}
-                      height={405}
-                      sizes="(max-width: 600px) calc(100vw - 80px), 220px"
-                      style={{ width: '100%', height: '150px', objectFit: 'cover', borderRadius: '10px', marginBottom: '1rem' }}
-                    />
+                    <div className="home-highlight-real-media">
+                      <Image
+                        src={item.image}
+                        alt="Equipamento real de aplicação Flat Free"
+                        width={371}
+                        height={405}
+                        sizes="(max-width: 600px) calc(100vw - 48px), (max-width: 900px) 45vw, 260px"
+                      />
+                      <span>Aplicação real</span>
+                    </div>
                   ) : (
                     <div className="home-journey-icon">
                       <i className={`fas ${item.icon ?? ''}`} aria-hidden="true" />
