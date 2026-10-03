@@ -863,3 +863,50 @@ a {
     padding: 1.5rem;
   }
 }
+
+
+/* Pre-launch public polish */
+@media (max-width: 700px) {
+  .section {
+    padding: 3.5rem 0;
+  }
+
+  .container {
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+
+  .card {
+    padding: 1.15rem;
+  }
+
+  .table {
+    display: block;
+    width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    white-space: nowrap;
+  }
+
+  .table th,
+  .table td {
+    padding: 0.7rem 0.8rem;
+  }
+
+  .btn {
+    min-height: 44px;
+  }
+}
+
+.public-footer-grid a {
+  transition: color .2s ease;
+}
+
+.public-footer-grid a:hover,
+.public-footer-grid a:focus-visible {
+  color: #cbd5e1 !important;
+}
+
+.public-footer-bottom {
+  color: #94a3b8 !important;
+}
