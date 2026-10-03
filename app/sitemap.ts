@@ -1,6 +1,6 @@
 import type { MetadataRoute } from 'next'
 
-const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://flat-free-brasil.vercel.app'
+const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://flatfreebrasil.com.br'
 
 export default function sitemap(): MetadataRoute.Sitemap {
   return [
@@ -38,6 +38,16 @@ export default function sitemap(): MetadataRoute.Sitemap {
       url: `${siteUrl}/conteudo/acompanhar-pneus-e-ocorrencias`,
       changeFrequency: 'monthly',
       priority: 0.7,
+    },
+    {
+      url: `${siteUrl}/privacidade`,
+      changeFrequency: 'yearly',
+      priority: 0.3,
+    },
+    {
+      url: `${siteUrl}/termos`,
+      changeFrequency: 'yearly',
+      priority: 0.3,
     },
   ]
 }
