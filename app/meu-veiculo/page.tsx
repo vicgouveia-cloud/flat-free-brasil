@@ -23,18 +23,18 @@ const benefits = [
 const steps = [
   {
     step: '01',
-    title: 'Informe a medida',
-    desc: 'Consulte a medida escrita na lateral do pneu e use a calculadora para obter a dosagem de referência.',
+    title: 'Identifique seu veículo e pneus',
+    desc: 'Tenha em mãos o modelo do veículo, sua cidade e, se possível, a medida indicada na lateral dos pneus.',
   },
   {
     step: '02',
-    title: 'Calcule a aplicação',
-    desc: 'Veja a quantidade indicada por pneu e o total necessário para o conjunto do veículo.',
+    title: 'Encontre revenda ou aplicação',
+    desc: 'A Flat Free Brasil orienta você sobre revendedores, aplicadores, oficinas, borracharias ou outros pontos de atendimento na sua região.',
   },
   {
     step: '03',
-    title: 'Encontre atendimento',
-    desc: 'Envie sua cidade e os dados do veículo para receber orientação sobre revenda ou aplicação na sua região.',
+    title: 'Faça a aplicação',
+    desc: 'A dosagem varia conforme a medida do pneu. A aplicação é feita pela válvula, com a quantidade adequada para cada pneu.',
   },
 ]
 
@@ -52,11 +52,11 @@ export default function MeuVeiculoPage() {
                 Flat Free é aplicado no interior dos pneus para proteger contra perfurações compatíveis, ajudar a preservar a pressão e contribuir para melhor aproveitamento dos pneus no uso diário.
               </p>
               <div className="home-product-hero-actions">
-                <Link href="/calculadora" className="btn btn-primary btn-lg">
-                  <i className="fas fa-calculator" aria-hidden="true" /> Calcular aplicação
+                <Link href="/solicitar?perfil=particular&interesse=onde-aplicar" className="btn btn-primary btn-lg">
+                  Onde comprar ou aplicar <i className="fas fa-arrow-right" aria-hidden="true" />
                 </Link>
-                <Link href="/solicitar?perfil=particular&interesse=onde-aplicar" className="btn btn-secondary btn-lg">
-                  Onde comprar ou aplicar
+                <Link href="/calculadora" className="btn btn-secondary btn-lg">
+                  <i className="fas fa-calculator" aria-hidden="true" /> Calcular aplicação
                 </Link>
               </div>
             </div>
@@ -103,8 +103,8 @@ export default function MeuVeiculoPage() {
         <section className="section" style={{ background: 'var(--bg-surface-elevated)' }} aria-labelledby="vehicle-steps-title">
           <div className="container">
             <div className="section-header">
-              <span className="section-tag">Do pneu ao atendimento</span>
-              <h2 id="vehicle-steps-title" className="section-title">Descubra quanto precisa e siga para a aplicação.</h2>
+              <span className="section-tag">Como comprar e aplicar</span>
+              <h2 id="vehicle-steps-title" className="section-title">Do seu veículo ao ponto de atendimento.</h2>
             </div>
             <div className="grid-3">
               {steps.map(item => (
@@ -117,37 +117,21 @@ export default function MeuVeiculoPage() {
             </div>
             <div className="home-tech-journey-cta" style={{ marginTop: '2rem' }}>
               <div className="home-tech-cta-copy">
-                <h4>Já sabe a medida dos pneus?</h4>
-                <p>Calcule a quantidade de referência ou envie seus dados para receber orientação de atendimento.</p>
+                <h4>Quer encontrar onde comprar ou aplicar?</h4>
+                <p>Informe sua cidade e os dados do veículo. A calculadora fica disponível como apoio para consultar a dosagem por medida.</p>
               </div>
               <div className="home-tech-cta-actions">
+                <Link href="/solicitar?perfil=particular&interesse=onde-aplicar" className="btn btn-primary">
+                  Encontrar atendimento
+                </Link>
                 <Link href="/calculadora" className="btn btn-outline">
                   Calcular dosagem
-                </Link>
-                <Link href="/solicitar?perfil=particular&interesse=onde-aplicar" className="btn btn-primary">
-                  Onde comprar ou aplicar
                 </Link>
               </div>
             </div>
           </div>
         </section>
 
-        <section className="section" aria-labelledby="vehicle-application-title">
-          <div className="container" style={{ maxWidth: '820px' }}>
-            <div className="section-header">
-              <span className="section-tag">Compra e aplicação</span>
-              <h2 id="vehicle-application-title" className="section-title">Encontre quem vende ou aplica Flat Free.</h2>
-              <p className="section-description">
-                Para veículos de passeio, a compra e a aplicação acontecem por revendedores, aplicadores, oficinas, borracharias, concessionárias e outros pontos de serviço. Envie sua cidade, veículo e medida dos pneus para receber orientação de atendimento na sua região.
-              </p>
-            </div>
-            <div style={{ display: 'flex', justifyContent: 'center' }}>
-              <Link href="/solicitar?perfil=particular&interesse=onde-aplicar" className="btn btn-primary btn-lg">
-                Onde comprar ou aplicar <i className="fas fa-arrow-right" aria-hidden="true" />
-              </Link>
-            </div>
-          </div>
-        </section>
       </main>
     </>
   )
