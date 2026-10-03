@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import HomeNav from '@/components/HomeNav'
+import PublicFooter from '@/components/PublicFooter'
 
 export const metadata: Metadata = {
   title: 'Política de Privacidade',
@@ -58,6 +59,7 @@ export default function PrivacidadePage() {
           </div>
         </div>
       </main>
+      <PublicFooter />
     </>
   )
 }
