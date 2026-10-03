@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import Image from 'next/image'
 import HomeNav from '@/components/HomeNav'
+import PublicFooter from '@/components/PublicFooter'
 
 const topics = [
   {
@@ -122,6 +123,7 @@ export default function ConteudoPage() {
           </div>
         </section>
       </main>
+      <PublicFooter />
     </>
   )
 }
