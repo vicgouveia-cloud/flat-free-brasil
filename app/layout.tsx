@@ -1,7 +1,7 @@
 import type { Metadata } from 'next'
 import './globals.css'
 
-const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://flat-free-brasil.vercel.app'
+const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://flatfreebrasil.com.br'
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
@@ -42,6 +42,11 @@ export const metadata: Metadata = {
     'Flat Free para frotas',
     'dosagem de selante para pneus',
   ],
+  icons: {
+    icon: '/images/flat-free-logo.png',
+    shortcut: '/images/flat-free-logo.png',
+    apple: '/images/flat-free-logo.png',
+  },
   other: {
     'google-site-verification': 'google1f0a646a60421833',
   },
