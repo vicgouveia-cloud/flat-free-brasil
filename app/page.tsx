@@ -1,5 +1,3 @@
-'use client'
-import { useState } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
 import HomeNav from '@/components/HomeNav'
@@ -33,38 +31,6 @@ const structuredData = {
 }
 
 export default function HomePage() {
-  // Contact form
-  const [formState, setFormState] = useState<'idle'|'sending'|'success'|'error'>('idle')
-  const [showModal, setShowModal] = useState(false)
-  const [formData, setFormData] = useState({ perfil: 'frota', nome: '', empresa: '', email: '', frota: '11-50', mensagem: '' })
-
-  async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault()
-    if (!formData.nome || !formData.email || (formData.perfil !== 'particular' && !formData.empresa)) {
-      alert('Por favor, preencha os campos obrigatórios.')
-      return
-    }
-    setFormState('sending')
-    try {
-      const res = await fetch('https://formsubmit.co/ajax/vicgouveia@gmail.com', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
-        body: JSON.stringify({
-          _subject: '[FLAT FREE] Novo contato pelo site',
-          _template: 'table',
-          Perfil: formData.perfil === 'frota' ? 'Empresa / frota' : formData.perfil === 'particular' ? 'Veículo particular' : 'Instalador / revendedor',
-          Nome: formData.nome,
-          Empresa: formData.empresa || 'Não informado',
-          Email: formData.email,
-          Tamanho_da_Frota: formData.perfil === 'frota' ? formData.frota : 'Não se aplica',
-          Mensagem: formData.mensagem || 'Sem mensagem adicional.',
-        }),
-      })
-      if (res.ok) { setShowModal(true); setFormState('idle') }
-      else setFormState('error')
-    } catch { setFormState('error') }
-  }
-
   return (
     <>
       <script
@@ -83,8 +49,10 @@ export default function HomePage() {
                 Conheça Flat Free, o produto aplicado no interior dos pneus para proteção contra perfurações, preservação da pressão e melhor aproveitamento dos pneus em operação.
               </p>
               <div className="home-product-hero-actions">
-                <a href="#caminhos" className="btn btn-primary btn-lg">Quero Flat Free <i className="fas fa-arrow-right" aria-hidden="true" /></a>
-                <Link href="/calculadora" className="btn btn-secondary btn-lg"><i className="fas fa-calculator" aria-hidden="true" /> Calcular aplicação</Link>
+                <a href="#produto" className="btn btn-primary btn-lg">Conheça o Flat Free <i className="fas fa-arrow-right" aria-hidden="true" /></a>
+                <a href="https://www.youtube.com/@flatfreebrasil" className="btn btn-secondary btn-lg" target="_blank" rel="noreferrer">
+                  <i className="fab fa-youtube" aria-hidden="true" /> Ver demonstrações
+                </a>
               </div>
             </div>
             <figure className="home-product-hero-visual">
@@ -95,16 +63,16 @@ export default function HomePage() {
         </section>
 
         {/* BENEFITS */}
-        <section id="beneficios" className="section" aria-labelledby="home-beneficios-title">
+        <section id="produto" className="section" aria-labelledby="home-beneficios-title">
           <div className="container">
             <div className="section-header">
-              <span className="section-tag">Benefícios do produto</span>
+              <span className="section-tag">Conheça o Flat Free</span>
               <h2 id="home-beneficios-title" className="section-title">Proteção, pressão e maior aproveitamento do pneu.</h2>
-              <p className="section-description">Flat Free atua dentro do pneu para ajudar a preservar sua condição de rodagem, reduzir efeitos de perfurações compatíveis e contribuir para maior durabilidade e eficiência operacional.</p>
+              <p className="section-description">Aplicado no interior do pneu, Flat Free permanece disponível durante a rodagem para atuar em perfurações compatíveis e ajudar a preservar a condição de uso do pneu.</p>
             </div>
             <div className="grid-3">
               {[
-                { icon: 'fa-shield-halved', title: 'Proteção contra perfurações', desc: 'O produto atua na região interna da banda de rodagem e é direcionado para perfurações compatíveis, ajudando a manter o pneu em operação.', tag: 'Proteção' },
+                { icon: 'fa-shield-halved', title: 'Proteção contra perfurações', desc: 'Atua em perfurações compatíveis na região da banda de rodagem, inclusive aberturas de até cerca de 6 mm de diâmetro.', tag: 'Proteção' },
                 { icon: 'fa-gauge-high', title: 'Manutenção da pressão', desc: 'Ao vedar perfurações compatíveis, Flat Free ajuda a preservar a calibragem e a condição de rodagem do pneu.', tag: 'Calibragem' },
                 { icon: 'fa-road', title: 'Maior vida útil e eficiência', desc: 'A manutenção da pressão e a distribuição interna do produto ajudam a reduzir fatores associados ao desgaste prematuro e à resistência ao rolamento.', tag: 'Durabilidade' },
               ].map(card => (
@@ -121,75 +89,59 @@ export default function HomePage() {
           </div>
         </section>
 
-        {/* TECHNOLOGY / PRODUCT ACTION */}
-        <section id="tecnologia" className="section home-tech-section" aria-labelledby="home-tech-title">
+        {/* PRODUCT HIGHLIGHTS */}
+        <section id="caracteristicas" className="section home-tech-section" aria-labelledby="home-highlights-title">
           <div className="container">
             <div className="section-header">
-              <span className="section-tag">Ação do produto no pneu</span>
-              <h2 id="home-tech-title" className="section-title">Como o Flat Free atua</h2>
-              <p className="section-description">
-                O produto é aplicado diretamente no interior do pneu para criar uma camada preventiva de proteção na região interna da banda de rodagem, sem necessidade de desmontar a roda.
-              </p>
+              <span className="section-tag">Destaques do produto</span>
+              <h2 id="home-highlights-title" className="section-title">Características do Flat Free</h2>
+              <p className="section-description">Pontos práticos sobre aplicação e comportamento do produto dentro do pneu.</p>
             </div>
 
-            {/* 4-step sequence: Aplicar -> Distribuir -> Atuar na perfuração -> Acompanhar */}
-            <div className="home-tech-steps-grid">
+            <div className="grid-4">
               {[
                 {
-                  step: '01',
                   icon: 'fa-droplet',
-                  title: 'Aplicar pela válvula',
-                  desc: 'Injetado pela haste da válvula com o pneu montado na roda. Processo direto e limpo, sem necessidade de desmontagem da carcaça.',
+                  title: 'Aplicação pela válvula',
+                  desc: 'É aplicado pela haste da válvula com o pneu montado, sem necessidade de desmontar a roda.',
                 },
                 {
-                  step: '02',
-                  icon: 'fa-arrows-spin',
-                  title: 'Distribuir em rodagem',
-                  desc: 'Com o giro e o rodar do veículo, o produto se distribui de maneira uniforme sobre a região interna da banda de rodagem.',
+                  icon: 'fa-hourglass-half',
+                  title: 'Não seca no pneu',
+                  desc: 'Permanece em condição líquida no interior do pneu, disponível durante o ciclo de uso.',
                 },
                 {
-                  step: '03',
-                  icon: 'fa-shield-halved',
-                  title: 'Atuar na perfuração',
-                  desc: 'Na ocorrência de uma perfuração compatível com a especificação, o produto é direcionado pela pressão para o ponto perfurado.',
+                  icon: 'fa-fire-flame-curved',
+                  title: 'Não inflamável',
+                  desc: 'A formulação é não inflamável e foi desenvolvida para uso preventivo dentro do pneu.',
                 },
                 {
-                  step: '04',
-                  icon: 'fa-gauge-high',
-                  title: 'Manter a proteção em rodagem',
-                  desc: 'Durante a rodagem, o produto permanece distribuído na região interna do pneu e disponível para atuar em novas perfurações compatíveis.',
+                  icon: 'fa-temperature-half',
+                  title: 'Testado em condições extremas',
+                  desc: 'O produto foi submetido a testes de estabilidade em temperaturas extremas.',
                 },
               ].map(item => (
-                <div key={item.step} className="home-tech-step-card">
-                  <div className="home-tech-step-top">
-                    <span className="home-tech-step-num">{item.step}</span>
-                    <div className="home-tech-step-icon">
-                      <i className={`fas ${item.icon}`} aria-hidden="true" />
-                    </div>
+                <article key={item.title} className="card">
+                  <div className="home-journey-icon">
+                    <i className={`fas ${item.icon}`} aria-hidden="true" />
                   </div>
-                  <h4>{item.title}</h4>
-                  <p>{item.desc}</p>
-                </div>
+                  <h3 style={{ fontSize: '1rem', fontWeight: 800, marginBottom: '.55rem' }}>{item.title}</h3>
+                  <p style={{ color: 'var(--text-secondary)', fontSize: '.86rem', lineHeight: 1.6 }}>{item.desc}</p>
+                </article>
               ))}
             </div>
 
-            <div className="home-tech-diagram-card" style={{ maxWidth: '760px', margin: '0 auto' }}>
-              <div className="home-tech-diagram-media">
-                <Image
-                  src="/images/tire_diagram_3d.jpg"
-                  alt="Diagrama ilustrativo do corte transversal do pneu com camada interna protegida por Flat Free"
-                  width={1000}
-                  height={600}
-                  sizes="(max-width: 900px) calc(100vw - 48px), 760px"
-                  style={{ width: '100%', height: 'auto', display: 'block' }}
-                />
+            <div className="home-tech-journey-cta" style={{ marginTop: '2rem' }}>
+              <div className="home-tech-cta-copy">
+                <h4>Veja o Flat Free na prática</h4>
+                <p>Demonstrações de aplicação e funcionamento estão disponíveis no canal Flat Free Brasil.</p>
               </div>
-              <div className="home-tech-diagram-caption">
-                <span className="home-tech-caption-badge">Como atua no pneu</span>
-                <p>Representação esquemática da distribuição do produto na região interna da banda de rodagem durante o uso.</p>
+              <div className="home-tech-cta-actions">
+                <a href="https://www.youtube.com/@flatfreebrasil" className="btn btn-primary" target="_blank" rel="noreferrer">
+                  <i className="fab fa-youtube" aria-hidden="true" /> Ver demonstrações
+                </a>
               </div>
             </div>
-
           </div>
         </section>
 
@@ -197,9 +149,9 @@ export default function HomePage() {
         <section id="caminhos" className="section home-audiences-section" aria-labelledby="home-audiences-title">
           <div className="container">
             <div className="section-header">
-              <span className="section-tag">Próximo passo</span>
-              <h2 id="home-audiences-title" className="section-title">Escolha como seguir com o Flat Free</h2>
-              <p className="section-description">Escolha o caminho que corresponde ao seu uso. Cada página aprofunda somente o que faz sentido para aquele perfil.</p>
+              <span className="section-tag">Para você, sua empresa ou seu negócio</span>
+              <h2 id="home-audiences-title" className="section-title">Como você quer usar o Flat Free?</h2>
+              <p className="section-description">Escolha a opção que corresponde ao seu perfil para ver informações, atendimento e próximos passos.</p>
             </div>
             <div className="home-audiences-grid">
               {[
@@ -224,10 +176,10 @@ export default function HomePage() {
                 {
                   badge: 'Rede de atendimento',
                   icon: 'fa-screwdriver-wrench',
-                  title: 'Instalar ou revender',
+                  title: 'Revenda e instalação',
                   desc: 'Conheça o produto, a aplicação e como conversar com a Flat Free Brasil sobre fornecimento e parceria.',
                   href: '/parceiros',
-                  cta: 'Ver para parceiros',
+                  cta: 'Quero revender',
                   isPrimary: false,
                 },
               ].map(item => (
@@ -247,127 +199,22 @@ export default function HomePage() {
           </div>
         </section>
 
-        {/* ARTICLES */}
-        <section id="artigos" className="section">
+        {/* CONTENT */}
+        <section className="section" style={{ padding: '2.25rem 0' }} aria-label="Conteúdo e demonstrações">
           <div className="container">
-            <div className="section-header">
-              <span className="section-tag">Conteúdo e conhecimento</span>
-              <h2 className="section-title">Entenda melhor pneus, aplicação e operação.</h2>
-              <p className="section-description">Conteúdo para quem quer conhecer melhor perfurações, pressão, desgaste, aplicação do produto e gestão de pneus.</p>
-            </div>
-            <div style={{ maxWidth: '920px', margin: '0 auto' }}>
-              <article className="card" style={{ padding: 0, overflow: 'hidden' }}>
-                <div style={{ position: 'relative' }}>
-                  <img src="/images/hero_trucks_fleet.jpg" alt="Caminhões em operação de frota" style={{ width: '100%', height: '220px', objectFit: 'cover', display: 'block' }} />
-                  <span style={{ position: 'absolute', top: '1rem', left: '1rem', background: 'var(--color-safety-orange)', color: '#fff', padding: '0.25rem 0.75rem', borderRadius: '50px', fontSize: '0.75rem', fontWeight: 700 }}>Operação &amp; prevenção</span>
-                </div>
-                <div style={{ padding: '1.5rem' }}>
-                  <div style={{ display: 'flex', gap: '1rem', fontSize: '0.8rem', color: 'var(--text-muted)', marginBottom: '0.75rem' }}>
-                    <span><i className="far fa-clock" /> 5 min de leitura</span>
-                    <span><i className="far fa-calendar-alt" /> Atualizado em 2026</span>
-                  </div>
-                  <h3 style={{ fontWeight: 800, marginBottom: '0.75rem', fontSize: '1.2rem' }}>Por que acompanhar pneus e ocorrências na operação</h3>
-                  <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', marginBottom: '1.25rem', lineHeight: 1.6 }}>Perfurações, paradas, trocas e movimentações fazem parte da rotina de pneus. Registrar essas ocorrências junto com leituras e posições ajuda a construir um histórico útil para acompanhar a operação.</p>
-                  <div className="article-subgrid">
-                    {[
-                      { icon: 'fa-wrench', title: 'Ocorrências', desc: 'Registre perfurações, intervenções e outros eventos relevantes ao longo do uso.' },
-                      { icon: 'fa-ruler-vertical', title: 'Leituras', desc: 'Acompanhe sulco, quilometragem e outros dados registrados nas inspeções.' },
-                      { icon: 'fa-route', title: 'Histórico', desc: 'Relacione veículo, posição, aplicações e movimentações de cada pneu.' },
-                    ].map(b => (
-                      <div key={b.title} style={{ background: 'var(--bg-surface-elevated)', borderRadius: '8px', padding: '1rem' }}>
-                        <h5 style={{ marginBottom: '0.4rem', fontSize: '0.85rem' }}><i className={`fas ${b.icon}`} style={{ color: 'var(--color-safety-orange)', marginRight: '0.4rem' }} />{b.title}</h5>
-                        <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>{b.desc}</p>
-                      </div>
-                    ))}
-                  </div>
-                  <div style={{ marginTop: '1.25rem' }}>
-                    <Link href="/conteudo/acompanhar-pneus-e-ocorrencias" className="btn btn-outline">
-                      Ler conteúdo <i className="fas fa-arrow-right" aria-hidden="true" />
-                    </Link>
-                  </div>
-                </div>
-              </article>
-
-            </div>
-          </div>
-        </section>
-
-        {/* CONTACT */}
-        <section id="contato" className="section" style={{ background: 'var(--bg-surface-elevated)' }}>
-          <div className="container">
-            <div className="grid-2" style={{ alignItems: 'start' }}>
-              <div>
-                <span className="section-tag">Fale com a Flat Free</span>
-                <h3 style={{ fontSize: '1.75rem', fontWeight: 800, margin: '1rem 0' }}>Produto, frota ou parceria: fale com a gente</h3>
-                <p style={{ color: 'var(--text-secondary)', marginBottom: '2rem' }}>Use o formulário para conversar sobre aplicação em frotas, uso no seu veículo ou interesse em instalar e revender Flat Free.</p>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '.75rem', color: 'var(--text-secondary)', fontSize: '.9rem' }}>
-                  <Link href="/meu-veiculo">Meu veículo <i className="fas fa-arrow-right" aria-hidden="true" /></Link>
-                  <Link href="/frotas">Frotas e empresas <i className="fas fa-arrow-right" aria-hidden="true" /></Link>
-                  <Link href="/parceiros">Instalar ou revender <i className="fas fa-arrow-right" aria-hidden="true" /></Link>
-                </div>
+            <div className="home-tech-journey-cta">
+              <div className="home-tech-cta-copy">
+                <h4>Conteúdo e demonstrações</h4>
+                <p>Vídeos e artigos sobre aplicação, pneus, operação e uso do Flat Free.</p>
               </div>
-              <div className="card">
-                <h3 style={{ fontSize: '1.35rem', fontWeight: 800, marginBottom: '1.5rem' }}>Entrar em contato</h3>
-                <form onSubmit={handleSubmit}>
-                  <div className="form-group">
-                    <label className="form-label">Como podemos atender você? *</label>
-                    <select className="form-control" value={formData.perfil} onChange={e => setFormData(p => ({...p, perfil: e.target.value}))}>
-                      <option value="frota">Empresa / frota</option>
-                      <option value="particular">Meu veículo</option>
-                      <option value="parceiro">Quero instalar ou revender</option>
-                    </select>
-                  </div>
-                  <div className="contact-form-grid">
-                    <div className="form-group">
-                      <label className="form-label">Nome Completo *</label>
-                      <input type="text" className="form-control" placeholder="Seu nome" required value={formData.nome} onChange={e => setFormData(p => ({...p, nome: e.target.value}))} />
-                    </div>
-                    <div className="form-group">
-                      <label className="form-label">{formData.perfil === 'particular' ? 'Empresa (opcional)' : 'Empresa / estabelecimento *'}</label>
-                      <input type="text" className="form-control" placeholder={formData.perfil === 'particular' ? 'Opcional' : 'Nome da empresa ou estabelecimento'} required={formData.perfil !== 'particular'} value={formData.empresa} onChange={e => setFormData(p => ({...p, empresa: e.target.value}))} />
-                    </div>
-                    <div className="form-group">
-                      <label className="form-label">E-mail *</label>
-                      <input type="email" className="form-control" placeholder="seu@email.com" required value={formData.email} onChange={e => setFormData(p => ({...p, email: e.target.value}))} />
-                    </div>
-                    {formData.perfil === 'frota' && (
-                      <div className="form-group">
-                        <label className="form-label">Tamanho da Frota</label>
-                        <select className="form-control" value={formData.frota} onChange={e => setFormData(p => ({...p, frota: e.target.value}))}>
-                          <option value="1-10">1 a 10 veículos</option>
-                          <option value="11-50">11 a 50 veículos</option>
-                          <option value="51-200">51 a 200 veículos</option>
-                          <option value="200+">Mais de 200 veículos</option>
-                        </select>
-                      </div>
-                    )}
-                  </div>
-                  <div className="form-group">
-                    <label className="form-label">Como podemos ajudar?</label>
-                    <textarea className="form-control" rows={4} placeholder={formData.perfil === 'parceiro' ? 'Conte sobre seu estabelecimento e interesse em instalar ou revender Flat Free...' : formData.perfil === 'particular' ? 'Conte qual veículo, medida dos pneus ou necessidade você quer atender...' : 'Conte sobre sua frota, veículos, pneus ou necessidade...'} value={formData.mensagem} onChange={e => setFormData(p => ({...p, mensagem: e.target.value}))} />
-                  </div>
-                  <button type="submit" className="btn btn-primary btn-lg" style={{ width: '100%', justifyContent: 'center' }} disabled={formState === 'sending'}>
-                    {formState === 'sending' ? <><i className="fas fa-spinner fa-spin" /> Enviando...</> : <><i className="fas fa-paper-plane" /> Enviar Contato</>}
-                  </button>
-                  <p style={{ fontSize: '0.78rem', color: 'var(--text-muted)', textAlign: 'center', marginTop: '0.75rem' }}><i className="fas fa-lock" /> Usaremos seus dados para responder ao seu contato e dar continuidade ao atendimento solicitado.</p>
-                </form>
+              <div className="home-tech-cta-actions">
+                <Link href="/conteudo" className="btn btn-outline">Acessar conteúdo <i className="fas fa-arrow-right" aria-hidden="true" /></Link>
               </div>
             </div>
           </div>
         </section>
+
       </main>
-
-      {/* SUCCESS MODAL */}
-      {showModal && (
-        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.7)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }} onClick={() => setShowModal(false)}>
-          <div style={{ background: 'var(--bg-surface)', borderRadius: '16px', padding: '2.5rem', maxWidth: '420px', width: '90%', textAlign: 'center' }} onClick={e => e.stopPropagation()}>
-            <i className="fas fa-circle-check" style={{ fontSize: '3rem', color: 'var(--color-industrial-lime)', marginBottom: '1rem', display: 'block' }} />
-            <h3 style={{ fontSize: '1.5rem', marginBottom: '0.75rem' }}>Solicitação enviada com sucesso.</h3>
-            <p style={{ color: 'var(--text-secondary)', marginBottom: '1.5rem', fontSize: '0.9rem' }}>Obrigado pelo contato. Os detalhes foram encaminhados à nossa equipe de atendimento.</p>
-            <button className="btn btn-primary" onClick={() => setShowModal(false)}>Concluir</button>
-          </div>
-        </div>
-      )}
 
       {/* FOOTER */}
       <footer style={{ background: '#0a0f1e', color: '#fff', padding: '3rem 0 1.5rem', borderTop: '1px solid rgba(255,255,255,0.05)' }}>
@@ -380,7 +227,7 @@ export default function HomePage() {
             <div>
               <h4 style={{ fontSize: '0.85rem', fontWeight: 700, marginBottom: '1rem', textTransform: 'uppercase', letterSpacing: '0.1em', color: '#64748b' }}>Navegação</h4>
               <ul style={{ listStyle: 'none', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-                {['Início:#inicio','Benefícios:#beneficios','Como atua:#tecnologia','Escolha seu caminho:#caminhos'].map(item => {
+                {['Início:#inicio','Produto:#produto','Características:#caracteristicas','Perfil de uso:#caminhos'].map(item => {
                   const [label, href] = item.split(':')
                   return <li key={href}><a href={href} style={{ color: '#64748b', fontSize: '0.875rem' }}>{label}</a></li>
                 })}
@@ -399,7 +246,7 @@ export default function HomePage() {
               <h4 style={{ fontSize: '0.85rem', fontWeight: 700, marginBottom: '1rem', textTransform: 'uppercase', letterSpacing: '0.1em', color: '#64748b' }}>Atendimento</h4>
               <ul style={{ listStyle: 'none', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
                 <li><Link href="/calculadora" style={{ color: '#64748b', fontSize: '0.875rem' }}>Consultar aplicação</Link></li>
-                <li><Link href="/solicitar" style={{ color: '#64748b', fontSize: '0.875rem' }}>Falar sobre Flat Free</Link></li>
+                <li><Link href="/conteudo" style={{ color: '#64748b', fontSize: '0.875rem' }}>Conteúdo e demonstrações</Link></li>
                 <li><Link href="/parceiros" style={{ color: '#64748b', fontSize: '0.875rem' }}>Quero ser parceiro</Link></li>
               </ul>
             </div>
