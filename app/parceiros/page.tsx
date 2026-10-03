@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import Image from 'next/image'
 import HomeNav from '@/components/HomeNav'
+import PublicFooter from '@/components/PublicFooter'
 
 const reasons = [
   {
@@ -130,6 +131,7 @@ export default function ParceirosPage() {
           </div>
         </section>
       </main>
+      <PublicFooter />
     </>
   )
 }
