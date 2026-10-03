@@ -4,19 +4,19 @@ import HomeNav from '@/components/HomeNav'
 
 const topics = [
   {
-    icon: 'fa-shield-halved',
-    title: 'Perfurações e prevenção',
-    desc: 'Entenda como ocorrências no pneu afetam a operação e por que a prevenção ajuda a reduzir interrupções.',
+    icon: 'fa-flask',
+    title: 'Produto e aplicação',
+    desc: 'Informações sobre Flat Free, dosagem, aplicação e demonstrações práticas do produto.',
   },
   {
-    icon: 'fa-gauge-high',
-    title: 'Pressão e calibragem',
-    desc: 'Acompanhar a pressão ajuda a preservar a condição de rodagem e a identificar mudanças ao longo do uso.',
+    icon: 'fa-tire',
+    title: 'Pneus e operação',
+    desc: 'Conteúdo sobre perfurações, pressão, desgaste, manutenção e comportamento dos pneus no uso.',
   },
   {
-    icon: 'fa-ruler-vertical',
-    title: 'Desgaste e vida útil',
-    desc: 'Leituras de sulco e quilometragem ajudam a enxergar o comportamento do pneu ao longo do tempo.',
+    icon: 'fa-truck',
+    title: 'Frotas e acompanhamento',
+    desc: 'Leituras, ocorrências, histórico, testes e comparações para quem gerencia pneus em operação.',
   },
 ]
 
@@ -29,15 +29,23 @@ export default function ConteudoPage() {
           <div className="container home-product-hero-grid">
             <div className="home-product-hero-copy">
               <span className="home-product-hero-eyebrow">Conteúdo Flat Free</span>
-              <h1 id="content-hero-title">Conhecimento para <span>cuidar melhor dos pneus.</span></h1>
+              <h1 id="content-hero-title">Informação para <span>entender melhor o produto e os pneus.</span></h1>
               <p className="home-product-hero-description">
-                Conteúdo sobre aplicação, pressão, desgaste, ocorrências e acompanhamento de pneus para usuários, frotas e parceiros.
+                Artigos e demonstrações sobre Flat Free, aplicação, pneus e operação — organizados para quem usa, compra, aplica ou gerencia uma frota.
               </p>
+              <div className="home-product-hero-actions">
+                <a href="#artigos" className="btn btn-primary btn-lg">
+                  Ver artigos <i className="fas fa-arrow-right" aria-hidden="true" />
+                </a>
+                <a href="https://www.youtube.com/@flatfreebrasil" className="btn btn-secondary btn-lg" target="_blank" rel="noreferrer">
+                  <i className="fab fa-youtube" aria-hidden="true" /> Ver demonstrações
+                </a>
+              </div>
             </div>
             <figure className="home-product-hero-visual">
               <Image
-                src="/images/hero_trucks_fleet.jpg"
-                alt="Pneus e veículos em operação"
+                src="/images/flat-free-product-hero.png"
+                alt="Flat Free Brasil"
                 width={1400}
                 height={900}
                 sizes="(max-width: 900px) calc(100vw - 48px), 55vw"
@@ -50,10 +58,10 @@ export default function ConteudoPage() {
         <section className="section" aria-labelledby="content-topics-title">
           <div className="container">
             <div className="section-header">
-              <span className="section-tag">Temas</span>
-              <h2 id="content-topics-title" className="section-title">Pneus na prática</h2>
+              <span className="section-tag">O que você encontra aqui</span>
+              <h2 id="content-topics-title" className="section-title">Conteúdo organizado por assunto.</h2>
               <p className="section-description">
-                Informações para apoiar decisões de uso, manutenção e acompanhamento sem transformar a Home em uma página excessivamente longa.
+                Use esta área para aprofundar o que não precisa ficar concentrado na Home: produto, aplicação, pneus e acompanhamento operacional.
               </p>
             </div>
             <div className="grid-3">
@@ -70,11 +78,28 @@ export default function ConteudoPage() {
           </div>
         </section>
 
-        <section className="section" style={{ background: 'var(--bg-surface-elevated)' }} aria-labelledby="content-featured-title">
+        <section className="section" style={{ background: 'var(--bg-surface-elevated)' }} aria-labelledby="content-videos-title">
+          <div className="container">
+            <div className="home-tech-journey-cta">
+              <div className="home-tech-cta-copy">
+                <span className="section-tag" style={{ marginBottom: '.65rem' }}>Demonstrações</span>
+                <h2 id="content-videos-title" style={{ fontSize: '1.35rem', marginBottom: '.35rem' }}>Veja o Flat Free na prática</h2>
+                <p>Aplicações e demonstrações em vídeo estão reunidas no canal Flat Free Brasil.</p>
+              </div>
+              <div className="home-tech-cta-actions">
+                <a href="https://www.youtube.com/@flatfreebrasil" className="btn btn-primary" target="_blank" rel="noreferrer">
+                  <i className="fab fa-youtube" aria-hidden="true" /> Abrir canal
+                </a>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section id="artigos" className="section" aria-labelledby="content-featured-title">
           <div className="container" style={{ maxWidth: '920px' }}>
             <div className="section-header">
-              <span className="section-tag">Leitura em destaque</span>
-              <h2 id="content-featured-title" className="section-title">Acompanhar pneus e ocorrências na operação</h2>
+              <span className="section-tag">Artigos</span>
+              <h2 id="content-featured-title" className="section-title">Aprofunde os temas mais importantes.</h2>
             </div>
             <article className="card" style={{ padding: 0, overflow: 'hidden' }}>
               <Image
