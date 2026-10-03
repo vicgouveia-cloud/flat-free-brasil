@@ -51,6 +51,8 @@ function SolicitarForm() {
   const searchParams = useSearchParams()
   const [calcItems, setCalcItems] = useState<CalcItem[]>([])
   const [submitted, setSubmitted] = useState(false)
+  const [submitting, setSubmitting] = useState(false)
+  const [website, setWebsite] = useState('')
   const [interest, setInterest] = useState<'geral' | 'produto' | 'gestao' | 'onde-aplicar' | 'parceria'>('geral')
   const [form, setForm] = useState({
     perfil: 'frota',
@@ -148,6 +150,8 @@ function SolicitarForm() {
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
+    if (submitting) return
+    setSubmitting(true)
     const itens: OrderItem[] = calcItems
       .filter(i => i.doseUnitOz !== null)
       .map(i => ({
@@ -206,12 +210,11 @@ function SolicitarForm() {
     saveOrders([...existing, order])
 
     try {
-      const response = await fetch('https://formsubmit.co/ajax/vicgouveia@gmail.com', {
+      const response = await fetch('/api/solicitar', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
         body: JSON.stringify({
-          _subject: '[FLAT FREE] Novo interesse pelo site',
-          _template: 'table',
+          website,
           Perfil: form.perfil === 'frota' ? 'Empresa / frota' : form.perfil === 'particular' ? 'Veículo particular' : 'Instalador / revendedor',
           Interesse_inicial: interest === 'produto' ? 'Produto / teste na frota' : interest === 'gestao' ? 'Acesso à gestão de pneus' : interest === 'onde-aplicar' ? 'Onde comprar / aplicar no veículo' : interest === 'parceria' ? 'Compra para aplicar / revender' : 'Atendimento geral',
           Nome_ou_empresa: form.nomeEmpresa,
@@ -233,6 +236,8 @@ function SolicitarForm() {
       setSubmitted(true)
     } catch {
       alert('Sua solicitação foi registrada neste navegador, mas não conseguimos enviá-la para atendimento agora. Tente novamente em instantes.')
+    } finally {
+      setSubmitting(false)
     }
   }
 
@@ -252,6 +257,10 @@ function SolicitarForm() {
 
   return (
     <form onSubmit={handleSubmit}>
+      <div aria-hidden="true" style={{ position: 'absolute', left: '-10000px', width: '1px', height: '1px', overflow: 'hidden' }}>
+        <label htmlFor="website">Website</label>
+        <input id="website" name="website" type="text" tabIndex={-1} autoComplete="off" value={website} onChange={e => setWebsite(e.target.value)} />
+      </div>
       {calcItems.length > 0 && (
         <div className="card" style={{ marginBottom: '1.5rem', background: 'rgba(255,92,0,0.05)', border: '1px solid rgba(255,92,0,0.2)' }}>
           <h3 style={{ fontWeight: 700, marginBottom: '1rem' }}><i className="fas fa-calculator" /> Itens da Calculadora</h3>
@@ -350,8 +359,8 @@ function SolicitarForm() {
         </div>
       </div>
 
-      <button type="submit" className="btn btn-primary btn-lg" style={{ width: '100%', justifyContent: 'center' }}>
-        <i className="fas fa-paper-plane" /> {serviceContext.submit}
+      <button type="submit" disabled={submitting} className="btn btn-primary btn-lg" style={{ width: '100%', justifyContent: 'center', opacity: submitting ? 0.7 : 1 }}>
+        <i className={submitting ? 'fas fa-spinner fa-spin' : 'fas fa-paper-plane'} /> {submitting ? 'Enviando...' : serviceContext.submit}
       </button>
     </form>
   )
