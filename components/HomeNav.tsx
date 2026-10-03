@@ -30,10 +30,10 @@ export default function HomeNav() {
         position: 'sticky',
         top: 0,
         zIndex: 100,
-        background: scrolled ? 'var(--bg-surface)' : 'rgba(10,15,30,0.95)',
+        background: scrolled ? 'rgba(10,15,30,0.98)' : 'rgba(10,15,30,0.95)',
         backdropFilter: 'blur(10px)',
-        borderBottom: scrolled ? '1px solid var(--border-color)' : 'none',
-        boxShadow: scrolled ? 'var(--shadow-md)' : 'none',
+        borderBottom: scrolled ? '1px solid rgba(255,255,255,0.08)' : 'none',
+        boxShadow: scrolled ? '0 8px 24px rgba(0,0,0,0.18)' : 'none',
         transition: 'all 0.3s',
       }}
     >
