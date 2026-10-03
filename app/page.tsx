@@ -101,8 +101,8 @@ export default function HomePage() {
             <div className="grid-4">
               {[
                 {
-                  icon: 'fa-droplet',
-                  title: 'Aplicação pela válvula',
+                  image: '/images/flat-free-aplicacao-real.jpg',
+                  title: 'Aplicação fácil pela válvula',
                   desc: 'É aplicado pela haste da válvula com o pneu montado, sem necessidade de desmontar a roda.',
                 },
                 {
@@ -122,9 +122,20 @@ export default function HomePage() {
                 },
               ].map(item => (
                 <article key={item.title} className="card">
-                  <div className="home-journey-icon">
-                    <i className={`fas ${item.icon}`} aria-hidden="true" />
-                  </div>
+                  {'image' in item ? (
+                    <Image
+                      src={item.image}
+                      alt="Equipamento real de aplicação Flat Free"
+                      width={371}
+                      height={405}
+                      sizes="(max-width: 600px) calc(100vw - 80px), 220px"
+                      style={{ width: '100%', height: '150px', objectFit: 'cover', borderRadius: '10px', marginBottom: '1rem' }}
+                    />
+                  ) : (
+                    <div className="home-journey-icon">
+                      <i className={`fas ${item.icon}`} aria-hidden="true" />
+                    </div>
+                  )}
                   <h3 style={{ fontSize: '1rem', fontWeight: 800, marginBottom: '.55rem' }}>{item.title}</h3>
                   <p style={{ color: 'var(--text-secondary)', fontSize: '.86rem', lineHeight: 1.6 }}>{item.desc}</p>
                 </article>
