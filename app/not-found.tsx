@@ -1,5 +1,6 @@
 import Link from 'next/link'
 import HomeNav from '@/components/HomeNav'
+import PublicFooter from '@/components/PublicFooter'
 
 export default function NotFound() {
   return (
@@ -18,6 +19,7 @@ export default function NotFound() {
           </div>
         </div>
       </main>
+      <PublicFooter />
     </>
   )
 }
