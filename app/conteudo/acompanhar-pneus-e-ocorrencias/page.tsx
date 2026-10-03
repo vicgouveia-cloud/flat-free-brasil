@@ -1,5 +1,6 @@
 import Link from 'next/link'
 import HomeNav from '@/components/HomeNav'
+import PublicFooter from '@/components/PublicFooter'
 
 export default function AcompanharPneusEOcorrenciasPage() {
   return (
@@ -61,6 +62,7 @@ export default function AcompanharPneusEOcorrenciasPage() {
           </div>
         </article>
       </main>
+      <PublicFooter />
     </>
   )
 }
