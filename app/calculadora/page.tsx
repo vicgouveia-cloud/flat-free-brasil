@@ -1,6 +1,7 @@
 'use client'
 import { useState } from 'react'
 import Link from 'next/link'
+import HomeNav from '@/components/HomeNav'
 import {
   DOSAGE_CATALOG,
   resolveDosageForApplication,
@@ -144,43 +145,12 @@ export default function CalculadoraPage() {
 
   return (
     <>
-      <header
-        style={{
-          background: '#0a0f1e',
-          padding: '1rem 0',
-          borderBottom: '1px solid rgba(255,255,255,0.05)',
-        }}
-      >
-        <div
-          className="container"
-          style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}
-        >
-          <Link
-            href="/"
-            style={{
-              fontFamily: 'Montserrat',
-              fontWeight: 900,
-              color: '#fff',
-              fontSize: '1.1rem',
-            }}
-          >
-            FLAT <span style={{ color: 'var(--color-safety-orange)' }}>FREE</span>
-          </Link>
-          <nav style={{ display: 'flex', gap: '1rem' }}>
-            <Link href="/" style={{ color: '#94a3b8', fontSize: '0.9rem' }}>
-              ← Início
-            </Link>
-            <Link href="/solicitar" className="btn btn-primary btn-sm">
-              Solicitar Produto
-            </Link>
-          </nav>
-        </div>
-      </header>
+      <HomeNav />
 
       <main style={{ minHeight: '100vh', background: 'var(--bg-primary)', padding: '3rem 0' }}>
         <div className="container" style={{ maxWidth: '840px' }}>
           <div style={{ marginBottom: '2rem' }}>
-            <span className="section-tag">Ferramenta Técnica</span>
+            <span className="section-tag">Calcule a aplicação</span>
             <h1
               style={{
                 fontSize: '2rem',
@@ -190,11 +160,10 @@ export default function CalculadoraPage() {
                 marginBottom: '0.5rem',
               }}
             >
-              Calculadora de Dosagem Universal
+              Calculadora de dosagem Flat Free
             </h1>
             <p style={{ color: 'var(--text-secondary)' }}>
-              Consulte doses de referência de tabela ou obtenha estimativas por classe operacional do veículo.
-              Adicione quantas medidas precisar.
+              Informe a medida e a quantidade de pneus para consultar a dosagem de referência. Se a medida exigir análise adicional, a própria ferramenta sinaliza antes de somar o total.
             </p>
           </div>
 
@@ -716,25 +685,34 @@ export default function CalculadoraPage() {
             </div>
           </details>
 
-          {/* CTA: Transferência para Solicitação */}
+          {/* Próximo passo conforme o perfil */}
           <div
             className="card"
             style={{
               background: 'linear-gradient(135deg, #0a0f1e, #1e293b)',
               border: 'none',
-              textAlign: 'center',
               padding: '2rem',
             }}
           >
-            <h3 style={{ color: '#fff', fontWeight: 800, marginBottom: '0.5rem' }}>
-              Pronto para solicitar?
-            </h3>
-            <p style={{ color: '#94a3b8', marginBottom: '1.5rem', fontSize: '0.9rem' }}>
-              Os itens calculados serão transferidos automaticamente para o formulário de solicitação.
-            </p>
-            <Link href={`/solicitar?calc=${calcParams}`} className="btn btn-primary btn-lg">
-              <i className="fas fa-arrow-right" /> Solicitar Flat Free para esta aplicação
-            </Link>
+            <div style={{ textAlign: 'center', marginBottom: '1.5rem' }}>
+              <h3 style={{ color: '#fff', fontWeight: 800, marginBottom: '0.5rem' }}>
+                Como você pretende usar o Flat Free?
+              </h3>
+              <p style={{ color: '#94a3b8', fontSize: '0.9rem' }}>
+                Os itens calculados serão levados para o atendimento. Escolha o perfil para seguir pelo caminho correto.
+              </p>
+            </div>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(190px, 1fr))', gap: '.75rem' }}>
+              <Link href={`/solicitar?perfil=particular&interesse=onde-aplicar&calc=${calcParams}`} className="btn btn-primary" style={{ justifyContent: 'center' }}>
+                Meu veículo
+              </Link>
+              <Link href={`/solicitar?perfil=frota&interesse=produto&calc=${calcParams}`} className="btn btn-outline" style={{ justifyContent: 'center', borderColor: '#a3e635', color: '#a3e635' }}>
+                Frota ou empresa
+              </Link>
+              <Link href={`/solicitar?perfil=parceiro&interesse=parceria&calc=${calcParams}`} className="btn btn-outline" style={{ justifyContent: 'center', borderColor: '#fff', color: '#fff' }}>
+                Revenda ou aplicação
+              </Link>
+            </div>
           </div>
         </div>
       </main>
