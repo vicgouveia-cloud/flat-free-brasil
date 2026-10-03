@@ -3,6 +3,7 @@ import { useState, useEffect, Suspense } from 'react'
 import { useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import HomeNav from '@/components/HomeNav'
+import PublicFooter from '@/components/PublicFooter'
 import { getOrders, saveOrders, uuid } from '@/lib/storage'
 import { ozToLiters, ozToBucketsCeil, formatDoses } from '@/lib/dosage'
 import type {
@@ -372,6 +373,7 @@ export default function SolicitarPage() {
           </Suspense>
         </div>
       </main>
+      <PublicFooter />
     </>
   )
 }
