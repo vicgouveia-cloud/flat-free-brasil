@@ -101,47 +101,30 @@ export default function HomePage() {
             <div className="grid-4">
               {[
                 {
-                  image: '/images/flat-free-aplicacao-real.jpg',
-                  icon: null,
+                  icon: 'fa-droplet',
                   title: 'Aplicação fácil pela válvula',
                   desc: 'É aplicado pela haste da válvula com o pneu montado, sem necessidade de desmontar a roda.',
                 },
                 {
-                  image: null,
                   icon: 'fa-hourglass-half',
                   title: 'Não seca no pneu',
                   desc: 'Permanece em condição líquida no interior do pneu, disponível durante o ciclo de uso.',
                 },
                 {
-                  image: null,
                   icon: 'fa-fire-flame-curved',
                   title: 'Não inflamável',
                   desc: 'A formulação é não inflamável e foi desenvolvida para uso preventivo dentro do pneu.',
                 },
                 {
-                  image: null,
                   icon: 'fa-temperature-half',
                   title: 'Testado em condições extremas',
                   desc: 'O produto foi submetido a testes de estabilidade em temperaturas extremas.',
                 },
               ].map(item => (
-                <article key={item.title} className={`card${item.image ? ' home-highlight-card-image' : ''}`}>
-                  {item.image ? (
-                    <div className="home-highlight-real-media">
-                      <Image
-                        src={item.image}
-                        alt="Equipamento real de aplicação Flat Free"
-                        width={371}
-                        height={405}
-                        sizes="(max-width: 600px) calc(100vw - 48px), (max-width: 900px) 45vw, 260px"
-                      />
-                      <span>Aplicação real</span>
-                    </div>
-                  ) : (
-                    <div className="home-journey-icon">
-                      <i className={`fas ${item.icon ?? ''}`} aria-hidden="true" />
-                    </div>
-                  )}
+                <article key={item.title} className="card">
+                  <div className="home-journey-icon">
+                    <i className={`fas ${item.icon}`} aria-hidden="true" />
+                  </div>
                   <h3 style={{ fontSize: '1rem', fontWeight: 800, marginBottom: '.55rem' }}>{item.title}</h3>
                   <p style={{ color: 'var(--text-secondary)', fontSize: '.86rem', lineHeight: 1.6 }}>{item.desc}</p>
                 </article>
