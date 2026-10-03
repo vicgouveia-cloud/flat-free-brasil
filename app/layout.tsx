@@ -43,9 +43,8 @@ export const metadata: Metadata = {
     'dosagem de selante para pneus',
   ],
   icons: {
-    icon: '/images/flat-free-logo.png',
-    shortcut: '/images/flat-free-logo.png',
-    apple: '/images/flat-free-logo.png',
+    icon: '/icon.svg',
+    shortcut: '/icon.svg',
   },
   other: {
     'google-site-verification': 'google1f0a646a60421833',
