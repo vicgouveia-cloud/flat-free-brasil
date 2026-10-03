@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 
-const contactEmail = process.env.CONTACT_TO_EMAIL ?? 'vicgouveia@gmail.com'
+const contactEmail = process.env.CONTACT_TO_EMAIL ?? 'contato@flatfreebrasil.com.br'
+const contactFrom = process.env.CONTACT_FROM_EMAIL ?? 'Flat Free Brasil <contato@flatfreebrasil.com.br>'
 
 function asText(value: unknown, max = 500) {
   return typeof value === 'string' ? value.trim().slice(0, max) : ''
@@ -20,7 +21,7 @@ export async function POST(request: Request) {
     const cidade = asText(body.Cidade, 120)
     const estado = asText(body.Estado, 2)
 
-    if (!nome || !email || !telefone || !cidade || !estado) {
+    if (!nome || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) || !telefone || !cidade || !estado) {
       return NextResponse.json(
         { ok: false, error: 'Campos obrigatórios ausentes.' },
         { status: 400 }
@@ -47,14 +48,29 @@ export async function POST(request: Request) {
       Observacoes: asText(body.Observacoes, 2000) || 'Sem observações',
     }
 
-    const response = await fetch(`https://formsubmit.co/ajax/${encodeURIComponent(contactEmail)}`, {
+    const apiKey = process.env.RESEND_API_KEY
+    if (!apiKey) {
+      return NextResponse.json(
+        { ok: false, error: 'Atendimento por e-mail indisponível no momento.' },
+        { status: 503 }
+      )
+    }
+
+    const response = await fetch('https://api.resend.com/emails', {
       method: 'POST',
       headers: {
+        Authorization: `Bearer ${apiKey}`,
         'Content-Type': 'application/json',
-        Accept: 'application/json',
       },
-      body: JSON.stringify(payload),
+      body: JSON.stringify({
+        from: contactFrom,
+        to: [contactEmail],
+        reply_to: email,
+        subject: '[FLAT FREE] Novo interesse pelo site',
+        text: Object.entries(payload).map(([key, value]) => `${key}: ${value}`).join('\n'),
+      }),
       cache: 'no-store',
+      signal: AbortSignal.timeout(15000),
     })
 
     if (!response.ok) {
