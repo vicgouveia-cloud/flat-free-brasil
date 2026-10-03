@@ -2,6 +2,7 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import HomeNav from '@/components/HomeNav'
+import PublicFooter from '@/components/PublicFooter'
 import {
   DOSAGE_CATALOG,
   resolveDosageForApplication,
@@ -716,6 +717,7 @@ export default function CalculadoraPage() {
           </div>
         </div>
       </main>
+      <PublicFooter />
     </>
   )
 }
