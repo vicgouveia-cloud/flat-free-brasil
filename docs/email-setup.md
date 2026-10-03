@@ -42,3 +42,12 @@ Usar o painel de Inboxes do Resend para ler e responder inicialmente, como no TU
 ## Validação
 Teste isolado com provedor simulado passou: honeypot, e-mail inválido, destino, Reply-To, resposta do provedor, chave ausente e JSON inválido. Nenhum e-mail real enviado.
 Pendente: compilação completa, Preview, envio real pelo formulário, confirmação da mensagem na inbox e teste externo de envio/resposta.
+
+## Atualização após acesso aos painéis
+Os cinco registros de e-mail foram salvos no Registro.br e a zona foi reaberta para confirmar persistência. Os registros A 216.150.1.1 e CNAME www bd7132aa660582c4.vercel-dns-017.com existentes foram preservados. O painel informou transição de DNS ainda em andamento (cerca de 23 minutos na conferência); a consulta pública ainda apresentava a zona anterior. Verificação do Resend disparada.
+
+A sessão local da Vercel localizou flat-free-brasil na equipe vicgouveia-clouds-projects. A API confirmou main em produção no SHA auditado e nenhum environment variable cadastrado. Nenhuma variável de produção foi alterada: trocar CONTACT_TO_EMAIL antes de publicar a integração poderia afetar o FormSubmit atual.
+
+Build local compilou, validou tipos e gerou 27 páginas, com exit 0. Houve aviso de cópia standalone por limitação de symlink no Windows ao reutilizar dependências locais. A branch foi enviada e gerou Preview automático; produção permanece na main.
+
+Continuam pendentes após propagação: domínio verificado, inbox criada, chave restrita de envio, variáveis na Vercel, publicação da integração e teste real de envio/recebimento/resposta.
