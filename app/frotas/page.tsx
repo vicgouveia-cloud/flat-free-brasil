@@ -44,12 +44,9 @@ const pilotSteps = [
 ]
 
 const managementFeatures = [
-  ['fa-tire', 'Pneus e ciclos', 'Cadastre pneus novos ou recapados e acompanhe cada ciclo de uso.'],
-  ['fa-truck-moving', 'Veículos e posições', 'Registre montagem, eixo, posição e movimentações ao longo do tempo.'],
-  ['fa-ruler-vertical', 'Leituras', 'Acompanhe sulco, quilometragem e pressão em inspeções periódicas.'],
-  ['fa-triangle-exclamation', 'Ocorrências', 'Registre perfurações, reparos, perdas de pressão, retiradas e recapagens.'],
-  ['fa-flask', 'Tratado x controle', 'Organize projetos com pneus tratados e pneus de controle para comparação.'],
-  ['fa-chart-line', 'Comparativos', 'Use os dados registrados para observar desgaste, km/mm, ocorrências e custo observado por km.'],
+  ['fa-tire', 'Histórico do pneu', 'Cadastre pneus, ciclos, veículos, posições e movimentações ao longo do tempo.'],
+  ['fa-ruler-vertical', 'Leituras e ocorrências', 'Registre sulco, quilometragem, pressão, perfurações, reparos, retiradas e recapagens.'],
+  ['fa-chart-line', 'Teste e comparação', 'Organize pneus tratados e de controle para observar desgaste, km/mm, ocorrências e custo observado por km.'],
 ]
 
 export default function FrotasPage() {
@@ -63,19 +60,19 @@ export default function FrotasPage() {
               <span className="home-product-hero-eyebrow">Flat Free para frotas</span>
               <h1 id="fleet-hero-title">Proteja os pneus. <span>Meça os resultados.</span></h1>
               <p className="home-product-hero-description">
-                Para transportadoras, operações de carga e empresas de ônibus, Flat Free combina proteção do pneu com uma forma prática de acompanhar a operação. Você pode começar com um teste, medir pneus tratados e de controle e decidir a expansão com dados da própria frota.
+                Transportadoras, empresas de ônibus e outras operações com frota podem comprar Flat Free diretamente, começar com um teste piloto e acompanhar os resultados antes de ampliar a aplicação.
               </p>
               <div className="home-product-hero-actions">
                 <Link href="/solicitar?perfil=frota&interesse=produto" className="btn btn-primary btn-lg">
-                  Solicitar produto ou teste <i className="fas fa-arrow-right" aria-hidden="true" />
+                  Comprar ou iniciar um teste <i className="fas fa-arrow-right" aria-hidden="true" />
                 </Link>
-                <Link href="/solicitar?perfil=frota&interesse=gestao" className="btn btn-secondary btn-lg">
-                  Solicitar acesso à gestão
+                <Link href="/calculadora" className="btn btn-secondary btn-lg">
+                  <i className="fas fa-calculator" aria-hidden="true" /> Consultar dosagem
                 </Link>
               </div>
               <div className="home-product-hero-fleet">
-                <p>Já utiliza a área de acompanhamento?</p>
-                <Link href="/app">Acessar gestão de pneus <i className="fas fa-arrow-right" aria-hidden="true" /></Link>
+                <p>A gestão de pneus é uma ferramenta adicional para organizar leituras, histórico e testes da frota.</p>
+                <Link href="/solicitar?perfil=frota&interesse=gestao">Solicitar acesso à gestão <i className="fas fa-arrow-right" aria-hidden="true" /></Link>
               </div>
             </div>
             <figure className="home-product-hero-visual">
@@ -98,8 +95,8 @@ export default function FrotasPage() {
         <section className="section" aria-labelledby="fleet-benefits-title">
           <div className="container">
             <div className="section-header">
-              <span className="section-tag">O produto na operação</span>
-              <h2 id="fleet-benefits-title" className="section-title">Por que Flat Free interessa a uma frota</h2>
+              <span className="section-tag">Flat Free na operação</span>
+              <h2 id="fleet-benefits-title" className="section-title">Proteção para pneus que trabalham todos os dias.</h2>
               <p className="section-description">
                 O objetivo é reduzir problemas que tiram desempenho do pneu e da operação: perfurações, perda de pressão, aquecimento, desgaste e consumo desnecessário.
               </p>
@@ -145,10 +142,10 @@ export default function FrotasPage() {
         <section className="section" aria-labelledby="fleet-management-title">
           <div className="container">
             <div className="section-header">
-              <span className="section-tag">Área do cliente e do prospect</span>
-              <h2 id="fleet-management-title" className="section-title">Comece a conhecer seus pneus antes mesmo da aplicação</h2>
+              <span className="section-tag">Gestão de pneus</span>
+              <h2 id="fleet-management-title" className="section-title">Use os dados da própria frota para acompanhar o teste.</h2>
               <p className="section-description">
-                A área de gestão pode ser usada para organizar a frota, iniciar leituras e criar uma base de comparação. Quando Flat Free for aplicado, o tratamento passa a fazer parte do histórico de cada pneu.
+                A ferramenta de gestão pode começar antes da aplicação: organize pneus e leituras, crie uma linha de base e depois acompanhe o histórico dos pneus tratados e de controle.
               </p>
             </div>
 
@@ -164,33 +161,21 @@ export default function FrotasPage() {
 
             <div className="home-tech-journey-cta" style={{ marginTop: '2rem' }}>
               <div className="home-tech-cta-copy">
-                <h4>Quer organizar a frota ou preparar um teste?</h4>
-                <p>Solicite acesso para começar o acompanhamento ou fale com a equipe sobre produto, dosagem e aplicação piloto.</p>
+                <h4>Quer testar Flat Free com acompanhamento?</h4>
+                <p>Fale com a equipe sobre produto, dosagem, grupo piloto e acesso à gestão de pneus.</p>
               </div>
               <div className="home-tech-cta-actions">
-                <Link href="/solicitar?perfil=frota&interesse=gestao" className="btn btn-outline">
-                  Solicitar acesso
-                </Link>
                 <Link href="/solicitar?perfil=frota&interesse=produto" className="btn btn-primary">
-                  Falar sobre Flat Free
+                  Falar sobre teste ou compra
+                </Link>
+                <Link href="/solicitar?perfil=frota&interesse=gestao" className="btn btn-outline">
+                  Solicitar acesso à gestão
                 </Link>
               </div>
             </div>
           </div>
         </section>
 
-        <section className="section" style={{ background: 'var(--bg-surface-elevated)', textAlign: 'center' }}>
-          <div className="container" style={{ maxWidth: '760px' }}>
-            <span className="section-tag">Próximo passo</span>
-            <h2 className="section-title">Produto, teste e acompanhamento no mesmo caminho</h2>
-            <p className="section-description" style={{ marginBottom: '1.5rem' }}>
-              Conte como é sua operação e qual é o objetivo inicial. A solicitação pode começar pelo produto, por um teste piloto ou pelo acesso à gestão dos pneus.
-            </p>
-            <Link href="/solicitar?perfil=frota" className="btn btn-primary btn-lg">
-              Falar com a Flat Free
-            </Link>
-          </div>
-        </section>
       </main>
     </>
   )
