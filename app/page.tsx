@@ -102,27 +102,31 @@ export default function HomePage() {
               {[
                 {
                   image: '/images/flat-free-aplicacao-real.jpg',
+                  icon: null,
                   title: 'Aplicação fácil pela válvula',
                   desc: 'É aplicado pela haste da válvula com o pneu montado, sem necessidade de desmontar a roda.',
                 },
                 {
+                  image: null,
                   icon: 'fa-hourglass-half',
                   title: 'Não seca no pneu',
                   desc: 'Permanece em condição líquida no interior do pneu, disponível durante o ciclo de uso.',
                 },
                 {
+                  image: null,
                   icon: 'fa-fire-flame-curved',
                   title: 'Não inflamável',
                   desc: 'A formulação é não inflamável e foi desenvolvida para uso preventivo dentro do pneu.',
                 },
                 {
+                  image: null,
                   icon: 'fa-temperature-half',
                   title: 'Testado em condições extremas',
                   desc: 'O produto foi submetido a testes de estabilidade em temperaturas extremas.',
                 },
               ].map(item => (
                 <article key={item.title} className="card">
-                  {'image' in item ? (
+                  {item.image ? (
                     <Image
                       src={item.image}
                       alt="Equipamento real de aplicação Flat Free"
@@ -133,7 +137,7 @@ export default function HomePage() {
                     />
                   ) : (
                     <div className="home-journey-icon">
-                      <i className={`fas ${item.icon}`} aria-hidden="true" />
+                      <i className={`fas ${item.icon ?? ''}`} aria-hidden="true" />
                     </div>
                   )}
                   <h3 style={{ fontSize: '1rem', fontWeight: 800, marginBottom: '.55rem' }}>{item.title}</h3>
