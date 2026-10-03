@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import Image from 'next/image'
 import HomeNav from '@/components/HomeNav'
+import PublicFooter from '@/components/PublicFooter'
 
 const productBenefits = [
   {
@@ -177,6 +178,7 @@ export default function FrotasPage() {
         </section>
 
       </main>
+      <PublicFooter />
     </>
   )
 }
