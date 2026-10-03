@@ -2,7 +2,7 @@ import Link from 'next/link'
 import Image from 'next/image'
 import HomeNav from '@/components/HomeNav'
 
-const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://flat-free-brasil.vercel.app'
+const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://flatfreebrasil.com.br'
 
 const structuredData = {
   '@context': 'https://schema.org',
