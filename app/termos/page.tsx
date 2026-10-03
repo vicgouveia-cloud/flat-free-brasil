@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import HomeNav from '@/components/HomeNav'
+import PublicFooter from '@/components/PublicFooter'
 
 export const metadata: Metadata = {
   title: 'Termos de Uso',
@@ -53,6 +54,7 @@ export default function TermosPage() {
           </div>
         </div>
       </main>
+      <PublicFooter />
     </>
   )
 }
