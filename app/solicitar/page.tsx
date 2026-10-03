@@ -2,6 +2,7 @@
 import { useState, useEffect, Suspense } from 'react'
 import { useSearchParams } from 'next/navigation'
 import Link from 'next/link'
+import HomeNav from '@/components/HomeNav'
 import { getOrders, saveOrders, uuid } from '@/lib/storage'
 import { ozToLiters, ozToBucketsCeil, formatDoses } from '@/lib/dosage'
 import type {
@@ -107,6 +108,31 @@ function SolicitarForm() {
   }, [searchParams])
 
   const totalOz = calcItems.reduce((s, i) => s + (i.doseUnitOz !== null ? i.totalOz : 0), 0)
+
+  const serviceContext =
+    form.perfil === 'particular'
+      ? {
+          title: 'Onde comprar ou aplicar Flat Free',
+          description: 'Informe seus dados, cidade e, se possível, a medida dos pneus. A equipe poderá orientar sobre revenda ou aplicação na sua região.',
+          submit: 'Solicitar orientação de atendimento',
+        }
+      : form.perfil === 'parceiro'
+      ? {
+          title: 'Fornecimento para revenda ou aplicação',
+          description: 'Informe os dados do seu estabelecimento e como pretende trabalhar com Flat Free: aplicação, revenda ou as duas opções.',
+          submit: 'Solicitar fornecimento',
+        }
+      : interest === 'gestao'
+      ? {
+          title: 'Acesso à gestão de pneus',
+          description: 'Informe os dados da empresa para conversarmos sobre organização da frota, leituras, histórico e acompanhamento de testes.',
+          submit: 'Solicitar acesso à gestão',
+        }
+      : {
+          title: 'Flat Free para sua frota',
+          description: 'Informe os dados da operação para conversar sobre compra direta, dosagem ou início de um teste piloto.',
+          submit: 'Solicitar atendimento para a frota',
+        }
   const hasPendingDosage = calcItems.some(i => i.doseUnitOz === null)
   const hasEstimatedDosage = calcItems.some(i => i.dosageSource === 'estimated')
   const totalLabel = hasPendingDosage
@@ -186,7 +212,7 @@ function SolicitarForm() {
           _subject: '[FLAT FREE] Novo interesse pelo site',
           _template: 'table',
           Perfil: form.perfil === 'frota' ? 'Empresa / frota' : form.perfil === 'particular' ? 'Veículo particular' : 'Instalador / revendedor',
-          Interesse_inicial: interest === 'produto' ? 'Produto / teste na frota' : interest === 'gestao' ? 'Acesso à gestão de pneus' : interest === 'onde-aplicar' ? 'Onde comprar / aplicar no veículo' : interest === 'parceria' ? 'Instalação / revenda / parceria' : 'Atendimento geral',
+          Interesse_inicial: interest === 'produto' ? 'Produto / teste na frota' : interest === 'gestao' ? 'Acesso à gestão de pneus' : interest === 'onde-aplicar' ? 'Onde comprar / aplicar no veículo' : interest === 'parceria' ? 'Compra para aplicar / revender' : 'Atendimento geral',
           Nome_ou_empresa: form.nomeEmpresa,
           Razao_social: form.razaoSocial || 'Não informado',
           CNPJ: form.cnpj || 'Não informado',
@@ -253,14 +279,14 @@ function SolicitarForm() {
       )}
 
       <div className="card" style={{ marginBottom: '1.5rem' }}>
-        <h3 style={{ fontWeight: 700, marginBottom: '0.5rem' }}>Como podemos atender você?</h3>
-        <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', marginBottom: '1rem' }}>Esta etapa registra seu interesse. Nossa equipe poderá confirmar aplicação, quantidade, disponibilidade e entrega antes de qualquer fechamento.</p>
+        <h3 style={{ fontWeight: 800, marginBottom: '0.5rem' }}>{serviceContext.title}</h3>
+        <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', marginBottom: '1rem' }}>{serviceContext.description}</p>
         <div className="form-group" style={{ marginBottom: '1.5rem' }}>
           <label className="form-label">Perfil de atendimento *</label>
           <select className="form-control" value={form.perfil} onChange={e => updateForm('perfil', e.target.value)}>
             <option value="frota">Empresa / frota</option>
             <option value="particular">Veículo particular</option>
-            <option value="parceiro">Quero instalar ou revender</option>
+            <option value="parceiro">Revenda ou aplicação</option>
           </select>
         </div>
         <h3 style={{ fontWeight: 700, marginBottom: '1.25rem' }}>{form.perfil === 'particular' ? 'Seus dados' : 'Dados de contato'}</h3>
@@ -289,7 +315,11 @@ function SolicitarForm() {
 
       <div className="card" style={{ marginBottom: '1.5rem' }}>
         <h3 style={{ fontWeight: 700, marginBottom: '0.4rem' }}>Localização</h3>
-        <p style={{ color: 'var(--text-secondary)', fontSize: '0.85rem', marginBottom: '1.25rem' }}>Informe onde você pretende receber ou utilizar o Flat Free. Isso também ajudará futuramente na indicação de atendimento e instalação.</p>
+        <p style={{ color: 'var(--text-secondary)', fontSize: '0.85rem', marginBottom: '1.25rem' }}>
+          {form.perfil === 'particular'
+            ? 'Informe sua cidade para buscarmos a orientação de atendimento mais adequada. Endereço e CEP são opcionais.'
+            : 'Informe a localização da empresa ou estabelecimento para orientar atendimento, fornecimento e entrega.'}
+        </p>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '1rem' }}>
           <div className="form-group" style={{ gridColumn: '1 / -1' }}>
             <label className="form-label">Endereço</label>
@@ -315,12 +345,12 @@ function SolicitarForm() {
           <label className="form-label">Observações</label>
           <textarea className="form-control" rows={4} value={form.observacoes}
             onChange={e => updateForm('observacoes', e.target.value)}
-            placeholder={form.perfil === 'parceiro' ? 'Conte sobre seu estabelecimento, serviços e interesse em instalar ou revender Flat Free...' : 'Conte um pouco sobre os veículos, pneus ou necessidade que você quer atender...'} />
+            placeholder={form.perfil === 'parceiro' ? 'Conte sobre seu estabelecimento, serviços e interesse em aplicar, revender ou fazer as duas coisas...' : form.perfil === 'particular' ? 'Se quiser, informe veículo, medida dos pneus ou outra informação que ajude no atendimento...' : 'Conte um pouco sobre a frota, veículos, pneus ou objetivo do teste...'} />
         </div>
       </div>
 
       <button type="submit" className="btn btn-primary btn-lg" style={{ width: '100%', justifyContent: 'center' }}>
-        <i className="fas fa-paper-plane" /> Enviar Interesse
+        <i className="fas fa-paper-plane" /> {serviceContext.submit}
       </button>
     </form>
   )
@@ -329,21 +359,13 @@ function SolicitarForm() {
 export default function SolicitarPage() {
   return (
     <>
-      <header style={{ background: '#0a0f1e', padding: '1rem 0', borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
-        <div className="container" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          <Link href="/" style={{ fontFamily: 'Montserrat', fontWeight: 900, color: '#fff', fontSize: '1.1rem' }}>FLAT <span style={{ color: 'var(--color-safety-orange)' }}>FREE</span></Link>
-          <nav style={{ display: 'flex', gap: '1rem' }}>
-            <Link href="/calculadora" style={{ color: '#94a3b8', fontSize: '0.9rem' }}>← Calculadora</Link>
-            <Link href="/app" style={{ color: '#94a3b8', fontSize: '0.9rem' }}>Plataforma</Link>
-          </nav>
-        </div>
-      </header>
+      <HomeNav />
       <main style={{ minHeight: '100vh', background: 'var(--bg-primary)', padding: '3rem 0' }}>
         <div className="container" style={{ maxWidth: '800px' }}>
           <div style={{ marginBottom: '2rem' }}>
-            <span className="section-tag">Quero Flat Free</span>
-            <h1 style={{ fontSize: '2rem', fontWeight: 900, fontFamily: 'Montserrat', marginTop: '0.5rem', marginBottom: '0.5rem' }}>Vamos entender sua necessidade</h1>
-            <p style={{ color: 'var(--text-secondary)' }}>Você pode chegar como empresa, proprietário de veículo ou futuro parceiro. Informe sua necessidade para iniciarmos o atendimento. Nenhum pagamento é processado nesta etapa.</p>
+            <span className="section-tag">Atendimento Flat Free</span>
+            <h1 style={{ fontSize: '2rem', fontWeight: 900, fontFamily: 'Montserrat', marginTop: '0.5rem', marginBottom: '0.5rem' }}>Informe seu perfil e siga pelo atendimento correto.</h1>
+            <p style={{ color: 'var(--text-secondary)' }}>Esta etapa registra seu interesse para contato e orientação. Nenhum pagamento é processado aqui.</p>
           </div>
           <Suspense fallback={<div>Carregando...</div>}>
             <SolicitarForm />
