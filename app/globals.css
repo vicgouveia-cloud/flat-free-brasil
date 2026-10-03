@@ -863,3 +863,37 @@ a {
     padding: 1.5rem;
   }
 }
+
+/* Real application photo highlight */
+.home-highlight-card-image {
+  overflow: hidden;
+}
+.home-highlight-real-media {
+  position: relative;
+  margin: -1.5rem -1.5rem 1rem;
+  background: #0f172a;
+  overflow: hidden;
+  aspect-ratio: 4 / 3;
+}
+.home-highlight-real-media img {
+  width: 100%;
+  height: 100%;
+  display: block;
+  object-fit: cover;
+  object-position: center 42%;
+}
+.home-highlight-real-media span {
+  position: absolute;
+  left: .75rem;
+  bottom: .75rem;
+  display: inline-flex;
+  align-items: center;
+  padding: .28rem .6rem;
+  border-radius: 999px;
+  background: rgba(10, 15, 30, .86);
+  color: #fff;
+  font-size: .68rem;
+  font-weight: 800;
+  letter-spacing: .05em;
+  text-transform: uppercase;
+}
