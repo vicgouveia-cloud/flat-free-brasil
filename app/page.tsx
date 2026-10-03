@@ -253,7 +253,10 @@ export default function HomePage() {
           </div>
           <div className="public-footer-bottom" style={{ borderTop: '1px solid rgba(255,255,255,0.05)', paddingTop: '1.5rem', fontSize: '0.8rem', color: '#64748b' }}>
             <span>© 2026 Flat Free Brasil - Todos os direitos reservados.</span>
-            <span>Proteção e melhor aproveitamento dos pneus.</span>
+            <span style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
+              <Link href="/privacidade">Privacidade</Link>
+              <Link href="/termos">Termos de uso</Link>
+            </span>
           </div>
         </div>
       </footer>
