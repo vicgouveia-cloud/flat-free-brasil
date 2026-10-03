@@ -1,23 +1,23 @@
 import type { Metadata } from 'next'
 
 export const metadata: Metadata = {
-  title: 'Conteúdo sobre Pneus',
-  description: 'Conteúdo Flat Free sobre pressão, desgaste, perfurações, aplicação e acompanhamento de pneus.',
+  title: 'Conteúdo Flat Free',
+  description: 'Artigos e demonstrações sobre Flat Free, aplicação, pneus, pressão, desgaste e acompanhamento operacional.',
   alternates: {
     canonical: '/conteudo',
   },
   openGraph: {
     type: 'website',
     url: '/conteudo',
-    title: 'Conteúdo sobre Pneus',
-    description: 'Conteúdo Flat Free sobre pressão, desgaste, perfurações, aplicação e acompanhamento de pneus.',
-    images: ['/images/hero_trucks_fleet.jpg'],
+    title: 'Conteúdo Flat Free',
+    description: 'Artigos e demonstrações sobre Flat Free, aplicação, pneus, pressão, desgaste e acompanhamento operacional.',
+    images: ['/images/flat-free-product-hero.png'],
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Conteúdo sobre Pneus',
-    description: 'Conteúdo Flat Free sobre pressão, desgaste, perfurações, aplicação e acompanhamento de pneus.',
-    images: ['/images/hero_trucks_fleet.jpg'],
+    title: 'Conteúdo Flat Free',
+    description: 'Artigos e demonstrações sobre Flat Free, aplicação, pneus, pressão, desgaste e acompanhamento operacional.',
+    images: ['/images/flat-free-product-hero.png'],
   },
 }
 
