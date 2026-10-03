@@ -5,18 +5,18 @@ import HomeNav from '@/components/HomeNav'
 const reasons = [
   {
     icon: 'fa-shield-halved',
-    title: 'Um produto com benefício fácil de explicar',
-    desc: 'Proteção contra perfurações, ajuda na manutenção da pressão e melhor aproveitamento dos pneus são pontos que o cliente entende no uso diário.',
+    title: 'Benefícios claros para o cliente',
+    desc: 'Proteção contra perfurações compatíveis, ajuda na manutenção da pressão e melhor aproveitamento dos pneus são benefícios fáceis de apresentar no atendimento.',
   },
   {
     icon: 'fa-screwdriver-wrench',
-    title: 'Aplicação incorporada ao serviço',
-    desc: 'Flat Free pode entrar no fluxo de oficinas, borracharias, concessionárias, centros automotivos e outros prestadores que já trabalham com pneus.',
+    title: 'Aplicação como parte do serviço',
+    desc: 'Flat Free pode ser incorporado ao fluxo de oficinas, borracharias, concessionárias, centros automotivos e outros prestadores que já trabalham com pneus.',
   },
   {
     icon: 'fa-box-open',
-    title: 'Fornecimento para atendimento ao cliente',
-    desc: 'Converse com a Flat Free Brasil para entender disponibilidade, aplicação, compra do produto e possibilidades de revenda ou atendimento.',
+    title: 'Compra para aplicar ou revender',
+    desc: 'Converse com a Flat Free Brasil sobre fornecimento do produto para atendimento, aplicação e revenda.',
   },
 ]
 
@@ -28,13 +28,13 @@ const steps = [
   },
   {
     step: '02',
-    title: 'Entenda a aplicação',
-    desc: 'Consulte dosagem, forma de aplicação pela válvula e cuidados necessários para incorporar o produto ao atendimento.',
+    title: 'Consulte a dosagem',
+    desc: 'Use a calculadora como apoio para identificar a quantidade de referência conforme a medida do pneu.',
   },
   {
     step: '03',
-    title: 'Fale com a Flat Free Brasil',
-    desc: 'Informe seu estabelecimento, cidade, serviços oferecidos e interesse em instalar, comprar ou revender.',
+    title: 'Solicite fornecimento',
+    desc: 'Informe seu estabelecimento, cidade, serviços oferecidos e interesse em comprar para aplicar ou revender.',
   },
 ]
 
@@ -46,14 +46,14 @@ export default function ParceirosPage() {
         <section className="home-product-hero" aria-labelledby="partners-hero-title">
           <div className="container home-product-hero-grid">
             <div className="home-product-hero-copy">
-              <span className="home-product-hero-eyebrow">Instalação · Revenda · Atendimento</span>
-              <h1 id="partners-hero-title">Leve Flat Free para <span>seus clientes.</span></h1>
+              <span className="home-product-hero-eyebrow">Revenda · Aplicação · Atendimento</span>
+              <h1 id="partners-hero-title">Ofereça Flat Free <span>no seu negócio.</span></h1>
               <p className="home-product-hero-description">
-                Para oficinas, borracharias, concessionárias, centros automotivos e prestadores de serviço: conheça o produto, entenda a aplicação e fale com a Flat Free Brasil sobre fornecimento e parceria.
+                Oficinas, borracharias, concessionárias, centros automotivos e outros prestadores podem comprar Flat Free para aplicar ou revender aos seus clientes.
               </p>
               <div className="home-product-hero-actions">
                 <Link href="/solicitar?perfil=parceiro&interesse=parceria" className="btn btn-primary btn-lg">
-                  Quero instalar ou revender <i className="fas fa-arrow-right" aria-hidden="true" />
+                  Quero comprar para revender ou aplicar <i className="fas fa-arrow-right" aria-hidden="true" />
                 </Link>
                 <Link href="/calculadora" className="btn btn-secondary btn-lg">
                   <i className="fas fa-calculator" aria-hidden="true" /> Consultar dosagem
@@ -81,9 +81,9 @@ export default function ParceirosPage() {
           <div className="container">
             <div className="section-header">
               <span className="section-tag">Para quem atende veículos e pneus</span>
-              <h2 id="partners-reasons-title" className="section-title">Produto, aplicação e oportunidade de atendimento.</h2>
+              <h2 id="partners-reasons-title" className="section-title">Um produto para incorporar ao atendimento.</h2>
               <p className="section-description">
-                O parceiro precisa entender bem o produto e conseguir orientar o cliente. A jornada começa por informação clara e segue para aplicação e fornecimento.
+                Conheça os benefícios, consulte a dosagem e converse com a Flat Free Brasil sobre compra, aplicação e revenda.
               </p>
             </div>
             <div className="grid-3">
@@ -118,12 +118,12 @@ export default function ParceirosPage() {
 
             <div className="home-tech-journey-cta" style={{ marginTop: '2rem' }}>
               <div className="home-tech-cta-copy">
-                <h4>Quer conversar sobre fornecimento ou parceria?</h4>
-                <p>Conte onde você atende, quais serviços oferece e como pretende trabalhar com Flat Free.</p>
+                <h4>Quer comprar Flat Free para o seu negócio?</h4>
+                <p>Conte onde você atende, quais serviços oferece e se pretende aplicar, revender ou fazer as duas coisas.</p>
               </div>
               <div className="home-tech-cta-actions">
                 <Link href="/solicitar?perfil=parceiro&interesse=parceria" className="btn btn-primary">
-                  Quero ser parceiro
+                  Solicitar fornecimento
                 </Link>
               </div>
             </div>
