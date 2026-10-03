@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import Image from 'next/image'
 import HomeNav from '@/components/HomeNav'
+import PublicFooter from '@/components/PublicFooter'
 
 const benefits = [
   {
@@ -133,6 +134,7 @@ export default function MeuVeiculoPage() {
         </section>
 
       </main>
+      <PublicFooter />
     </>
   )
 }
