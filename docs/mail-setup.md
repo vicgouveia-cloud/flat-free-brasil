@@ -14,11 +14,16 @@ JSON content type, received-message and reply ownership), and `336aec7`
 The final TUREIS implementation still lacked a sender ownership check on direct
 sent-message reads. Flat Free adds that check, strict UUID validation, strict JSON
 object/string fields, exact cookie parsing, and a fixed mailbox independent of env overrides.
+Its compose cancel buttons now bypass required-field validation, so an empty draft
+can close normally. Logout and session expiration clear the displayed messages and draft.
 
 ## Operation and configuration
 
 - `/mail` serves the reused standalone interface, adapted to Flat Free.
-- `/mail/` follows Next.js's canonical redirect to `/mail`; both carry `X-Robots-Tag`.
+- `/mail/` follows an explicit canonical redirect to `/mail`; both carry `X-Robots-Tag`.
+  Mail-only middleware owns that redirect and headers because Next.js 15 discards
+  configured headers on redirects. The automatic early slash redirect is replaced by
+  an explicit 308 rule for public paths, preserving their existing canonical destinations.
 - HTML contains `noindex, nofollow, noarchive`; robots.txt excludes mail paths.
 - Private API: `/api/mail/{status,login,logout,inbox,sent,message,send}`.
 - Only `contato@flatfreebrasil.com.br` is available. Received IDs and reply IDs require
@@ -54,6 +59,9 @@ send/recipient validation, own and foreign reply IDs, provider failures, and byt
 of the public form and API against the base commit. Provider calls in that suite are mocked.
 
 HTTP checks and live Resend checks are recorded in `docs/mail-validation.md` after Preview deployment.
+For repeatable local HTTP checks, after the build run `npm run test:mail:server` in one
+terminal and `npm run test:mail:http` in another. This fixture uses fake keys and provider
+responses, does not send email, and refuses to run on Vercel. It is never imported by application code.
 
 ## Operational limits
 

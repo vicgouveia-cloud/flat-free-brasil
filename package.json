@@ -7,7 +7,9 @@
     "build": "next build",
     "start": "next start",
     "typecheck": "tsc --noEmit",
-    "test:mail": "node --test tests/mail.test.mjs"
+    "test:mail": "node --test tests/mail.test.mjs",
+    "test:mail:server": "node --import ./tests/provider-fixture.mjs node_modules/next/dist/bin/next start --hostname 127.0.0.1 --port 4173",
+    "test:mail:http": "node tests/mail-http.mjs"
   },
   "dependencies": {
     "next": "15.5.26",

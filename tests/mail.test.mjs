@@ -144,6 +144,7 @@ test('mail HTML is noindex, scripts render untrusted bodies using textContent, p
   const page=readFileSync(new URL('../lib/mail-page.ts',import.meta.url),'utf8');
   assert.ok(page.includes('noindex, nofollow, noarchive'));
   assert.ok(!page.includes('TUREIS'));
+  assert.equal((page.match(/formnovalidate/g)||[]).length,2);
   const script=readFileSync(new URL('../public/flat-free-mail.js',import.meta.url),'utf8');
   assert.ok(script.includes('body.textContent=msg.text'));
   for(const path of ['app/api/solicitar/route.ts','app/solicitar/page.tsx']) {
