@@ -1,7 +1,5 @@
 import { NextResponse } from 'next/server'
 
-const contactEmail = process.env.CONTACT_TO_EMAIL ?? 'contato@flatfreebrasil.com.br'
-const contactFrom = process.env.CONTACT_FROM_EMAIL ?? 'Flat Free Brasil <contato@flatfreebrasil.com.br>'
 
 function asText(value: unknown, max = 500) {
   return typeof value === 'string' ? value.trim().slice(0, max) : ''
@@ -48,27 +46,21 @@ export async function POST(request: Request) {
       Observacoes: asText(body.Observacoes, 2000) || 'Sem observações',
     }
 
-    const apiKey = process.env.RESEND_API_KEY
-    if (!apiKey) {
+    const endpoint = process.env.FORMSPREE_ENDPOINT
+    if (!endpoint || !/^https:\/\/formspree\.io\/f\/[a-zA-Z0-9]+$/.test(endpoint)) {
       return NextResponse.json(
         { ok: false, error: 'Atendimento por e-mail indisponível no momento.' },
         { status: 503 }
       )
     }
 
-    const response = await fetch('https://api.resend.com/emails', {
+    const response = await fetch(endpoint, {
       method: 'POST',
       headers: {
-        Authorization: `Bearer ${apiKey}`,
+        Accept: 'application/json',
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({
-        from: contactFrom,
-        to: [contactEmail],
-        reply_to: email,
-        subject: '[FLAT FREE] Novo interesse pelo site',
-        text: Object.entries(payload).map(([key, value]) => `${key}: ${value}`).join('\n'),
-      }),
+      body: JSON.stringify({ ...payload, email }),
       cache: 'no-store',
       signal: AbortSignal.timeout(15000),
     })
